@@ -1,0 +1,33 @@
+.citas-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    h1 {
+      color: #1f2937;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+    
+    .btn {
+      padding: 12px 30px;
+      background: #0d9488;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      display: inline-block;
+      
+      &:hover {
+        background: #0f766e;
+      }
+    }

@@ -1,0 +1,115 @@
+.home-container {
+      min-height: 100vh;
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, #0d9488, #0891b2);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+    }
+    
+    .hero-section h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    
+    .hero-section p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 15px 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      
+      &-primary {
+        background: white;
+        color: #0d9488;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+      }
+      
+      &-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+        
+        &:hover {
+          background: white;
+          color: #0d9488;
+        }
+      }
+    }
+    
+    .features-section {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .features-section h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 50px;
+      color: #1f2937;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .feature-card {
+      text-align: center;
+      padding: 40px 30px;
+      border-radius: 12px;
+      background: #f8fafc;
+      transition: all 0.3s;
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      }
+      
+      .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+      }
+      
+      h3 {
+        color: #1f2937;
+        margin-bottom: 15px;
+      }
+      
+      p {
+        color: #6b7280;
+        line-height: 1.6;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .hero-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }

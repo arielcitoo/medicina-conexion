@@ -1,0 +1,25 @@
+<header class="header">
+      <div class="container">
+        <!-- Logo -->
+        <div class="logo" routerLink="/">
+          <span class="logo-icon">🏥</span>
+          <div class="logo-text">
+            <h1>Medicina del Trabajo</h1>
+            <p>Salud Ocupacional</p>
+          </div>
+        </div>
+
+        <!-- Navegación -->
+        <nav class="nav">
+          <a routerLink="/" routerLinkActive="active">🏠 Inicio</a>
+          <a routerLink="/busqueda" routerLinkActive="active">🔍 Buscar Asegurados</a>
+          <a routerLink="/citas" routerLinkActive="active">📅 Citas Médicas</a>
+        </nav>
+
+        <!-- Estado conexión -->
+        <div class="connection-status" [class.connected]="true">
+          <span class="status-icon">✅</span>
+          <span class="status-text">API Conectada</span>
+        </div>
+      </div>
+    </header>

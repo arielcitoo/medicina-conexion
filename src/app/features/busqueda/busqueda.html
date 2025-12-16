@@ -1,0 +1,135 @@
+<div class="busqueda-container">
+      <div class="container">
+        <!-- Título -->
+        <div class="page-header">
+          <h1>🔍 Buscar Asegurados</h1>
+          <p>Consulta información de asegurados del CNS</p>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="search-card">
+          <h2>Búsqueda por Documento</h2>
+          
+          <div class="search-form">
+            <div class="form-group">
+              <label>Documento de Identidad:</label>
+              <input 
+                type="text" 
+                [(ngModel)]="documento" 
+                placeholder="Ej: 1234567"
+                maxlength="10"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Fecha de Nacimiento:</label>
+              <input 
+                type="date" 
+                [(ngModel)]="fechaNacimiento"
+                [max]="hoy"
+              >
+            </div>
+            
+            <button 
+              class="btn btn-primary" 
+              (click)="buscarAsegurado()"
+              [disabled]="cargando || !documento || !fechaNacimiento"
+            >
+              {{ cargando ? '🔍 Buscando...' : '🔍 Buscar Asegurado' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando" class="loading-state">
+          <div class="spinner"></div>
+          <p>Consultando información del asegurado...</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error && !cargando" class="error-state">
+          <h3>❌ Error</h3>
+          <p>{{ error }}</p>
+          <button class="btn btn-secondary" (click)="error = ''">Intentar de nuevo</button>
+        </div>
+
+        <!-- Resultados -->
+        <div *ngIf="asegurado && !cargando" class="results-section">
+          <div class="results-header">
+            <h2>✅ Información Encontrada</h2>
+            <button class="btn btn-secondary" (click)="limpiarBusqueda()">
+              Nueva Búsqueda
+            </button>
+          </div>
+
+          <!-- Tarjeta de información -->
+          <div class="info-card">
+            <div class="info-header">
+              <div class="info-avatar">👤</div>
+              <div class="info-title">
+                <h3>{{ getNombreCompleto() }}</h3>
+                <div class="info-subtitle">
+                  <span class="badge" [class]="getEstadoClass()">
+                    {{ asegurado.estadoAsegurado }}
+                  </span>
+                  <span>Matrícula: {{ asegurado.matricula }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Documento:</label>
+                <span>{{ asegurado.documentoIdentidad }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>Fecha Nacimiento:</label>
+                <span>{{ formatFecha(asegurado.fechaNacimiento) }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>Género:</label>
+                <span>{{ asegurado.genero }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>Tipo Asegurado:</label>
+                <span>{{ asegurado.tipoAsegurado }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>Empresa:</label>
+                <span>{{ asegurado.razonSocial || 'No especificada' }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>N° Patronal:</label>
+                <span>{{ asegurado.nroPatronal || 'No especificado' }}</span>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="info-actions">
+              <button class="btn btn-primary" (click)="verDetalles()">
+                👁️ Ver Detalles Completos
+              </button>
+              <button class="btn btn-secondary" (click)="programarCita()">
+                📅 Programar Cita
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="info-section">
+          <h3>💡 ¿Cómo funciona?</h3>
+          <ul>
+            <li>Ingresa el número de documento del asegurado</li>
+            <li>Selecciona la fecha de nacimiento exacta</li>
+            <li>Los datos deben coincidir con los registrados en el CNS</li>
+            <li>Puedes programar citas médicas para el asegurado encontrado</li>
+          </ul>
+        </div>
+      </div>
+    </div>
