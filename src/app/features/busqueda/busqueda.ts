@@ -35,12 +35,12 @@ documento = '';
 
     this.apiService.buscarAsegurado(this.documento, this.fechaNacimiento).subscribe({
       next: (response) => {
-        console.log('✅ Asegurado encontrado:', response);
+        console.log('Asegurado encontrado:', response);
         this.asegurado = response;
         this.cargando = false;
       },
       error: (err) => {
-        console.error('❌ Error:', err);
+        console.error(' Error:', err);
         
         if (err.status === 401) {
           this.error = 'Error de autenticación. El token puede haber expirado.';

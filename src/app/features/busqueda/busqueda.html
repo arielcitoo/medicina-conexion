@@ -2,7 +2,7 @@
       <div class="container">
         <!-- Título -->
         <div class="page-header">
-          <h1>🔍 Buscar Asegurados</h1>
+          <h1>Buscar Asegurados</h1>
           <p>Consulta información de asegurados del CNS</p>
         </div>
 
@@ -35,7 +35,7 @@
               (click)="buscarAsegurado()"
               [disabled]="cargando || !documento || !fechaNacimiento"
             >
-              {{ cargando ? '🔍 Buscando...' : '🔍 Buscar Asegurado' }}
+              {{ cargando ? 'Buscando...' : 'Buscar Asegurado' }}
             </button>
           </div>
         </div>
@@ -56,7 +56,7 @@
         <!-- Resultados -->
         <div *ngIf="asegurado && !cargando" class="results-section">
           <div class="results-header">
-            <h2>✅ Información Encontrada</h2>
+            <h2>Información Encontrada</h2>
             <button class="btn btn-secondary" (click)="limpiarBusqueda()">
               Nueva Búsqueda
             </button>
@@ -112,10 +112,10 @@
             <!-- Acciones -->
             <div class="info-actions">
               <button class="btn btn-primary" (click)="verDetalles()">
-                👁️ Ver Detalles Completos
+                Ver Detalles Completos
               </button>
               <button class="btn btn-secondary" (click)="programarCita()">
-                📅 Programar Cita
+                Programar Cita
               </button>
             </div>
           </div>

@@ -1,0 +1,130 @@
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1><i class="fas fa-calendar-alt"></i> Sistema de Programación de Citas</h1>
+    <p>Verificación de Empresa - Exámenes Preocupacionales</p>
+  </div>
+
+  <!-- Card Principal -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fas fa-building"></i> Preingreso de Empresa</h2>
+      <p>Ingrese su número patronal para continuar</p>
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="preloginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Número Patronal</label>
+        <div class="input-group">
+          <span class="input-icon"><i class="fas fa-hashtag"></i></span>
+          <input 
+            type="text" 
+            formControlName="numeroPatronal"
+            placeholder="Ejemplo: 01-730-00001"
+            [class.error]="campoInvalido"
+          >
+        </div>
+        
+        <!-- Errores -->
+        <div *ngIf="campoInvalido" class="error-text">
+          <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+        </div>
+
+        <!-- Ejemplos para probar -->
+        <div class="ejemplos">
+          <p><small><i class="fas fa-lightbulb"></i> Ejemplos para probar:</small></p>
+          <div class="ejemplos-buttons">
+            <button 
+              type="button" 
+              *ngFor="let ejemplo of ejemplos"
+              (click)="cargarEjemplo(ejemplo)"
+              class="ejemplo-btn"
+            >
+              {{ ejemplo }}
+            </button>
+          </div>
+          <p class="ejemplo-nota">
+            <small><i class="fas fa-info-circle"></i> Estos son ejemplos. Ingrese su número patronal real.</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Información de Empresa -->
+      <div *ngIf="empresaEncontrada" class="empresa-info">
+        <h3><i class="fas fa-info-circle"></i> Información de la Empresa</h3>
+        
+        <div class="info-row">
+          <strong>Razón Social:</strong> 
+          <span class="razon-social">{{ empresaEncontrada.RazonSocial }}</span>
+        </div>
+        
+        <div class="info-row">
+          <strong>NIT:</strong> {{ empresaEncontrada.NIT }}
+        </div>
+        
+        <div class="info-row">
+          <strong>N° Patronal:</strong> {{ empresaEncontrada.NumeroPatronal }}
+        </div>
+        
+        <div class="info-row">
+          <strong>Estado:</strong>
+          <span [class]="empresaActiva ? 'estado-activo' : 'estado-inactivo'">
+            <i class="fas" [class.fa-check]="empresaActiva" [class.fa-times]="!empresaActiva"></i>
+            {{ empresaEncontrada.Estado }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="botones">
+        <button 
+          type="submit" 
+          class="btn-primario"
+          [disabled]="cargando || preloginForm.invalid"
+          [class.btn-exito]="empresaEncontrada && empresaActiva"
+        >
+          <span *ngIf="cargando" class="spinner"></span>
+          <i class="fas" 
+             [class.fa-search]="!cargando && !empresaEncontrada"
+             [class.fa-spinner]="cargando && cargando"
+             [class.fa-sign-in-alt]="empresaEncontrada && empresaActiva && !cargando">
+          </i>
+          {{ textoBoton }}
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn-secundario" 
+          (click)="limpiar()"
+          [disabled]="cargando"
+        >
+          <i class="fas fa-redo"></i> Limpiar
+        </button>
+      </div>
+
+      <!-- Mensajes -->
+      <div *ngIf="mensaje" class="mensaje" [class]="'mensaje-' + tipoMensaje">
+        <i class="fas" 
+           [class.fa-check-circle]="tipoMensaje === 'exito'"
+           [class.fa-exclamation-circle]="tipoMensaje === 'error'"
+           [class.fa-info-circle]="tipoMensaje === 'info'"></i>
+        {{ mensaje }}
+      </div>
+    </form>
+
+    <!-- Información Importante -->
+    <div class="info-box">
+      <h4><i class="fas fa-exclamation-triangle"></i> Importante</h4>
+      <p>
+        Si su empresa aparece como <strong>"INACTIVO"</strong>, deberá acercarse a la oficina de 
+        afiliaciones para regularizar su situación antes de programar citas.
+      </p>
+      <p class="token-info">
+        <small><i class="fas fa-key"></i> Usando autenticación JWT</small>
+      </p>
+    </div>
+  </div>
+
+  
+</div>
