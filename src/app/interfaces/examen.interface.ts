@@ -1,6 +1,7 @@
 export interface Asegurado {
   id: number;  // Cambiado: removemos el ? para hacerlo requerido
   ci: string;
+  genero: string;
   fechaNacimiento: Date;
   nombreCompleto: string;
   documentoIdentidad: string;
