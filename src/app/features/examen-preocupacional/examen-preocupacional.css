@@ -1,0 +1,33 @@
+/* Estilos adicionales para el manejo de archivos */
+.file-upload-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  font-size: 11px;
+  font-weight: bold;
+  color: #666;
+}
+
+.file-status.complete {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+/* Mejorar la visualización de archivos faltantes */
+.missing {
+  color: #f44336;
+  font-weight: 500;
+  font-style: italic;
+}

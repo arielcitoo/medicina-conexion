@@ -1,0 +1,119 @@
+<h2 mat-dialog-title>
+  <mat-icon>person_search</mat-icon>
+  Buscar y Agregar Asegurado
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="aseguradoForm">
+
+    <!-- Búsqueda de Asegurado -->
+    <div class="search-section">
+      <h4>Buscar Asegurado en el Sistema</h4>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Número de Carnet de Identidad</mat-label>
+          <input matInput formControlName="ci" placeholder="Ej: 1234567LP">
+          <mat-icon matSuffix>badge</mat-icon>
+          <mat-error *ngIf="aseguradoForm.get('ci')?.hasError('required')">
+            El CI es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Fecha de Nacimiento</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="fechaNacimiento">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="aseguradoForm.get('fechaNacimiento')?.hasError('required')">
+            La fecha es requerida
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <button mat-raised-button color="primary"
+              (click)="buscarAsegurado()"
+              [disabled]="!aseguradoForm.get('ci')?.valid || !aseguradoForm.get('fechaNacimiento')?.valid || isLoading">
+        <mat-icon *ngIf="!isLoading">search</mat-icon>
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        {{ isLoading ? 'Buscando...' : 'Buscar Asegurado' }}
+      </button>
+    </div>
+
+    <!-- Resultado de Búsqueda -->
+    <div *ngIf="busquedaRealizada" class="result-section">
+      <div *ngIf="datosAsegurado" class="success-result">
+        <mat-icon>check_circle</mat-icon>
+        <h4>Asegurado encontrado</h4>
+
+        <div class="result-details">
+          <div class="detail-item">
+            <strong>Nombre Completo:</strong>
+            <span>{{ datosAsegurado.nombreCompleto }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Documento de Identidad:</strong>
+            <span>{{ datosAsegurado.documentoIdentidad }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!datosAsegurado" class="error-result">
+        <mat-icon>error</mat-icon>
+        <h4>Asegurado no encontrado</h4>
+        <p>Verifique el CI y fecha de nacimiento e intente nuevamente.</p>
+      </div>
+    </div>
+
+    <!-- Datos del Asegurado (si se encontró) -->
+    <div *ngIf="datosAsegurado" class="data-section">
+      <h4>Completar Datos del Asegurado</h4>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Correo Electrónico</mat-label>
+          <input matInput type="email" formControlName="correoElectronico"
+                 placeholder="asegurado@email.com">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error *ngIf="aseguradoForm.get('correoElectronico')?.hasError('email')">
+            Ingrese un correo válido
+          </mat-error>
+          <mat-error *ngIf="aseguradoForm.get('correoElectronico')?.hasError('required')">
+            El correo es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Celular</mat-label>
+          <input matInput formControlName="celular" placeholder="77777777">
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-error *ngIf="aseguradoForm.get('celular')?.hasError('pattern')">
+            Ingrese 8 dígitos
+          </mat-error>
+          <mat-error *ngIf="aseguradoForm.get('celular')?.hasError('required')">
+            El celular es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="warning-note">
+        <mat-icon>info</mat-icon>
+        <p>Nota: Estos datos son obligatorios para el registro del examen preocupacional.</p>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">
+    <mat-icon>close</mat-icon>
+    Cancelar
+  </button>
+  <button mat-raised-button color="primary"
+          (click)="agregarAsegurado()"
+          [disabled]="!puedeAgregar">
+    <mat-icon>add</mat-icon>
+    Agregar Asegurado
+  </button>
+</mat-dialog-actions>
