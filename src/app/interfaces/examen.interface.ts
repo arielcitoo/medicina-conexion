@@ -2,7 +2,12 @@ export interface Asegurado {
   id: number;
   nombreCompleto: string;
   documentoIdentidad: string;
+  empresa: string;
+  cargo: string;
+  area: string;
   ci: string;
+  nitEmpresa:string;
+  fechaIngreso: Date | string;
   fechaNacimiento: Date | string;
   correoElectronico: string;
   celular: string;

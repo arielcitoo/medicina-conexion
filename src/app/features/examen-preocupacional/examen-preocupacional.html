@@ -161,94 +161,122 @@
             </div>
 
             <!-- Tabla de asegurados -->
-            @if (asegurados.length > 0) {
-              <div class="table-container">
-                <table mat-table [dataSource]="asegurados" class="mat-elevation-z2">
+           <!-- Reemplazar la tabla actual con esto: -->
+@if (asegurados.length > 0) {
+  <div class="table-container mat-elevation-z2">
+    <table mat-table [dataSource]="asegurados" class="asegurados-table">
+      
+      <!-- Nombre Completo -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="nombre-cell">
+            <mat-icon>person</mat-icon>
+            <span>{{ asegurado.nombreCompleto }}</span>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- Nombre Column -->
-                  <ng-container matColumnDef="nombre">
-                    <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-                    <td mat-cell *matCellDef="let asegurado">{{ asegurado.nombreCompleto }}</td>
-                  </ng-container>
+      <!-- CI/NIT -->
+      <ng-container matColumnDef="ci">
+        <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="ci-cell">
+            <mat-icon>badge</mat-icon>
+            <span>{{ asegurado.ci }}</span>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- CI Column -->
-                  <ng-container matColumnDef="ci">
-                    <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
-                    <td mat-cell *matCellDef="let asegurado">{{ asegurado.ci }}</td>
-                  </ng-container>
+      <!-- Empresa (nueva columna) -->
+      <ng-container matColumnDef="empresa">
+        <th mat-header-cell *matHeaderCellDef>Empresa</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="empresa-cell">
+            <mat-icon>business</mat-icon>
+            <span>{{ asegurado.empresa || 'No especificada' }}</span>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- Correo Column -->
-                  <ng-container matColumnDef="correo">
-                    <th mat-header-cell *matHeaderCellDef>Correo</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <span [class.missing]="!asegurado.correoElectronico">
-                        {{ asegurado.correoElectronico || 'No asignado' }}
-                      </span>
-                    </td>
-                  </ng-container>
+      <!-- Correo -->
+      <ng-container matColumnDef="correo">
+        <th mat-header-cell *matHeaderCellDef>Correo</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="correo-cell" [class.missing]="!asegurado.correoElectronico">
+            <mat-icon>email</mat-icon>
+            <span>{{ asegurado.correoElectronico || 'No asignado' }}</span>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- Celular Column -->
-                  <ng-container matColumnDef="celular">
-                    <th mat-header-cell *matHeaderCellDef>Celular</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <span [class.missing]="!asegurado.celular">
-                        {{ asegurado.celular || 'No asignado' }}
-                      </span>
-                    </td>
-                  </ng-container>
+      <!-- Celular -->
+      <ng-container matColumnDef="celular">
+        <th mat-header-cell *matHeaderCellDef>Celular</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="celular-cell" [class.missing]="!asegurado.celular">
+            <mat-icon>phone</mat-icon>
+            <span>{{ asegurado.celular || 'No asignado' }}</span>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- Archivos Column -->
-                  <ng-container matColumnDef="archivos">
-                    <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <div class="file-upload-buttons">
-                        <!-- Anverso -->
-                        <input type="file" #anversoInput hidden
-                               (change)="onFileGestoraSelected($event, asegurado.id, 'anverso')"
-                               accept="image/*,.pdf">
-                        <button mat-mini-fab color="primary"
-                                [matTooltip]="getNombreArchivo(asegurado.id, 'anverso')"
-                                (click)="anversoInput.click()">
-                          <mat-icon>upload</mat-icon>
-                        </button>
-                        <span class="file-status"
-                              [class.complete]="archivosAsegurados[asegurado.id]?.anverso">
-                          A
-                        </span>
+      <!-- Archivos -->
+      <ng-container matColumnDef="archivos">
+        <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <div class="archivos-cell">
+            <!-- Anverso -->
+            <div class="file-upload-item">
+              <input type="file" #anversoInput hidden
+                     (change)="onFileGestoraSelected($event, asegurado.id!, 'anverso')"
+                     accept="image/*,.pdf">
+              <button mat-mini-fab color="primary"
+                      [matTooltip]="getNombreArchivo(asegurado.id!, 'anverso')"
+                      (click)="anversoInput.click()">
+                <mat-icon>cloud_upload</mat-icon>
+              </button>
+              <span class="file-label" [class.complete]="archivosAsegurados[asegurado.id!]?.anverso">
+                Anverso
+              </span>
+            </div>
 
-                        <!-- Reverso -->
-                        <input type="file" #reversoInput hidden
-                               (change)="onFileGestoraSelected($event, asegurado.id, 'reverso')"
-                               accept="image/*,.pdf">
-                        <button mat-mini-fab color="primary"
-                                [matTooltip]="getNombreArchivo(asegurado.id, 'reverso')"
-                                (click)="reversoInput.click()">
-                          <mat-icon>upload</mat-icon>
-                        </button>
-                        <span class="file-status"
-                              [class.complete]="archivosAsegurados[asegurado.id]?.reverso">
-                          R
-                        </span>
-                      </div>
-                    </td>
-                  </ng-container>
+            <!-- Reverso -->
+            <div class="file-upload-item">
+              <input type="file" #reversoInput hidden
+                     (change)="onFileGestoraSelected($event, asegurado.id!, 'reverso')"
+                     accept="image/*,.pdf">
+              <button mat-mini-fab color="primary"
+                      [matTooltip]="getNombreArchivo(asegurado.id!, 'reverso')"
+                      (click)="reversoInput.click()">
+                <mat-icon>cloud_upload</mat-icon>
+              </button>
+              <span class="file-label" [class.complete]="archivosAsegurados[asegurado.id!]?.reverso">
+                Reverso
+              </span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
 
-                  <!-- Acciones Column -->
-                  <ng-container matColumnDef="acciones">
-                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <button mat-icon-button color="warn"
-                              (click)="eliminarAsegurado(asegurado.id)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </td>
-                  </ng-container>
+      <!-- Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let asegurado">
+          <button mat-icon-button color="warn"
+                  (click)="eliminarAsegurado(asegurado.id!)"
+                  matTooltip="Eliminar asegurado">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                </table>
-              </div>
-            }
+      <!-- Encabezado y filas -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+}
 
             <!-- Mensaje si no hay asegurados -->
             @if (asegurados.length === 0) {

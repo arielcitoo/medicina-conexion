@@ -1,70 +1,252 @@
-<!-- En la sección de resultados exitosos -->
-@if (datosAsegurado && !errorBusqueda) {
-  <div class="success-result">
-    <div class="result-header">
-      <mat-icon class="success-icon">check_circle</mat-icon>
-      <h4>Asegurado encontrado</h4>
-    </div>
-
-    <div class="result-details">
-      <div class="detail-item">
-        <mat-icon>person</mat-icon>
-        <div class="detail-content">
-          <strong>Nombre Completo:</strong>
-          <span>{{ datosAsegurado!.nombreCompleto }}</span>
-        </div>
-      </div>
-
-      <div class="detail-item">
-        <mat-icon>credit_card</mat-icon>
-        <div class="detail-content">
-          <strong>Documento de Identidad:</strong>
-          <span>{{ datosAsegurado!.documentoIdentidad }}</span>
-        </div>
-      </div>
-
-      @if (datosAsegurado!.edad) {
-        <div class="detail-item">
-          <mat-icon>cake</mat-icon>
-          <div class="detail-content">
-            <strong>Edad:</strong>
-            <span>{{ datosAsegurado!.edad }} años</span>
-          </div>
-        </div>
-      }
-
-      @if (datosAsegurado!.genero) {
-        <div class="detail-item">
-          <mat-icon>wc</mat-icon>
-          <div class="detail-content">
-            <strong>Género:</strong>
-            <span>{{ datosAsegurado!.genero }}</span>
-          </div>
-        </div>
-      }
-
-      @if (datosAsegurado!.estado) {
-        <div class="detail-item">
-          <mat-icon>verified</mat-icon>
-          <div class="detail-content">
-            <strong>Estado:</strong>
-            <span [class.estado-activo]="datosAsegurado!.estado === 'ACTIVO'"
-                  [class.estado-inactivo]="datosAsegurado!.estado !== 'ACTIVO'">
-              {{ datosAsegurado!.estado }}
-            </span>
-          </div>
-        </div>
-      }
-
-      @if (datosAsegurado!.codigoAsegurado) {
-        <div class="detail-item">
-          <mat-icon>badge</mat-icon>
-          <div class="detail-content">
-            <strong>Código de Asegurado:</strong>
-            <span>{{ datosAsegurado!.codigoAsegurado }}</span>
-          </div>
-        </div>
-      }
-    </div>
+<div class="modal-container">
+  <!-- Encabezado -->
+  <div mat-dialog-title class="modal-header">
+    <h2>
+      <mat-icon>person_add</mat-icon>
+      Registrar Asegurado
+    </h2>
+    <button mat-icon-button mat-dialog-close aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
-}
+
+  <!-- Contenido -->
+  <mat-dialog-content class="modal-content">
+    
+    <!-- Sección de Búsqueda -->
+    <div class="section">
+      <div class="section-title">
+        <mat-icon>search</mat-icon>
+        Buscar Asegurado en CNS
+      </div>
+      <p class="section-description">
+        Ingrese el CI y fecha de nacimiento del asegurado para consultar su afiliacion en la CNS
+      </p>
+
+      <form [formGroup]="aseguradoForm">
+        <div class="form-row">
+          <!-- CI -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label> CI </mat-label>
+            <input matInput formControlName="ci" 
+                   placeholder="Ej: 1234567 o 1234567890"
+                   [maxlength]="11">
+            <mat-icon matSuffix>badge</mat-icon>
+            @if (aseguradoForm.get('ci')?.hasError('required')) {
+              <mat-error>El CI es requerido</mat-error>
+            }
+            @if (aseguradoForm.get('ci')?.hasError('pattern')) {
+              <mat-error>Formato: 7-10 dígitos + letra opcional</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Fecha de Nacimiento -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Fecha de Nacimiento *</mat-label>
+            <input matInput [matDatepicker]="picker" 
+                   formControlName="fechaNacimiento"
+                   [max]="maxFechaNacimiento()"
+                   placeholder="dd/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-icon matSuffix>calendar_today</mat-icon>
+            @if (aseguradoForm.get('fechaNacimiento')?.hasError('required')) {
+              <mat-error>La fecha es requerida</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Botón de Búsqueda -->
+        <div class="search-button-container">
+          <button mat-raised-button color="primary" 
+                  class="search-button"
+                  (click)="buscarAsegurado()"
+                  [disabled]="!puedeBuscar() || isLoading">
+            @if (isLoading) {
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Buscando...</span>
+            } @else {
+              <mat-icon>search</mat-icon>
+              <span>Buscar Asegurado</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Resultados -->
+    <div class="result-container">
+      @if (isLoading) {
+        <div class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Consultando información del asegurado...</p>
+        </div>
+      }
+
+      @if (errorBusqueda && busquedaRealizada) {
+        <div class="section error-result">
+          <div class="result-header">
+            <mat-icon class="error-icon">error_outline</mat-icon>
+            <h4>No se encontró el asegurado</h4>
+          </div>
+          <p>{{ errorBusqueda }}</p>
+          <p class="section-description">
+            Verifique que el CI y fecha de nacimiento sean correctos, o contacte con el administrador de afiliaciones.
+          </p>
+        </div>
+      }
+
+      @if (datosAsegurado && !errorBusqueda && busquedaRealizada) {
+        <div class="section success-result">
+          <div class="result-header">
+            <mat-icon class="success-icon">check_circle</mat-icon>
+            <h4>Asegurado encontrado ✓</h4>
+          </div>
+
+          <div class="result-details">
+            <!-- Información Personal -->
+            <div class="detail-item">
+              <mat-icon>person_outline</mat-icon>
+              <div class="detail-content">
+                <strong>Nombre Completo</strong>
+                <span>{{ datosAsegurado.nombreCompleto }}</span>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <mat-icon>fingerprint</mat-icon>
+              <div class="detail-content">
+                <strong>Documento de Identidad</strong>
+                <span>{{ datosAsegurado.documentoIdentidad }}</span>
+              </div>
+            </div>
+
+            @if (datosAsegurado.edad) {
+              <div class="detail-item">
+                <mat-icon>cake</mat-icon>
+                <div class="detail-content">
+                  <strong>Edad</strong>
+                  <span>{{ datosAsegurado.edad }} años</span>
+                </div>
+              </div>
+            }
+
+            @if (datosAsegurado.genero) {
+              <div class="detail-item">
+                <mat-icon>wc</mat-icon>
+                <div class="detail-content">
+                  <strong>Género</strong>
+                  <span>{{ datosAsegurado.genero }}</span>
+                </div>
+              </div>
+            }
+
+            <!-- Información Laboral -->
+            @if (datosAsegurado.empresa) {
+              <div class="detail-item">
+                <mat-icon>business</mat-icon>
+                <div class="detail-content">
+                  <strong>Empresa</strong>
+                  <span>{{ datosAsegurado.empresa }}</span>
+                </div>
+              </div>
+            }
+
+            @if (datosAsegurado.cargo) {
+              <div class="detail-item">
+                <mat-icon>work_outline</mat-icon>
+                <div class="detail-content">
+                  <strong>Cargo</strong>
+                  <span>{{ datosAsegurado.cargo }}</span>
+                </div>
+              </div>
+            }
+
+            @if (datosAsegurado.estado) {
+              <div class="detail-item">
+                <mat-icon>verified_user</mat-icon>
+                <div class="detail-content">
+                  <strong>Estado</strong>
+                  <span [class.estado-activo]="datosAsegurado.estado === 'ACTIVO'"
+                        [class.estado-inactivo]="datosAsegurado.estado !== 'ACTIVO'">
+                    {{ datosAsegurado.estado }}
+                  </span>
+                </div>
+              </div>
+            }
+
+            @if (datosAsegurado.codigoAsegurado) {
+              <div class="detail-item">
+                <mat-icon>qr_code</mat-icon>
+                <div class="detail-content">
+                  <strong>Código de Asegurado</strong>
+                  <span>{{ datosAsegurado.codigoAsegurado }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Sección de Contacto -->
+      @if (datosAsegurado && !errorBusqueda) {
+        <div class="section contact-section">
+          <div class="section-title">
+            <mat-icon>contact_mail</mat-icon>
+            Datos de Contacto
+          </div>
+          <p class="section-description">
+            Complete los datos de contacto del asegurado para el examen preocupacional
+          </p>
+
+          <div class="form-row">
+            <!-- Correo Electrónico -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Correo Electrónico *</mat-label>
+              <input matInput type="email" formControlName="correoElectronico"
+                     placeholder="ejemplo@email.com">
+              <mat-icon matSuffix>alternate_email</mat-icon>
+              @if (aseguradoForm.get('correoElectronico')?.hasError('required')) {
+                <mat-error>El correo es requerido</mat-error>
+              }
+              @if (aseguradoForm.get('correoElectronico')?.hasError('email')) {
+                <mat-error>Ingrese un correo válido</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Celular -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Celular *</mat-label>
+              <input matInput formControlName="celular"
+                     placeholder="77777777"
+                     [maxlength]="8">
+              <mat-icon matSuffix>smartphone</mat-icon>
+              @if (aseguradoForm.get('celular')?.hasError('required')) {
+                <mat-error>El celular es requerido</mat-error>
+              }
+              @if (aseguradoForm.get('celular')?.hasError('pattern')) {
+                <mat-error>Debe tener 8 dígitos numéricos</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <!-- Acciones -->
+  <mat-dialog-actions class="modal-actions">
+    <button mat-button mat-dialog-close class="cancel-button action-button">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+    
+    <button mat-raised-button color="primary"
+            class="submit-button action-button"
+            [disabled]="!puedeAgregar"
+            (click)="agregarAsegurado()">
+      <mat-icon>person_add_alt</mat-icon>
+      Agregar Asegurado
+    </button>
+  </mat-dialog-actions>
+</div>

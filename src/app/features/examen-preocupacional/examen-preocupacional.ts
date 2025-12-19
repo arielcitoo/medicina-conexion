@@ -1,9 +1,9 @@
+import { ModalAsegurado } from '../modal-asegurado/modal-asegurado';
 import { Component, OnInit, ViewChild, computed, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ModalAsegurado } from '../modal-asegurado/modal-asegurado'; // Asegúrate del nombre correcto
+import { MatSnackBar } from '@angular/material/snack-bar';// Asegúrate del nombre correcto
 import { ExamenService } from '../../service/examen.service';
 import { Asegurado } from '../../interfaces/examen.interface';
 import { MatCardModule } from '@angular/material/card';
@@ -57,8 +57,15 @@ export class ExamenPreocupacional implements OnInit {
 
 
   // Columnas de la tabla
-  readonly displayedColumns: string[] = ['nombre', 'ci', 'correo', 'celular', 'archivos', 'acciones'];
-
+ readonly displayedColumns: string[] = [
+  'nombre', 
+  'ci', 
+  'empresa', // Nueva columna
+  'correo', 
+  'celular', 
+  'archivos', 
+  'acciones'
+];
   // Signal computado corregido
   puedeAvanzarPaso2 = computed(() => {
     const aseguradosList = this.asegurados;
@@ -110,34 +117,72 @@ export class ExamenPreocupacional implements OnInit {
    * Paso 2: Abrir modal para agregar asegurado - CORREGIDO
    */
   abrirModalAsegurado(): void {
-    console.log('Intentando abrir modal...'); // Para debugging
+  console.log('🔘 Botón clicado: Intentando abrir modal...');
+  console.log('📌 ModalAsegurado importado:', ModalAsegurado);
+  console.log('📌 Tipo:', typeof ModalAsegurado);
+  console.log('📌 Es función?', typeof ModalAsegurado === 'function');
+  console.log('📌 Constructor disponible?', ModalAsegurado?.prototype?.constructor);
+  
+  try {
+    // Verificar que el componente existe
+    if (!ModalAsegurado) {
+      console.error('❌ ModalAsegurado no está definido');
+      this.mostrarSnackbar('Error: Componente del modal no disponible', 'error');
+      return;
+    }
 
-    // Verifica que el modal se pueda abrir
+    // Verificar que MatDialog está disponible
+    if (!this.dialog) {
+      console.error('❌ MatDialog no está inyectado');
+      this.mostrarSnackbar('Error: Diálogo no disponible', 'error');
+      return;
+    }
+
+    // Verificar límite de asegurados
     const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value || 0;
     if (this.asegurados.length >= cantidadPermitida) {
       this.mostrarSnackbar(`No puede agregar más de ${cantidadPermitida} asegurados`, 'error');
       return;
     }
 
-    try {
-      const dialogRef = this.dialog.open(ModalAsegurado, {
-        width: '600px',
-        disableClose: true,
-        data: { maxAsegurados: cantidadPermitida }
-      });
+    console.log('✅ Todas las condiciones OK, abriendo modal...');
 
-      dialogRef.afterClosed().subscribe((result: Asegurado | undefined) => {
-        console.log('Modal cerrado, resultado:', result); // Para debugging
+    const dialogRef = this.dialog.open(ModalAsegurado, {
+      width: '650px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false, // Cambia a true en producción
+      autoFocus: true,
+      hasBackdrop: true,
+      backdropClass: 'modal-backdrop',
+      panelClass: 'modal-panel',
+      data: { maxAsegurados: cantidadPermitida }
+    });
 
+    console.log('📝 Modal abierto, referencia:', dialogRef);
+    console.log('👁️ Verificando si el overlay está visible...');
+
+    dialogRef.afterOpened().subscribe(() => {
+      console.log('✅ Modal completamente abierto y visible');
+    });
+
+    dialogRef.afterClosed().subscribe({
+      next: (result: Asegurado | undefined) => {
+        console.log('🔒 Modal cerrado, resultado:', result);
         if (result) {
           this.agregarAsegurado(result);
         }
-      });
-    } catch (error) {
-      console.error('Error al abrir modal:', error);
-      this.mostrarSnackbar('Error al abrir el formulario de asegurado', 'error');
-    }
+      },
+      error: (error) => {
+        console.error('❌ Error al cerrar modal:', error);
+      }
+    });
+
+  } catch (error) {
+    console.error('💥 ERROR CRÍTICO al abrir modal:', error);
+    this.mostrarSnackbar('Error crítico al abrir el formulario', 'error');
   }
+}
   /**
    * Paso 1: Manejo de imagen del recibo
    */

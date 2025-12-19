@@ -1,38 +1,22 @@
-/* You can add global styles to this file, and also import other style files */
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
-/* Snackbar Styles */
-.snackbar-success {
-  background-color: #4caf50;
-  color: white;
+/* Estilos para modales */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-.snackbar-error {
-  background-color: #f44336;
-  color: white;
+.modal-panel {
+  opacity: 1 !important;
+  visibility: visible !important;
+  background-color: white !important;
 }
 
-.snackbar-info {
-  background-color: #2196f3;
-  color: white;
+/* Forzar visibilidad del overlay */
+.cdk-overlay-pane {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1000 !important;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.cdk-overlay-backdrop {
+  opacity: 0.5 !important;
+  background-color: black !important;
 }
