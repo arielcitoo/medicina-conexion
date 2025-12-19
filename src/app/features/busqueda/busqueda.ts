@@ -14,7 +14,7 @@ export class Busqueda {
 documento = '';
   fechaNacimiento = '';
   hoy = new Date().toISOString().split('T')[0];
-  
+
   cargando = false;
   error = '';
   asegurado: Asegurado | null = null;
@@ -36,12 +36,12 @@ documento = '';
     this.apiService.buscarAsegurado(this.documento, this.fechaNacimiento).subscribe({
       next: (response) => {
         console.log('Asegurado encontrado:', response);
-        this.asegurado = response;
+       // this.asegurado = response;
         this.cargando = false;
       },
       error: (err) => {
         console.error(' Error:', err);
-        
+
         if (err.status === 401) {
           this.error = 'Error de autenticación. El token puede haber expirado.';
         } else if (err.status === 404) {
@@ -49,7 +49,7 @@ documento = '';
         } else {
           this.error = `Error ${err.status}: ${err.message}`;
         }
-        
+
         this.cargando = false;
       }
     });
@@ -62,7 +62,7 @@ documento = '';
 
   getEstadoClass(): string {
     if (!this.asegurado) return '';
-    
+
     const estado = this.asegurado.estadoAsegurado.toLowerCase();
     if (estado.includes('activo')) return 'activo';
     if (estado.includes('inactivo')) return 'inactivo';

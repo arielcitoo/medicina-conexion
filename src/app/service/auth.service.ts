@@ -12,7 +12,7 @@ export class AuthService {
   private empresaKey = 'empresa_data';
 
   // Token JWT
-  private jwtToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjYwNjI3NTcsImV4cCI6MTc2NjA5ODc1NywiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjA2MDQ3NiwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IjBBMjE3NkNBNkQwMjVBRjBERUU0REMwRjQzMDZFOTI1IiwiaWF0IjoxNzY2MDYyNzU3LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.DjS_VQnLW_VVs-DDXqvmhTGVAKdpRgJLp4X64uIsRTDy-tgWGrW2VwBOwO2Q9rU_U4dBcL7zlWF-0u88xCUtR17wSsSWSoaFcbxX3L89ntx736jPotU7H59tQ4-80fqn4htoVf8orbOjM6sStJljE_U3Kwv9GPBH_RPb9p3e3iGBCX6L8wHY-Hd5zz-QHz20P-gi2iOlSv1b9WpUY7LCSe55ySghUVQ97UQS0SNUWQXM9LeDzUnZVlLXzq4fzCYeAwOKTAkrPHGVdJNhyULaIxWzJo9vNJnYiCihQsoaPGL9QjCsJWVfiTAuGJC1XdzgDw83dmyejeuhciSmeRX1_g';
+  private jwtToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjYxMDE0MjgsImV4cCI6MTc2NjEzNzQyOCwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjEwMTQyOCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IjM3OTU1QTQyOEUwQUFGQ0VBQjZDRDAyNzlDMEJGNjVCIiwiaWF0IjoxNzY2MTAxNDI4LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.VETEl5ulfEAu_IJMtTybKkTqvqUBNsv-kPU8xgyMWflLdtBI0vyJFaZ6WWem8gG1FRypcXNL5aS8rx9S9WihUcOrN0Ea6aUmR4241gkTQBW2QjhZPMhX3MFD7hURmA1hR2jmgyxUNLd5ZZ80QQJMeys2aekwjf3E9rk33QAVWN7QrnaSuSYm7B9h1emNYrwCLLCSMUOcz7yEld50Yd4g8aYFIGpX54NxO53tcjUsENa3p0C0xhJpcVWdbJicfxQllYYhGoDL39rcIkxRdIHDtKvrTDp9hsOZ3n9BbQDIxCxE4m-a11BSHgEiZTm0T3VrX6D5XO-Q5grG8BpIJJ0Rzw';
 
   constructor(private http: HttpClient) {
     this.loadToken();
@@ -57,48 +57,48 @@ export class AuthService {
     ).pipe(
       map(response => {
         console.log('✅ Respuesta completa del servidor:', response);
-        
+
         const body = response.body;
-        
+
         // CASO 1: Si el body es un array directamente
         if (Array.isArray(body)) {
           console.log('📦 Body es un array:', body);
-          
+
           if (body.length === 0) {
             throw new Error('EMPRESA_NO_ENCONTRADA');
           }
-          
+
           const empresa = body[0];
           return this.procesarEmpresa(empresa, numeroPatronal);
         }
-        
+
         // CASO 2: Si el body tiene propiedad 'data' (array)
         else if (body && body.data && Array.isArray(body.data)) {
           console.log('📦 Body tiene propiedad data:', body.data);
-          
+
           if (body.data.length === 0) {
             throw new Error('EMPRESA_NO_ENCONTRADA');
           }
-          
+
           const empresa = body.data[0];
           return this.procesarEmpresa(empresa, numeroPatronal);
         }
-        
+
         // CASO 3: Si el body es un objeto con la empresa directamente
         else if (body && typeof body === 'object') {
           console.log('📦 Body es un objeto:', body);
-          
+
           // Verificar si el objeto tiene propiedades de empresa
           if (body.NumeroPatronal || body.RazonSocial) {
             return this.procesarEmpresa(body, numeroPatronal);
           }
-          
+
           // Si tiene propiedad success pero es false
           if (body.success === false) {
             throw new Error('EMPRESA_NO_ENCONTRADA');
           }
         }
-        
+
         // CASO 4: Cualquier otra estructura
         console.warn('⚠️ Estructura de respuesta no reconocida:', body);
         throw new Error('EMPRESA_NO_ENCONTRADA');
@@ -112,7 +112,7 @@ export class AuthService {
    */
   private procesarEmpresa(empresa: any, numeroPatronal: string): any {
     console.log('🏢 Procesando empresa:', empresa);
-    
+
     // Normalizar datos
     const empresaNormalizada = {
       ID: empresa.ID || empresa.id || 0,
@@ -126,16 +126,16 @@ export class AuthService {
       FechaAfiliacion: empresa.FechaAfiliacion || empresa.fechaAfiliacion || '',
       TipoEmpresa: empresa.TipoEmpresa || empresa.tipoEmpresa || ''
     };
-    
+
     // Verificar estado
     if (!this.estaActiva(empresaNormalizada.Estado)) {
       console.warn('⚠️ Empresa inactiva:', empresaNormalizada.Estado);
       throw new Error('EMPRESA_INACTIVA');
     }
-    
+
     // Guardar empresa
     this.guardarEmpresa(empresaNormalizada);
-    
+
     return {
       success: true,
       empresa: empresaNormalizada,
@@ -151,19 +151,19 @@ export class AuthService {
       console.warn('⚠️ Estado vacío');
       return false;
     }
-    
+
     const estadoUpper = estado.toUpperCase();
-    
+
     // Posibles valores de estado activo
     const estadosActivos = [
-      'ACTIVO', 'ACTIVA', 'A', '1', 'HABILITADO', 
+      'ACTIVO', 'ACTIVA', 'A', '1', 'HABILITADO',
       'HABILITADA', 'VIGENTE', 'VIGENTE'
     ];
-    
-    const activa = estadosActivos.some(estadoActivo => 
+
+    const activa = estadosActivos.some(estadoActivo =>
       estadoUpper.includes(estadoActivo)
     );
-    
+
     console.log(`🔍 Estado: "${estado}" → Activa: ${activa}`);
     return activa;
   }
@@ -181,7 +181,7 @@ export class AuthService {
    */
   private manejarError(error: any, numeroPatronal: string): Observable<never> {
     console.error('❌ Error en búsqueda:', error);
-    
+
     // Si el error viene con información de empresa no encontrada
     if (error.error && error.error.message && error.error.message.includes('no encontrada')) {
       return throwError(() => ({
@@ -190,7 +190,7 @@ export class AuthService {
         error: error.error
       }));
     }
-    
+
     // Si es nuestro error personalizado
     if (error.message === 'EMPRESA_NO_ENCONTRADA') {
       return throwError(() => ({
@@ -198,14 +198,14 @@ export class AuthService {
         mensaje: `Empresa ${numeroPatronal} no encontrada en el sistema`
       }));
     }
-    
+
     if (error.message === 'EMPRESA_INACTIVA') {
       return throwError(() => ({
         success: false,
         mensaje: 'Inactivo, acérquese a afiliaciones para regularizar'
       }));
     }
-    
+
     // Si es error HTTP
     if (error instanceof HttpErrorResponse) {
       console.error('📊 Error HTTP:', {
@@ -214,7 +214,7 @@ export class AuthService {
         url: error.url,
         error: error.error
       });
-      
+
       // Si el error tiene información en el body
       if (error.error) {
         return throwError(() => ({
@@ -223,13 +223,13 @@ export class AuthService {
           error: error.error
         }));
       }
-      
+
       return throwError(() => ({
         success: false,
         mensaje: `Error del servidor (${error.status})`
       }));
     }
-    
+
     return throwError(() => ({
       success: false,
       mensaje: 'Error en la verificación de empresa'
