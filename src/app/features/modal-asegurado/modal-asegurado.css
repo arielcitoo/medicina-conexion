@@ -429,3 +429,150 @@
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Mensaje informativo */
+.info-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  margin-top: 20px;
+  border-left: 4px solid #2196f3;
+}
+
+.info-message mat-icon {
+  color: #2196f3;
+}
+
+.info-message p {
+  margin: 0;
+  font-size: 14px;
+  color: #1565c0;
+  font-weight: 500;
+}
+
+/* Estado de validación mejorado */
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fff3e0;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 14px;
+  border: 1px solid #ffb74d;
+}
+
+.validation-status.valid {
+  background: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.validation-status .status-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.validation-status.valid .status-icon {
+  color: #4caf50;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Campos obligatorios con indicador más claro */
+.form-field.required label::after {
+  content: " *";
+  color: #f44336;
+}
+
+/* Mejor feedback para campos inválidos */
+mat-form-field.ng-invalid.ng-touched .mat-form-field-outline {
+  border-color: #f44336 !important;
+}
+
+mat-form-field.ng-valid.ng-touched .mat-form-field-outline {
+  border-color: #4caf50 !important;
+}
+
+
+/* Añade al final de modal-asegurado.css */
+
+/* Mejor feedback visual para campos */
+mat-form-field.ng-invalid.ng-touched .mat-form-field-outline {
+  border-color: #f44336 !important;
+  border-width: 2px !important;
+}
+
+mat-form-field.ng-valid.ng-touched .mat-form-field-outline {
+  border-color: #4caf50 !important;
+}
+
+/* Botón deshabilitado más claro */
+.submit-button:disabled {
+  opacity: 0.5;
+  background: #cccccc !important;
+  color: #666666 !important;
+  cursor: not-allowed;
+}
+
+/* Debug info */
+.debug-info {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.debug-info pre {
+  margin: 5px 0;
+  white-space: pre-wrap;
+}
+
+/* Añade al final de modal-asegurado.css */
+
+/* Mejor feedback visual para campos */
+mat-form-field.ng-invalid.ng-touched .mat-form-field-outline {
+  border-color: #f44336 !important;
+  border-width: 2px !important;
+}
+
+mat-form-field.ng-valid.ng-touched .mat-form-field-outline {
+  border-color: #4caf50 !important;
+}
+
+/* Botón deshabilitado más claro */
+.submit-button:disabled {
+  opacity: 0.5;
+  background: #cccccc !important;
+  color: #666666 !important;
+  cursor: not-allowed;
+}
+
+/* Debug info */
+.debug-info {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.debug-info pre {
+  margin: 5px 0;
+  white-space: pre-wrap;
+}

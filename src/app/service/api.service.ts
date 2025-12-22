@@ -6,7 +6,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 const API_CONFIG = {
   baseUrl: 'https://api-desarrollo.cns.gob.bo/erpcns',
   version: 'v1',
-  defaultToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjYxNDgzODIsImV4cCI6MTc2NjE4NDM4MiwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjE0ODM4MiwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IjcxNTcxQzgxN0ZCODFDMjhCNjYzODNDNkMzRTY2N0Y4IiwiaWF0IjoxNzY2MTQ4MzgyLCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.ZvJibih7O4dPJ92IWBQPtOP0haJHTC228MEJMoGFTllZT_sHoqR6Qh5LkX4ob0gyksVCLKX-2M-oSoSuXGTCGyPs7kT6DReHisavvuGH7toTEeFx3uxUnzm5_dZPFSxnr51ooFAw1l86iIvDfUbiTQjKclHY2HF1prVOnd4_fA12oO_nNf7OxVtiGFoVTQmYjN6GRCUnznpZSaqJc3KE7ZEsj9UczCbED2-g318bTHOH6Bnx3P4zp_bZn8y87cmfST4cpbXu1yaBnHxKIHOg5Rft3HnwH3y1nyY58umPpXk_X8xFPhSM9YVpzX1Bjq_8RnQMoPC5TBXLYALf7vJPRA'
+  defaultToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjY0MDUzOTgsImV4cCI6MTc2NjQ0MTM5OCwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjQwNTM5OCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IkE3REY0MERDNUU2NkQ2MDc4NDUxRjA5MzdFNzIwQTIwIiwiaWF0IjoxNzY2NDA1Mzk4LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.K4Pi20h_3JDBzBEG-2HGfbhxziaL6yFa5B9eufo4TcEGdMw_kf1iTFK32C8qR8obSlJDEELV-PizJQQa6xZd4z1UrPS_0IsqSh0ig7AFKhwpnhigFTq2vgWyyW3bOIIy80RwIKwzVaB0yiBfQH2lAMW3S2NX97o1bANAGkcBW7TJhGEKV2seN5HKe6U8_yUNr79G_F0-M5WM5JrH6_FObHADITW7l_NmTwGaTJpNfGFu7AzHvyJm2VybFFZHfLBfAF_ep62UUFQki07xc4g9A2uUnBncPYNq6A4yibKwxWN6k7cvaO2acytY3K0aJiNwLJ6QfLQN7AhRugw_5S0T8A'
 };
 
 @Injectable({
@@ -18,9 +18,9 @@ export class ApiService {
   private token = API_CONFIG.defaultToken;
 
   constructor() {
-    console.log('🚀 API Service inicializado');
-    console.log('🔗 Base URL:', this.baseUrl);
-    console.log('🔐 Token (primeros 50 chars):', this.token.substring(0, 50) + '...');
+    console.log(' API Service inicializado');
+    console.log(' Base URL:', this.baseUrl);
+    console.log(' Token (primeros 50 chars):', this.token.substring(0, 50) + '...');
   }
 
   /**
@@ -32,21 +32,21 @@ export class ApiService {
       .set('DocumentoIdentidad', documento)
       .set('FechaNacimiento', fechaNacimiento);
 
-    console.log('🔍 Buscando asegurado:');
-    console.log('  📋 URL:', url);
-    console.log('  📝 Documento:', documento);
-    console.log('  📅 Fecha Nacimiento:', fechaNacimiento);
-    console.log('  🔑 Token (primeros 30):', this.token.substring(0, 30) + '...');
+    console.log(' Buscando asegurado:');
+    console.log('   URL:', url);
+    console.log('   Documento:', documento);
+    console.log('   Fecha Nacimiento:', fechaNacimiento);
+    console.log('   Token (primeros 30):', this.token.substring(0, 30) + '...');
 
     const headers = this.getAuthHeaders();
-    console.log('  📨 Headers:', headers);
+    console.log('   Headers:', headers);
 
     return this.http.get(url, {
       params,
       headers
     }).pipe(
       tap(response => {
-        console.log('✅ Respuesta exitosa de la API:', response);
+        console.log(' Respuesta exitosa de la API:', response);
       }),
       catchError(this.handleError)
     );
@@ -67,12 +67,12 @@ export class ApiService {
    * Manejo de errores
    */
   private handleError(error: HttpErrorResponse) {
-    console.error('❌ Error en API Service:');
-    console.error('  🔴 Status:', error.status);
-    console.error('  🔴 Status Text:', error.statusText);
-    console.error('  🔴 URL:', error.url);
-    console.error('  🔴 Headers:', error.headers);
-    console.error('  🔴 Error:', error.error);
+    console.error(' Error en API Service:');
+    console.error('   Status:', error.status);
+    console.error('   Status Text:', error.statusText);
+    console.error('   URL:', error.url);
+    console.error('   Headers:', error.headers);
+    console.error('   Error:', error.error);
     
     let errorMessage = 'Error desconocido';
     
@@ -116,7 +116,7 @@ export class ApiService {
    */
   setToken(newToken: string): void {
     this.token = newToken;
-    console.log('🔄 Token actualizado');
+    console.log(' Token actualizado');
   }
 
   /**

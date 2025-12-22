@@ -287,17 +287,24 @@
             }
 
             <!-- Estado de archivos -->
-            @if (asegurados.length > 0) {
-              <div class="files-status">
-                @if (puedeAvanzarPaso2()) {
-                  <mat-icon>check_circle</mat-icon>
-                  <span>Todos los asegurados tienen archivos completos</span>
-                } @else {
-                  <mat-icon>error</mat-icon>
-                  <span>Faltan archivos o datos en algunos asegurados</span>
-                }
-              </div>
-            }
+@if (asegurados.length > 0) {
+  <div class="files-status" [class.complete]="puedeAvanzarPaso2">
+    @if (puedeAvanzarPaso2()) {
+      <mat-icon>check_circle</mat-icon>
+      <span class="success-text">✓ Todos los requisitos están completos. Puede avanzar al siguiente paso.</span>
+    } @else {
+      <mat-icon class="error-icon">error</mat-icon>
+      <div class="error-details">
+        <span class="error-text">✗ Faltan requisitos para avanzar:</span>
+        <ul>
+          <li>Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}</li>
+          <li>Con correo/celular: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}</li>
+          <li>Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length }}</li>
+        </ul>
+      </div>
+    }
+  </div>
+}
           </form>
 
           <div class="step-actions">
@@ -308,7 +315,8 @@
             </button>
 
             <!-- Botón Siguiente corregido -->
-            <button mat-button matStepperNext [disabled]="!puedeAvanzarPaso2()"
+            <button mat-button matStepperNext 
+                [disabled]="!puedeAvanzarPaso2()"
                     color="primary">
               <mat-icon>arrow_forward</mat-icon>
               <span>Siguiente</span>
@@ -429,6 +437,23 @@
             <mat-icon>warning</mat-icon>
             <p>Verifique que toda la información sea correcta antes de finalizar el registro.</p>
           </div>
+
+          <div class="status-indicator">
+  <div class="status-item" [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
+    <span class="status-number">{{ asegurados.length }}</span>
+    <span class="status-label">Asegurados</span>
+  </div>
+  
+  <div class="status-item" [class.complete]="contarAseguradosCompletos() === asegurados.length">
+    <span class="status-number">{{ contarAseguradosCompletos() }}</span>
+    <span class="status-label">Con contacto</span>
+  </div>
+  
+  <div class="status-item" [class.complete]="contarAseguradosConArchivos() === asegurados.length">
+    <span class="status-number">{{ contarAseguradosConArchivos() }}</span>
+    <span class="status-label">Con archivos</span>
+  </div>
+</div>
 
           <div class="step-actions">
             <!-- Botón Anterior corregido -->

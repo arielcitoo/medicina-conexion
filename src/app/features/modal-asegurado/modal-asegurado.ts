@@ -1,5 +1,5 @@
 
-import { Component, Inject, OnInit, inject } from '@angular/core';
+import { Component, Inject, OnInit, inject,ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -56,6 +56,7 @@ export const MY_DATE_FORMATS = {
 })
 export class ModalAsegurado implements OnInit {
   private apiService = inject(ApiService);
+  private cdRef = inject(ChangeDetectorRef);
 
   aseguradoForm: FormGroup;
   isLoading = false;
@@ -65,27 +66,43 @@ export class ModalAsegurado implements OnInit {
   puedeAgregar = false;
 
   constructor(
-    private fb: FormBuilder,
-    public dialogRef: MatDialogRef<ModalAsegurado>,
-    @Inject(MAT_DIALOG_DATA) public data: { maxAsegurados?: number }
-  ) {
-    console.log('🎬 ModalAseguradoComponent CONSTRUCTOR ejecutado');
+  private fb: FormBuilder,
+  public dialogRef: MatDialogRef<ModalAsegurado>,
+  @Inject(MAT_DIALOG_DATA) public data: { maxAsegurados?: number }
+) {
+  console.log('ModalAsegurdo CONSTRUCTOR ejecutado');
+  
+  this.aseguradoForm = this.fb.group({
+    ci: ['', [Validators.required, Validators.pattern('^[0-9]{7,10}[A-Za-z]?$')]],
+    fechaNacimiento: ['', Validators.required],
     
-    this.aseguradoForm = this.fb.group({
-      ci: ['', [Validators.required, Validators.pattern('^[0-9]{7,10}[A-Za-z]?$')]],
-      fechaNacimiento: ['', Validators.required],
-      correoElectronico: ['', [Validators.required, Validators.email]],
-      celular: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]]
-    });
-  }
+    // Campos obligatorios que el usuario DEBE completar
+    // Inicializar con valores vacíos
+    correoElectronico: ['', [Validators.required, Validators.email]],
+    celular: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]]
+  });
+    // Marcar los campos como touched para mostrar errores inmediatamente
+  setTimeout(() => {
+    this.aseguradoForm.get('correoElectronico')?.markAsTouched();
+    this.aseguradoForm.get('celular')?.markAsTouched();
+    this.actualizarPuedeAgregar();
+  }, 100);
+}
+
 
   ngOnInit(): void {
-    console.log('🔄 ModalAsegurado ngOnInit ejecutado');
+  console.log(' ModalAsegurado ngOnInit ejecutado');
+  
+  // Escuchar cambios en el formulario
+  this.aseguradoForm.valueChanges.subscribe(() => {
+    console.log(' Formulario cambió:', this.aseguradoForm.value);
+    console.log(' Estado del formulario:', this.aseguradoForm.valid);
+    console.log(' Correo válido:', this.aseguradoForm.get('correoElectronico')?.valid);
+    console.log(' Celular válido:', this.aseguradoForm.get('celular')?.valid);
     
-    this.aseguradoForm.valueChanges.subscribe(() => {
-      this.actualizarPuedeAgregar();
-    });
-  }
+    this.actualizarPuedeAgregar();
+  });
+}
 
   
 
@@ -186,14 +203,6 @@ private formatFechaParaAPI(fecha: Date | string): string {
   };
 }
 
-  /**
-   * Genera email por defecto
-   */
-  private generarEmailPorDefecto(documento: string, nombres?: string): string {
-    const nombreUsuario = nombres?.toLowerCase().split(' ')[0] || 'usuario';
-    const dominio = 'email.com';
-    return `${nombreUsuario}.${documento.substring(0, 4)}@${dominio}`;
-  }
 
   /**
    * Obtiene mensaje de error
@@ -211,85 +220,170 @@ private formatFechaParaAPI(fecha: Date | string): string {
     return `Error al buscar asegurado: ${error.message || 'Error desconocido'}`;
   }
 
-  actualizarPuedeAgregar(): void {
-    const formValid = this.aseguradoForm.valid;
-    const tieneDatos = this.datosAsegurado !== null;
-    this.puedeAgregar = formValid && tieneDatos;
+ // Método para actualizar si se puede agregar
+  // Método para actualizar si se puede agregar - REVISADO
+actualizarPuedeAgregar(): void {
+  // Verificar que tenemos datos del API
+  const tieneDatos = !!this.datosAsegurado;
+  
+  // Verificar que los campos de contacto estén completos y válidos
+  const correoControl = this.aseguradoForm.get('correoElectronico');
+  const celularControl = this.aseguradoForm.get('celular');
+  
+  const correoValido = correoControl ? 
+    correoControl.valid && correoControl.value?.trim().length > 0 : 
+    false;
+    
+  const celularValido = celularControl ? 
+    celularControl.valid && celularControl.value?.toString().length === 8 : 
+    false;
+  
+  // Solo se puede agregar si:
+  // 1. Hay datos del API
+  // 2. El correo es válido
+  // 3. El celular es válido
+  this.puedeAgregar = tieneDatos && correoValido && celularValido;
+  
+  console.log(' Validación agregar asegurado:', {
+    puedeAgregar: this.puedeAgregar,
+    tieneDatos,
+    correoValido,
+    celularValido,
+    correoValue: correoControl?.value,
+    celularValue: celularControl?.value,
+    correoErrors: correoControl?.errors,
+    celularErrors: celularControl?.errors
+  });
+  
+  // Forzar detección de cambios
+  this.cdRef.detectChanges();
+}
+
+
+// En modal-asegurado
+ agregarAsegurado(): void {
+  console.log(' Modal: Preparando para agregar asegurado...');
+  
+  if (!this.puedeAgregar || !this.datosAsegurado) {
+    console.error(' No se puede agregar desde la modal');
+    return;
   }
 
-  agregarAsegurado(): void {
-    if (!this.puedeAgregar || !this.datosAsegurado) return;
+  const asegurado: Asegurado = {
+    // Datos de la API
+    ...this.datosAsegurado,
+    
+    // Datos del formulario (ingresados por usuario)
+    correoElectronico: this.aseguradoForm.get('correoElectronico')?.value?.trim(),
+    celular: this.aseguradoForm.get('celular')?.value?.toString(),
+    
+    // Asegurar campos críticos
+     id: this.datosAsegurado.id || Date.now() + Math.floor(Math.random() * 1000),
+    ci: this.datosAsegurado.ci || this.aseguradoForm.get('ci')?.value,
+    empresa: this.datosAsegurado.empresa || 'No especificada'
+  };
 
-    const asegurado: Asegurado = {
-      ...this.datosAsegurado,
-      correoElectronico: this.aseguradoForm.get('correoElectronico')?.value,
-      celular: this.aseguradoForm.get('celular')?.value
-    };
+  console.log(' Modal: Asegurado listo para enviar:', asegurado);
+  
+  // Cerrar modal y enviar datos
+  this.dialogRef.close(asegurado);
+}
 
-    console.log('Asegurado a agregar:', asegurado);
-    this.dialogRef.close(asegurado);
-  }
+
 
   cancelar(): void {
     this.dialogRef.close();
   }
 
+
+
   buscarAsegurado(): void {
-  if (!this.puedeBuscar()) return;
+    if (!this.puedeBuscar()) return;
 
-  this.isLoading = true;
-  this.busquedaRealizada = false;
-  this.errorBusqueda = null;
-  this.datosAsegurado = null;
+    this.isLoading = true;
+    this.busquedaRealizada = false;
+    this.errorBusqueda = null;
+    this.datosAsegurado = null;
 
-  const documento = this.aseguradoForm.get('ci')?.value;
-  const fechaNacimiento = this.aseguradoForm.get('fechaNacimiento')?.value;
-  
-  console.log('📡 Buscando asegurado con:', { documento, fechaNacimiento });
-  
-  // Formatear fecha manualmente
-  const fechaFormateada = this.formatFechaParaAPI(fechaNacimiento);
-  console.log('📅 Fecha formateada para API:', fechaFormateada);
+    // Forzar detección de cambios
+    this.cdRef.detectChanges();
 
-  this.apiService.buscarAsegurado(documento, fechaFormateada)
-    .pipe(
-      map(response => {
-        console.log('✅ Respuesta de la API recibida:', response);
-        return this.mapearRespuestaApi(response, documento);
-      }),
-      catchError(error => {
-        console.error('❌ Error completo en buscarAsegurado:', error);
-        console.error('❌ Status:', error.status);
-        console.error('❌ Mensaje:', error.message);
-        console.error('❌ Error completo:', JSON.stringify(error, null, 2));
+    const documento = this.aseguradoForm.get('ci')?.value;
+    const fechaNacimiento = this.aseguradoForm.get('fechaNacimiento')?.value;
+    const fechaFormateada = this.formatFechaParaAPI(fechaNacimiento);
+
+    this.apiService.buscarAsegurado(documento, fechaFormateada)
+      .pipe(
+        map(response => {
+          return this.mapearRespuestaApi(response, documento);
+        }),
+        catchError(error => {
+          this.errorBusqueda = this.obtenerMensajeError(error);
+          return of(null);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          this.busquedaRealizada = true;
+          this.actualizarPuedeAgregar();
+          
+          // Forzar detección de cambios al finalizar
+          this.cdRef.detectChanges();
+        })
+      )
+      .subscribe(asegurado => {
+        if (asegurado) {
+          this.datosAsegurado = asegurado;
         
-        this.errorBusqueda = this.obtenerMensajeError(error);
-        return of(null);
-      }),
-      finalize(() => {
-        this.isLoading = false;
-        this.busquedaRealizada = true;
-        this.actualizarPuedeAgregar();
-      })
-    )
-    .subscribe(asegurado => {
-      console.log('📦 Asegurado procesado:', asegurado);
-      if (asegurado) {
-        this.datosAsegurado = asegurado;
-        
-        if (!this.aseguradoForm.get('correoElectronico')?.value) {
-          const emailPorDefecto = this.generarEmailPorDefecto(documento, asegurado.nombres);
-          this.aseguradoForm.patchValue({
-            correoElectronico: asegurado.correoElectronico || emailPorDefecto
-          });
-        }
+     // Forzar actualización de validación inmediatamente
+    setTimeout(() => {
+      this.actualizarPuedeAgregar();
+    }, 0);
+  }
 
-        if (!this.aseguradoForm.get('celular')?.value) {
-          this.aseguradoForm.patchValue({
-            celular: asegurado.celular || '77777777'
-          });
-        }
-      }
-    });
+  // Forzar detección de cambios después de asignar datos
+  this.cdRef.detectChanges();
+});
+}
+
+  validarCorreo(): void {
+  const control = this.aseguradoForm.get('correoElectronico');
+  const valor = control?.value?.trim();
+  
+  console.log(' Validando correo:', valor);
+  
+  if (!valor || valor.length === 0) {
+    control?.setErrors({ 'required': true });
+  } else {
+    // Expresión regular más estricta para emails
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(valor)) {
+      control?.setErrors({ 'email': true });
+    } else {
+      control?.setErrors(null);
+    }
+  }
+  
+  control?.markAsTouched();
+  this.actualizarPuedeAgregar();
+}
+
+validarCelular(): void {
+  const control = this.aseguradoForm.get('celular');
+  let valor = control?.value?.toString().replace(/\D/g, '');
+  
+  console.log('📱 Validando celular:', valor);
+  
+  if (!valor || valor.length === 0) {
+    control?.setErrors({ 'required': true });
+  } else if (valor.length !== 8) {
+    control?.setErrors({ 'pattern': true });
+  } else {
+    // Actualizar con el valor limpio
+    control?.setValue(valor, { emitEvent: true });
+    control?.setErrors(null);
+  }
+  
+  control?.markAsTouched();
+  this.actualizarPuedeAgregar();
 }
 }

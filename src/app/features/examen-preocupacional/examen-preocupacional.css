@@ -282,3 +282,121 @@
     width: 100%;
   }
 }
+
+/* En examen-preocupacional.css, añade: */
+
+.files-status.complete {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+}
+
+.files-status .error-icon {
+  color: #f44336;
+}
+
+.success-text {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.error-text {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.validation-details {
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.validation-details small {
+  color: #666;
+}
+
+/* Añade a examen-preocupacional.css */
+.error-details {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.error-details ul {
+  margin: 5px 0;
+  padding-left: 20px;
+}
+
+.error-details li {
+  color: #666;
+  font-size: 14px;
+  margin: 3px 0;
+}
+
+.files-status.complete {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 15px;
+}
+
+.files-status:not(.complete) {
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  padding: 15px;
+}
+
+.asegurados-table {
+  width: 100%;
+  margin-top: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
+
+.status-indicator {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.status-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  background: white;
+  border: 2px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.status-item.complete {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.status-number {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.status-item.complete .status-number {
+  color: #2e7d32;
+}
+
+.status-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
