@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -9,10 +9,10 @@ import { catchError, map } from 'rxjs/operators';
 export class AuthService {
   private apiUrl = 'https://api-desarrollo.cns.gob.bo/erpcns/v1';
   private tokenKey = 'jwt_token';
-  private empresaKey = 'empresa_data';
+  private empresaKey = 'empresa_data'
 
   // Token JWT
-  private jwtToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjY0MDUzOTgsImV4cCI6MTc2NjQ0MTM5OCwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjQwNTM5OCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IkE3REY0MERDNUU2NkQ2MDc4NDUxRjA5MzdFNzIwQTIwIiwiaWF0IjoxNzY2NDA1Mzk4LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.K4Pi20h_3JDBzBEG-2HGfbhxziaL6yFa5B9eufo4TcEGdMw_kf1iTFK32C8qR8obSlJDEELV-PizJQQa6xZd4z1UrPS_0IsqSh0ig7AFKhwpnhigFTq2vgWyyW3bOIIy80RwIKwzVaB0yiBfQH2lAMW3S2NX97o1bANAGkcBW7TJhGEKV2seN5HKe6U8_yUNr79G_F0-M5WM5JrH6_FObHADITW7l_NmTwGaTJpNfGFu7AzHvyJm2VybFFZHfLBfAF_ep62UUFQki07xc4g9A2uUnBncPYNq6A4yibKwxWN6k7cvaO2acytY3K0aJiNwLJ6QfLQN7AhRugw_5S0T8A';
+  private jwtToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjY0NTczMjksImV4cCI6MTc2NjQ5MzMyOSwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjQ0OTIxNCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IkMwRDFGNDM5MTg4N0M2MkUxQTVCNkE4MkJDRDJDNzE2IiwiaWF0IjoxNzY2NDU3MzI5LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.Xrj4uNz7q36XylKigJyU6AgAf9NpCorF417rLAKpcGFvYJNR3Gq6dOkkZ1O5Wr6XgRLn6VquYVTJE_1atkkpHLUmh_wK_BiODt_z9HS8UoAVGNAEQ4S52D_95YG1I0WTXl-simfLjwg3eNGtAk7pmG1ZdUPkkHzqTRs4E6lvzkzPkNzQLpdHokeAZxBEwDIh-qv2OlomhVdszyE4LoTQBkeP1X4_vbNMHOKy7BGnNSHx2cER0bD1lXIMMcS8alHvts4nmNxmbwSwYnbuGKpnAHFdjZ68pehsyBu85_qy9-PCZFH19WD3dWoH_ALi4kpmfFWmPOCNu7CIkXuNjFvsBg';
 
   constructor(private http: HttpClient) {
     this.loadToken();
@@ -32,6 +32,44 @@ export class AuthService {
     });
   }
 
+  /**
+   * Guardar datos de empresa para exámenes preocupacionales
+   */
+  guardarEmpresaExamen(empresa: any): void {
+    const empresaData = {
+      ...empresa,
+      fechaAcceso: new Date().toISOString(),
+      tipoAcceso: 'examen_preocupacional'
+    };
+    sessionStorage.setItem('empresa_examen_preocupacional', JSON.stringify(empresaData));
+  }
+
+   /**
+   * Verificar si puede acceder a exámenes preocupacionales
+   */
+  puedeAccederExamen(): boolean {
+    const empresa = this.getEmpresaExamen();
+    if (!empresa) return false;
+
+    // Verificar que la empresa esté activa
+    return this.estaActiva(empresa.Estado);
+  }
+
+
+   /**
+   * Obtener empresa para exámenes preocupacionales
+   */
+  getEmpresaExamen(): any {
+    const data = sessionStorage.getItem('empresa_examen_preocupacional');
+    return data ? JSON.parse(data) : null;
+  }
+
+ /**
+   * Limpiar datos de exámenes preocupacionales
+   */
+  limpiarDatosExamen(): void {
+    sessionStorage.removeItem('empresa_examen_preocupacional');
+  }
   /**
    * Buscar empresa por número patronal
    */

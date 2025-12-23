@@ -8,11 +8,12 @@ import { ExamenPreocupacional } from './features/examen-preocupacional/examen-pr
 
 export const routes: Routes = [
 
-  { path: 'home', component: Home },
+  { path: '', redirectTo: '/prelogin', pathMatch: 'full' },
   { path: 'prelogin', component: Prelogin },
+  { path: 'home', component: Home },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'citas', component: Citas },
   { path: 'busqueda', component: Busqueda },
   { path: 'examen', component: ExamenPreocupacional },
-   { path: '**', redirectTo: '' }
+   { path: '**', redirectTo: '/prelogin' }
 ];

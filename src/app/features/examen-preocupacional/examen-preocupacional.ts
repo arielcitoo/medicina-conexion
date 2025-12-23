@@ -1,10 +1,12 @@
 import { ModalAsegurado } from '../modal-asegurado/modal-asegurado';
 import { Component, OnInit, ViewChild, computed, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
-import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { Router } from '@angular/router';
+import { MatStepper, MatStepperModule, MatStep } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';// Asegúrate del nombre correcto
 import { ExamenService } from '../../service/examen.service';
+import { AuthService } from '../../service/auth.service';
 import { Asegurado } from '../../interfaces/examen.interface';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,31 +23,35 @@ import { ChangeDetectorRef } from '@angular/core';
   selector: 'app-examen-preocupacional',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
     MatStepperModule,
+    ReactiveFormsModule,
     MatCardModule,
-    MatIconModule,
+    MatTooltipModule,
+    MatTableModule,
     MatFormFieldModule,
     MatInputModule,
-    MatTableModule,
-    MatTooltipModule,
+    MatIconModule,
+    MatButtonModule,
     MatProgressSpinnerModule,
-    MatButtonModule
+    MatStep
 ],
   standalone: true,
   templateUrl: './examen-preocupacional.html',
   styleUrl: './examen-preocupacional.css',
 })
 export class ExamenPreocupacional implements OnInit {
+
+
   @ViewChild('stepper') stepper!: MatStepper;
-  
+
 
    // Inyección de dependencias con inject()
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
+   private authService = inject(AuthService);
   private examenService = inject(ExamenService);
   private snackBar = inject(MatSnackBar);
-
+  private router = inject(Router);
   private cdRef = inject(ChangeDetectorRef);
 
   // Formularios para cada paso
@@ -62,32 +68,35 @@ export class ExamenPreocupacional implements OnInit {
 
   // Columnas de la tabla
  readonly displayedColumns: string[] = [
-  'nombre', 
-  'ci', 
+  'nombre',
+  'ci',
   'empresa', // Nueva columna
-  'correo', 
-  'celular', 
-  'archivos', 
+  'correo',
+  'celular',
+  'archivos',
   'acciones'
 ];
+
+
+
  // Avanzaar Paso 2
 // Modifica el signal computado:
   puedeAvanzarPaso2(): boolean {
   const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value || 0;
   const cantidadActual = this.asegurados.length;
-  
+
   console.log(` Validando paso 2: ${cantidadActual}/${cantidadPermitida} asegurados`);
-  
+
   // 1. Verificar cantidad exacta
   if (cantidadActual !== cantidadPermitida) {
     console.log(` Cantidad: ${cantidadActual} ≠ ${cantidadPermitida}`);
     return false;
   }
-  
+
   // 2. Verificar cada asegurado individualmente
   for (let i = 0; i < this.asegurados.length; i++) {
     const asegurado = this.asegurados[i];
-    
+
     // Verificar contacto
     if (!asegurado.correoElectronico?.trim() || !asegurado.celular) {
       console.log(` Asegurado ${i+1} (${asegurado.nombreCompleto}) sin contacto completo`);
@@ -95,7 +104,7 @@ export class ExamenPreocupacional implements OnInit {
       console.log('   Celular:', asegurado.celular);
       return false;
     }
-    
+
     // Verificar archivos
     const archivos = this.archivosAsegurados[asegurado.id!];
     if (!archivos?.anverso || !archivos?.reverso) {
@@ -105,7 +114,7 @@ export class ExamenPreocupacional implements OnInit {
       return false;
     }
   }
-  
+
   console.log(' TODAS las condiciones cumplidas para avanzar');
   return true;
 }
@@ -129,6 +138,16 @@ export class ExamenPreocupacional implements OnInit {
   }
 
   ngOnInit(): void {
+    // Verificar si hay empresa verificada
+    const empresa = this.authService.getEmpresaExamen();
+    if (!empresa || !this.authService.puedeAccederExamen()) {
+      // Redirigir al prelogin si no hay empresa verificada
+      this.router.navigate(['/prelogin']);
+      this.mostrarSnackbar('Debe verificar su empresa primero', 'error');
+      return;
+    }
+     // Mostrar información de la empresa en consola
+    console.log('🏢 Empresa verificada:', empresa);
     // Escuchar cambios en cantidad de asegurados
     this.paso1Form.get('cantidadAsegurados')?.valueChanges.subscribe(valor => {
       const aseguradosActuales = this.asegurados;
@@ -136,13 +155,15 @@ export class ExamenPreocupacional implements OnInit {
         this.mostrarSnackbar(`Debe eliminar ${aseguradosActuales.length - valor} asegurados`);
       }
     });
+// Opcional: limpiar datos de empresa después de finalizar
+    this.authService.limpiarDatosExamen();
   }
  /**
    * Paso 2: Abrir modal para agregar asegurado - CORREGIDO
    */
   abrirModalAsegurado(): void {
   console.log(' Abriendo modal para agregar asegurado...');
-  
+
   // Verificar límite de asegurados
   const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value || 0;
   if (this.asegurados.length >= cantidadPermitida) {
@@ -157,8 +178,8 @@ export class ExamenPreocupacional implements OnInit {
     maxHeight: '90vh',
     disableClose: false,
     autoFocus: true,
-    data: { 
-      maxAsegurados: cantidadPermitida - this.asegurados.length 
+    data: {
+      maxAsegurados: cantidadPermitida - this.asegurados.length
     }
   });
 
@@ -168,14 +189,14 @@ export class ExamenPreocupacional implements OnInit {
   const subscription = dialogRef.afterClosed().subscribe({
     next: (result: Asegurado) => {
       console.log(' Resultado recibido de la modal:', result);
-      
+
       if (result) {
         // AGREGAR INMEDIATAMENTE
         this.agregarAseguradoInmediatamente(result);
       } else {
         console.log(' Modal cerrada sin resultado');
       }
-      
+
       // Limpiar suscripción
       subscription.unsubscribe();
     },
@@ -190,29 +211,29 @@ export class ExamenPreocupacional implements OnInit {
 // NUEVO MÉTODO: Agregar asegurado inmediatamente después de cerrar la modal
 private agregarAseguradoInmediatamente(asegurado: Asegurado): void {
   console.log(' Agregando asegurado #', this.asegurados.length + 1, asegurado);
-  
+
   // Asignar ID único si no tiene (con timestamp + random para mayor seguridad)
   if (!asegurado.id) {
     asegurado.id = Date.now() + Math.floor(Math.random() * 10000);
     console.log(' Nuevo ID asignado:', asegurado.id);
   }
-  
+
   // Verificar duplicados por CI
   const existe = this.asegurados.some(a => a.ci === asegurado.ci);
   if (existe) {
     this.mostrarSnackbar(`El asegurado con CI ${asegurado.ci} ya está en la lista`, 'error');
     return;
   }
-  
+
   //  CAMBIO CRÍTICO: Crear NUEVA referencia del array (inmutabilidad)
   this.asegurados = [...this.asegurados, asegurado];
-  
+
   console.log(' Lista actualizada:', {
     total: this.asegurados.length,
     ids: this.asegurados.map(a => a.id),
     nombres: this.asegurados.map(a => a.nombreCompleto)
   });
-  
+
   // Inicializar archivos con nueva referencia del objeto
   this.archivosAsegurados = {
     ...this.archivosAsegurados,
@@ -221,15 +242,15 @@ private agregarAseguradoInmediatamente(asegurado: Asegurado): void {
       reverso: null
     }
   };
-  
+
   console.log(' Archivos inicializados para ID', asegurado.id);
-  
+
   // Actualizar formulario inmediatamente
   this.actualizarFormArrayAsegurados();
-  
+
   // Mostrar notificación
   this.mostrarSnackbar(`Asegurado #${this.asegurados.length} "${asegurado.nombreCompleto}" agregado`, 'success');
-  
+
   //  FORZAR DETECCIÓN DE CAMBIOS CON ChangeDetectorRef
   setTimeout(() => {
     this.cdRef.detectChanges();
@@ -244,13 +265,13 @@ private verificarEstadoActual(): void {
   console.log(' Archivos por asegurado:', this.archivosAsegurados);
   console.log(' ¿Puede avanzar?', this.puedeAvanzarPaso2);
   console.log(' Formulario paso 2 válido:', this.paso2Form.valid);
-  
+
   // Contar asegurados con archivos completos
   const conArchivos = this.asegurados.filter(a => {
     const archivos = this.archivosAsegurados[a.id!];
     return archivos?.anverso && archivos?.reverso;
   }).length;
-  
+
   console.log(' Estadísticas:');
   console.log('  • Total asegurados:', this.asegurados.length);
   console.log('  • Con contacto completo:', this.contarAseguradosCompletos());
@@ -260,16 +281,16 @@ private verificarEstadoActual(): void {
 // NUEVO MÉTODO: Forzar actualización de la UI
 private forzarActualizacionUI(): void {
   console.log(' Forzando actualización de UI...');
-  
+
   // Crear una nueva referencia del array para forzar detección de cambios
   this.asegurados = [...this.asegurados];
-  
+
   // Actualizar formulario
   this.actualizarFormArrayAsegurados();
-  
+
   // Forzar validación
   this.paso2Form.updateValueAndValidity();
-  
+
   console.log(' UI actualizada. Estado:', {
     totalAsegurados: this.asegurados.length,
     puedeAvanzar: this.puedeAvanzarPaso2()
@@ -336,13 +357,13 @@ private forzarActualizacionUI(): void {
     };
 
    console.log(` Archivo ${tipo} cargado para ID ${aseguradoId}:`, file.name);
-    
+
      // Forzar detección de cambios
     setTimeout(() => {
       this.cdRef.detectChanges();
       console.log(' UI actualizada después de cargar archivo');
     }, 0);
-    
+
     this.mostrarSnackbar(`Archivo ${tipo} cargado correctamente`);
   }
 }
@@ -351,19 +372,19 @@ private forzarActualizacionUI(): void {
 // Método para resetear completamente (opcional, para debug)
 private resetearEstadoPaso2(): void {
   console.log(' Reseteando estado del paso 2...');
-  
+
   // Crear nuevas referencias
   this.asegurados = [];
   this.archivosAsegurados = {};
-  
+
   // Resetear formulario
   const formArray = this.paso2Form.get('aseguradosArray') as FormArray;
   formArray.clear();
   this.paso2Form.reset();
-  
+
   // Forzar detección de cambios
   this.cdRef.detectChanges();
-  
+
   console.log(' Estado reseteado');
 }
 
@@ -375,7 +396,7 @@ private resetearEstadoPaso2(): void {
    */
   agregarAsegurado(asegurado: Asegurado): void {
   console.log(' Recibiendo asegurado desde modal:', asegurado);
-  
+
   // Verificar límite de asegurados
   const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value;
   if (this.asegurados.length >= cantidadPermitida) {
@@ -397,11 +418,11 @@ private resetearEstadoPaso2(): void {
 
   // Agregar a la lista
   this.asegurados.push({ ...asegurado });
-  
+
   // Inicializar archivos para este asegurado
-  this.archivosAsegurados[asegurado.id] = { 
-    anverso: null, 
-    reverso: null 
+  this.archivosAsegurados[asegurado.id] = {
+    anverso: null,
+    reverso: null
   };
 
   console.log(' Asegurado agregado:', {
@@ -412,10 +433,10 @@ private resetearEstadoPaso2(): void {
 
   // Actualizar formulario
   this.actualizarFormArrayAsegurados();
-  
+
   // Mostrar notificación
   this.mostrarSnackbar('Asegurado agregado correctamente', 'success');
-  
+
   // Forzar actualización de la vista
   setTimeout(() => {
     console.log(' Vista actualizada');
@@ -430,13 +451,13 @@ private resetearEstadoPaso2(): void {
 private forzarActualizacionValidacion(): void {
   // Forzar actualización de la validación
   console.log(' Forzando actualización de validación...');
-  
+
   // Actualizar el formulario
   this.actualizarFormArrayAsegurados();
-  
+
   // Emitir un cambio en el formulario para activar la validación
   this.paso2Form.updateValueAndValidity();
-  
+
   console.log(' Validación forzada:', {
     puedeAvanzar: this.puedeAvanzarPaso2(),
     asegurados: this.asegurados.length,
@@ -458,14 +479,14 @@ private forzarActualizacionValidacion(): void {
 
 // En examen-preocupacional.ts
 contarAseguradosCompletos(): number {
-  return this.asegurados.filter(a => 
+  return this.asegurados.filter(a =>
     a.correoElectronico && a.celular
   ).length;
 }
 
 contarAseguradosConArchivos(): number {
-  return this.asegurados.filter(a => 
-    this.archivosAsegurados[a.id!]?.anverso && 
+  return this.asegurados.filter(a =>
+    this.archivosAsegurados[a.id!]?.anverso &&
     this.archivosAsegurados[a.id!]?.reverso
   ).length;
 }
@@ -484,12 +505,12 @@ contarAseguradosConArchivos(): number {
    */
   private actualizarFormArrayAsegurados(): void {
   console.log(' Actualizando formulario...');
-  
+
   const formArray = this.paso2Form.get('aseguradosArray') as FormArray;
-  
+
   //  CAMBIO: Usar formArray.clear() y reset() para limpiar completamente
   formArray.clear();
-  
+
   // Pausa para asegurar limpieza
   setTimeout(() => {
     // Agregar cada asegurado con un nuevo grupo reactivo
@@ -502,16 +523,16 @@ contarAseguradosConArchivos(): number {
         celular: [asegurado.celular, [Validators.required, Validators.pattern('^[0-9]{8}$')]],
         empresa: [asegurado.empresa || '']
       });
-      
+
       formArray.push(grupo);
     });
-    
+
     console.log(' Formulario actualizado con', formArray.length, 'asegurados');
-    
+
     // Forzar validación
     this.paso2Form.updateValueAndValidity();
     this.paso2Form.markAsDirty();
-    
+
     // Detectar cambios
     this.cdRef.detectChanges();
   }, 0);

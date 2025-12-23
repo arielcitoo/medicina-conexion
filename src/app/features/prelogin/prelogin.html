@@ -1,130 +1,221 @@
-<div class="container">
-  <!-- Header -->
-  <div class="header">
-    <h1><i class="fas fa-calendar-alt"></i> Sistema de Programación de Citas</h1>
-    <p>Verificación de Empresa - Exámenes Preocupacionales</p>
-  </div>
-
-  <!-- Card Principal -->
-  <div class="card">
-    <div class="card-header">
-      <h2><i class="fas fa-building"></i> Preingreso de Empresa</h2>
-      <p>Ingrese su número patronal para continuar</p>
-    </div>
-
-    <!-- Formulario -->
-    <form [formGroup]="preloginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label>Número Patronal</label>
-        <div class="input-group">
-          <span class="input-icon"><i class="fas fa-hashtag"></i></span>
-          <input 
-            type="text" 
-            formControlName="numeroPatronal"
-            placeholder="Ejemplo: 01-730-00001"
-            [class.error]="campoInvalido"
-          >
+<!-- prelogin.html -->
+<div class="prelogin-container">
+  <mat-card class="card-prelogin">
+    <mat-card-header class="card-header">
+      <mat-card-title>
+        <div class="title-container">
+          <mat-icon class="title-icon">verified_user</mat-icon>
+          <div>
+            <h1>Acceso al Registro de Exámenes Preocupacionales</h1>
+            <p class="subtitle">Verificación de Empresa Afiliada al CNS</p>
+          </div>
         </div>
-        
-        <!-- Errores -->
-        <div *ngIf="campoInvalido" class="error-text">
-          <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content class="card-content">
+      <!-- Sección de búsqueda -->
+      <div class="search-section">
+        <div class="section-title">
+          <mat-icon>business</mat-icon>
+          <h2>Ingreso de Empresa</h2>
         </div>
 
-        <!-- Ejemplos para probar -->
-        <div class="ejemplos">
-          <p><small><i class="fas fa-lightbulb"></i> Ejemplos para probar:</small></p>
-          <div class="ejemplos-buttons">
-            <button 
-              type="button" 
-              *ngFor="let ejemplo of ejemplos"
-              (click)="cargarEjemplo(ejemplo)"
-              class="ejemplo-btn"
-            >
-              {{ ejemplo }}
+        <p class="section-description">
+          Ingrese el número patronal de su empresa para verificar su afiliación al CNS y acceder al registro de exámenes preocupacionales.
+        </p>
+
+        <form [formGroup]="preloginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <!-- Campo de número patronal -->
+         <mat-label>Número Patronal</mat-label>
+         <input matInput
+         formControlName="numeroPatronal"
+         placeholder="Ej: 01-730-00001"
+         [maxlength]="12"
+         (keypress)="onKeyPress($event)"
+         (input)="onInput($event)"
+         (paste)="onPaste($event)">
+          <mat-icon matSuffix>badge</mat-icon>
+
+            <!-- Errores de validación -->
+      @if (tieneError('numeroPatronal', 'required')) {
+      <mat-error>El número patronal es obligatorio</mat-error>
+      }
+      @if (tieneError('numeroPatronal', 'pattern')) {
+      <mat-error>Formato: 01-730-00001</mat-error>
+      }
+      @if (tieneError('numeroPatronal', 'minlength') || tieneError('numeroPatronal', 'maxlength')) {
+      <mat-error>Debe tener 12 caracteres</mat-error>
+      }
+      <mat-hint>Formato: 01-730-00001</mat-hint>
+    </mat-form-field>
+
+          <!-- Botones de ejemplo -->
+          <div class="ejemplos-section">
+            <p class="ejemplos-label">
+              <mat-icon>lightbulb</mat-icon>
+              <span>Ejemplos para probar:</span>
+            </p>
+            <div class="ejemplos-buttons">
+              @for (ejemplo of ejemplos; track ejemplo) {
+                <button mat-stroked-button
+                        type="button"
+                        class="ejemplo-button"
+                        (click)="cargarEjemplo(ejemplo)">
+                  {{ ejemplo }}
+                </button>
+              }
+            </div>
+            <p class="ejemplo-nota">
+              <small>Estos son ejemplos. Ingrese su número patronal real.</small>
+            </p>
+          </div>
+
+          <!-- Botón de búsqueda -->
+          <div class="search-button-container">
+            <button mat-raised-button
+                    color="primary"
+                    class="search-button"
+                    type="submit"
+                    [disabled]="!esBotonHabilitado">
+              @if (isLoading) {
+                <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+              } @else {
+                <mat-icon>
+                  @if (empresaEncontrada && empresaActiva) {
+                    login
+                  } @else if (empresaEncontrada && !empresaActiva) {
+                    block
+                  } @else {
+                    search
+                  }
+                </mat-icon>
+              }
+              <span>{{ textoBotonPrincipal }}</span>
+            </button>
+
+            <button mat-button
+                    type="button"
+                    class="clear-button"
+                    (click)="limpiar()"
+                    [disabled]="isLoading">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
             </button>
           </div>
-          <p class="ejemplo-nota">
-            <small><i class="fas fa-info-circle"></i> Estos son ejemplos. Ingrese su número patronal real.</small>
-          </p>
-        </div>
+        </form>
       </div>
 
-      <!-- Información de Empresa -->
-      <div *ngIf="empresaEncontrada" class="empresa-info">
-        <h3><i class="fas fa-info-circle"></i> Información de la Empresa</h3>
-        
-        <div class="info-row">
-          <strong>Razón Social:</strong> 
-          <span class="razon-social">{{ empresaEncontrada.RazonSocial }}</span>
-        </div>
-        
-        <div class="info-row">
-          <strong>NIT:</strong> {{ empresaEncontrada.NIT }}
-        </div>
-        
-        <div class="info-row">
-          <strong>N° Patronal:</strong> {{ empresaEncontrada.NumeroPatronal }}
-        </div>
-        
-        <div class="info-row">
-          <strong>Estado:</strong>
-          <span [class]="empresaActiva ? 'estado-activo' : 'estado-inactivo'">
-            <i class="fas" [class.fa-check]="empresaActiva" [class.fa-times]="!empresaActiva"></i>
-            {{ empresaEncontrada.Estado }}
-          </span>
-        </div>
+      <!-- Resultados de búsqueda -->
+      <div class="result-section">
+        @if (isLoading) {
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Buscando empresa en el sistema CNS...</p>
+          </div>
+        }
+
+        @if (mensajeError && busquedaRealizada) {
+          <div class="error-result">
+            <div class="result-header">
+              <mat-icon class="error-icon">error_outline</mat-icon>
+              <h3>Error en la verificación</h3>
+            </div>
+            <p>{{ mensajeError }}</p>
+          </div>
+        }
+
+        @if (empresaEncontrada && busquedaRealizada) {
+          <div class="success-result">
+            <div class="result-header">
+              @if (empresaActiva) {
+                <mat-icon class="success-icon">check_circle</mat-icon>
+                <h3>Empresa Verificada ✓</h3>
+              } @else {
+                <mat-icon class="warning-icon">warning</mat-icon>
+                <h3>Empresa Inactiva</h3>
+              }
+            </div>
+
+            <div class="empresa-details">
+              <div class="detail-item">
+                <mat-icon>business</mat-icon>
+                <div class="detail-content">
+                  <strong>Razón Social</strong>
+                  <span>{{ empresaEncontrada.RazonSocial }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>fingerprint</mat-icon>
+                <div class="detail-content">
+                  <strong>NIT</strong>
+                  <span>{{ empresaEncontrada.NIT }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>numbers</mat-icon>
+                <div class="detail-content">
+                  <strong>Número Patronal</strong>
+                  <span>{{ empresaEncontrada.NumeroPatronal }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>info</mat-icon>
+                <div class="detail-content">
+                  <strong>Estado</strong>
+                  <span [class]="empresaActiva ? 'estado-activo' : 'estado-inactivo'">
+                    {{ empresaEncontrada.Estado }}
+                    @if (empresaActiva) {
+                      <mat-icon class="status-icon">check</mat-icon>
+                    } @else {
+                      <mat-icon class="status-icon">close</mat-icon>
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje informativo según estado -->
+            @if (empresaActiva) {
+              <div class="info-message success">
+                <mat-icon>done_all</mat-icon>
+                <div>
+                  <p><strong>¡Empresa verificada correctamente!</strong></p>
+                  <p>Será redirigido al registro de exámenes preocupacionales en breve...</p>
+                </div>
+              </div>
+            } @else {
+              <div class="info-message warning">
+                <mat-icon>warning</mat-icon>
+                <div>
+                  <p><strong>Empresa inactiva</strong></p>
+                  <p>Debe regularizar su situación en la oficina de afiliaciones del CNS antes de realizar exámenes.</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
 
-      <!-- Botones -->
-      <div class="botones">
-        <button 
-          type="submit" 
-          class="btn-primario"
-          [disabled]="cargando || preloginForm.invalid"
-          [class.btn-exito]="empresaEncontrada && empresaActiva"
-        >
-          <span *ngIf="cargando" class="spinner"></span>
-          <i class="fas" 
-             [class.fa-search]="!cargando && !empresaEncontrada"
-             [class.fa-spinner]="cargando && cargando"
-             [class.fa-sign-in-alt]="empresaEncontrada && empresaActiva && !cargando">
-          </i>
-          {{ textoBoton }}
-        </button>
-        
-        <button 
-          type="button" 
-          class="btn-secundario" 
-          (click)="limpiar()"
-          [disabled]="cargando"
-        >
-          <i class="fas fa-redo"></i> Limpiar
-        </button>
+      <!-- Información adicional -->
+      <div class="info-section">
+        <div class="info-card">
+          <mat-icon>info</mat-icon>
+          <div class="info-content">
+            <h4>Información Importante</h4>
+            <ul>
+              <li>El número patronal debe tener el formato: <strong>01-730-00001</strong></li>
+              <li>Solo empresas afiliadas y activas pueden registrar exámenes preocupacionales</li>
+              <li>Si su empresa aparece como inactiva, debe regularizar su situación en afiliaciones</li>
+              <li>Los datos de la empresa se mantendrán durante toda la sesión</li>
+            </ul>
+          </div>
+        </div>
       </div>
-
-      <!-- Mensajes -->
-      <div *ngIf="mensaje" class="mensaje" [class]="'mensaje-' + tipoMensaje">
-        <i class="fas" 
-           [class.fa-check-circle]="tipoMensaje === 'exito'"
-           [class.fa-exclamation-circle]="tipoMensaje === 'error'"
-           [class.fa-info-circle]="tipoMensaje === 'info'"></i>
-        {{ mensaje }}
-      </div>
-    </form>
-
-    <!-- Información Importante -->
-    <div class="info-box">
-      <h4><i class="fas fa-exclamation-triangle"></i> Importante</h4>
-      <p>
-        Si su empresa aparece como <strong>"INACTIVO"</strong>, deberá acercarse a la oficina de 
-        afiliaciones para regularizar su situación antes de programar citas.
-      </p>
-      <p class="token-info">
-        <small><i class="fas fa-key"></i> Usando autenticación JWT</small>
-      </p>
-    </div>
-  </div>
-
-  
+    </mat-card-content>
+  </mat-card>
 </div>
