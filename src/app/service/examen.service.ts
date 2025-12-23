@@ -107,6 +107,8 @@ export class ExamenService {
     return 'Error al buscar el asegurado';
   }
 
+  
+
   /**
    * Guardar examen preocupacional
    */
@@ -123,4 +125,7 @@ export class ExamenService {
       });
     }));
   }
+
+
+  
 }

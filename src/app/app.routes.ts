@@ -5,6 +5,7 @@ import { Citas } from './features/citas/citas';
 import { Busqueda } from './features/busqueda/busqueda';
 import { Prelogin } from './features/prelogin/prelogin';
 import { ExamenPreocupacional } from './features/examen-preocupacional/examen-preocupacional';
+import { AuthGuard } from './interceptors/auth.guard';
 
 export const routes: Routes = [
 
@@ -14,6 +15,10 @@ export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'citas', component: Citas },
   { path: 'busqueda', component: Busqueda },
-  { path: 'examen', component: ExamenPreocupacional },
+  { 
+    path: 'examen-preocupacional', 
+    component: ExamenPreocupacional,
+    canActivate: [AuthGuard]  // <-- PROTEGER CON GUARD
+  },
    { path: '**', redirectTo: '/prelogin' }
 ];

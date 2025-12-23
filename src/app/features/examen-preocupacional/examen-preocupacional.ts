@@ -19,6 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 
+
 @Component({
   selector: 'app-examen-preocupacional',
   imports: [
@@ -41,14 +42,16 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class ExamenPreocupacional implements OnInit {
 
+    empresa: any = null;
 
+  
   @ViewChild('stepper') stepper!: MatStepper;
 
 
    // Inyección de dependencias con inject()
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
-   private authService = inject(AuthService);
+
   private examenService = inject(ExamenService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -120,7 +123,7 @@ export class ExamenPreocupacional implements OnInit {
 }
 
 
- constructor() {
+ constructor(private authService: AuthService) {
     // Paso 1: Datos del Recibo
     this.paso1Form = this.fb.group({
       numeroRecibo: ['', [Validators.required, Validators.pattern('^[0-9\\-]+$')]],
@@ -138,6 +141,17 @@ export class ExamenPreocupacional implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('Examen Preocupacional Component inicializado');
+    // Obtener empresa verificada
+    this.empresa = this.authService.getEmpresaExamen();
+
+    if (!this.empresa) {
+      console.error(' No existe empresa verificada');
+      // Aquí podrías redirigir al prelogin
+      return;
+    }
+    
+    console.log(' Empresa en examen:', this.empresa.razonSocial);
     // Verificar si hay empresa verificada
     const empresa = this.authService.getEmpresaExamen();
     if (!empresa || !this.authService.puedeAccederExamen()) {
@@ -147,7 +161,7 @@ export class ExamenPreocupacional implements OnInit {
       return;
     }
      // Mostrar información de la empresa en consola
-    console.log('🏢 Empresa verificada:', empresa);
+    console.log(' Empresa verificada:', empresa);
     // Escuchar cambios en cantidad de asegurados
     this.paso1Form.get('cantidadAsegurados')?.valueChanges.subscribe(valor => {
       const aseguradosActuales = this.asegurados;

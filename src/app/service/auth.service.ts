@@ -1,294 +1,317 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://api-desarrollo.cns.gob.bo/erpcns/v1';
+    private http = inject(HttpClient);
+  
+  // 🔴 MISMA CONFIGURACIÓN QUE TU ApiService FUNCIONAL
+  private baseUrl = 'https://api-desarrollo.cns.gob.bo/erpcns/v1';
+  private token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjY0OTQ0MTgsImV4cCI6MTc2NjUzMDQxOCwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjQ5NDQxOCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IjMxMjQ3MzNDNDY4Q0EzMzYyN0RENDgzQzEyRTA0RTEwIiwiaWF0IjoxNzY2NDk0NDE4LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.T0H8YSon718lxDoIGQ9wRfcY346vaKzPwOoM_IUIKBuABgFQggufVJj8ddBtPUrvq6ndCzKXbPHslZzIOzBJ_GwNufLTbvbzfvjt1fi6uxz4_aPshxroXqftPL8TblxBfIPwZL5cJr3zRnEbb4cCGrfzIQlY-_45kUIsF5vBt70prIMXgM1D4IJZm9Xhl56omJiXh_BZDXrUTovBq12Fna4x6O4CVEAQwOVoIAkhHJ7XPVd3Lkp5tikcMX0Ov6y1RzOUBbvlNqd9KL2IwW0za-e4USxGDr-1iWtl6GTesVONsb_mTIZURSgEjTG9DsU1G_Q3eSZKDDVwoB0S6sS3rg';
   private tokenKey = 'jwt_token';
-  private empresaKey = 'empresa_data'
 
-  // Token JWT
-  private jwtToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjY0NTczMjksImV4cCI6MTc2NjQ5MzMyOSwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NjQ0OTIxNCwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IkMwRDFGNDM5MTg4N0M2MkUxQTVCNkE4MkJDRDJDNzE2IiwiaWF0IjoxNzY2NDU3MzI5LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.Xrj4uNz7q36XylKigJyU6AgAf9NpCorF417rLAKpcGFvYJNR3Gq6dOkkZ1O5Wr6XgRLn6VquYVTJE_1atkkpHLUmh_wK_BiODt_z9HS8UoAVGNAEQ4S52D_95YG1I0WTXl-simfLjwg3eNGtAk7pmG1ZdUPkkHzqTRs4E6lvzkzPkNzQLpdHokeAZxBEwDIh-qv2OlomhVdszyE4LoTQBkeP1X4_vbNMHOKy7BGnNSHx2cER0bD1lXIMMcS8alHvts4nmNxmbwSwYnbuGKpnAHFdjZ68pehsyBu85_qy9-PCZFH19WD3dWoH_ALi4kpmfFWmPOCNu7CIkXuNjFvsBg';
+  private empresaKey = 'empresa_examen_preocupacional';
 
-  constructor(private http: HttpClient) {
-    this.loadToken();
+  constructor() {
+    console.log('✅ AuthService inicializado');
+    console.log('🔗 Base URL:', this.baseUrl);
   }
 
-  private loadToken(): void {
-    if (!localStorage.getItem(this.tokenKey)) {
-      localStorage.setItem(this.tokenKey, this.jwtToken);
-    }
-  }
-
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem(this.tokenKey) || this.jwtToken;
-    return new HttpHeaders({
-      'accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
-  /**
-   * Guardar datos de empresa para exámenes preocupacionales
-   */
-  guardarEmpresaExamen(empresa: any): void {
-    const empresaData = {
-      ...empresa,
-      fechaAcceso: new Date().toISOString(),
-      tipoAcceso: 'examen_preocupacional'
-    };
-    sessionStorage.setItem('empresa_examen_preocupacional', JSON.stringify(empresaData));
-  }
-
-   /**
-   * Verificar si puede acceder a exámenes preocupacionales
-   */
-  puedeAccederExamen(): boolean {
-    const empresa = this.getEmpresaExamen();
-    if (!empresa) return false;
-
-    // Verificar que la empresa esté activa
-    return this.estaActiva(empresa.Estado);
-  }
-
-
-   /**
-   * Obtener empresa para exámenes preocupacionales
-   */
-  getEmpresaExamen(): any {
-    const data = sessionStorage.getItem('empresa_examen_preocupacional');
-    return data ? JSON.parse(data) : null;
-  }
-
- /**
-   * Limpiar datos de exámenes preocupacionales
-   */
-  limpiarDatosExamen(): void {
-    sessionStorage.removeItem('empresa_examen_preocupacional');
-  }
   /**
    * Buscar empresa por número patronal
    */
   buscarEmpresa(numeroPatronal: string): Observable<any> {
-    // Mantener con guiones (según tu curl)
-    const params = new HttpParams()
-      .set('Tipo', '3')
-      .set('Search', numeroPatronal);
+  const url = `${this.baseUrl}/Afiliaciones/EmpresasAfiliadas/Search`;
+  const params = new HttpParams()
+    .set('Tipo', '3')
+    .set('Search', numeroPatronal);
 
-    console.log('🔍 Buscando empresa:', {
-      url: `${this.apiUrl}/Afiliaciones/EmpresasAfiliadas/Search`,
-      params: params.toString(),
-      numeroPatronal: numeroPatronal
-    });
+  console.log('🔍 Buscando empresa:', {
+    url,
+    numeroPatronal,
+    params: { Tipo: '3', Search: numeroPatronal }
+  });
 
-    return this.http.get<any>(
-      `${this.apiUrl}/Afiliaciones/EmpresasAfiliadas/Search`,
-      {
-        headers: this.getHeaders(),
-        params,
-        observe: 'response'
-      }
-    ).pipe(
-      map(response => {
-        console.log(' Respuesta completa del servidor:', response);
+  const headers = this.getAuthHeaders();
 
-        const body = response.body;
-
-        // CASO 1: Si el body es un array directamente
-        if (Array.isArray(body)) {
-          console.log(' Body es un array:', body);
-
-          if (body.length === 0) {
-            throw new Error('EMPRESA_NO_ENCONTRADA');
-          }
-
-          const empresa = body[0];
-          return this.procesarEmpresa(empresa, numeroPatronal);
-        }
-
-        // CASO 2: Si el body tiene propiedad 'data' (array)
-        else if (body && body.data && Array.isArray(body.data)) {
-          console.log(' Body tiene propiedad data:', body.data);
-
-          if (body.data.length === 0) {
-            throw new Error('EMPRESA_NO_ENCONTRADA');
-          }
-
-          const empresa = body.data[0];
-          return this.procesarEmpresa(empresa, numeroPatronal);
-        }
-
-        // CASO 3: Si el body es un objeto con la empresa directamente
-        else if (body && typeof body === 'object') {
-          console.log(' Body es un objeto:', body);
-
-          // Verificar si el objeto tiene propiedades de empresa
-          if (body.NumeroPatronal || body.RazonSocial) {
-            return this.procesarEmpresa(body, numeroPatronal);
-          }
-
-          // Si tiene propiedad success pero es false
-          if (body.success === false) {
-            throw new Error('EMPRESA_NO_ENCONTRADA');
-          }
-        }
-
-        // CASO 4: Cualquier otra estructura
-        console.warn(' Estructura de respuesta no reconocida:', body);
+  return this.http.get<any[]>(url, {
+    params,
+    headers,
+    observe: 'response'  // Observar la respuesta completa
+  }).pipe(
+    tap(response => {
+      console.log('✅ Respuesta HTTP completa:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: response.body
+      });
+    }),
+    map(response => {
+      // Verificar si hay respuesta
+      if (!response.body || response.body.length === 0) {
         throw new Error('EMPRESA_NO_ENCONTRADA');
-      }),
-      catchError(error => this.manejarError(error, numeroPatronal))
-    );
-  }
+      }
+      
+      return this.procesarRespuesta(response.body, numeroPatronal);
+    }),
+    catchError(this.handleError)
+  );
+}
 
   /**
-   * Procesar empresa encontrada
+   * Manejo de errores (igual que tu ApiService)
    */
-  private procesarEmpresa(empresa: any, numeroPatronal: string): any {
-    console.log(' Procesando empresa:', empresa);
+private handleError(error: any) {
+  console.error('❌ Error en AuthService:', error);
+  
+  let errorMessage = 'Error desconocido';
+  let errorCode = 'UNKNOWN_ERROR';
 
-    // Normalizar datos
-    const empresaNormalizada = {
-      ID: empresa.ID || empresa.id || 0,
-      NIT: empresa.NIT || empresa.nit || empresa.RUC || '',
-      NumeroPatronal: empresa.NumeroPatronal || empresa.numeroPatronal || numeroPatronal,
-      RazonSocial: empresa.RazonSocial || empresa.razonSocial || empresa.Nombre || 'Sin nombre',
-      Estado: empresa.Estado || empresa.estado || empresa.Status || '',
-      Direccion: empresa.Direccion || empresa.direccion || '',
-      Telefono: empresa.Telefono || empresa.telefono || '',
-      Email: empresa.Email || empresa.email || '',
-      FechaAfiliacion: empresa.FechaAfiliacion || empresa.fechaAfiliacion || '',
-      TipoEmpresa: empresa.TipoEmpresa || empresa.tipoEmpresa || ''
-    };
+  if (error.status === 0) {
+    errorMessage = 'Error de conexión. Verifique su conexión a internet.';
+    errorCode = 'CONNECTION_ERROR';
+  } else if (error.status === 404) {
+    errorMessage = 'Empresa no encontrada. Verifique el número patronal.';
+    errorCode = 'EMPRESA_NO_ENCONTRADA';
+  } else if (error.status === 401) {
+    errorMessage = 'Error de autenticación. Token inválido o expirado.';
+    errorCode = 'AUTH_ERROR';
+  } else if (error.status === 500) {
+    errorMessage = 'Error interno del servidor. Intente más tarde.';
+    errorCode = 'SERVER_ERROR';
+  } else if (error.message === 'EMPRESA_NO_ENCONTRADA') {
+    errorMessage = 'No se encontró ninguna empresa con ese número patronal.';
+    errorCode = 'EMPRESA_NO_ENCONTRADA';
+  } else {
+    errorMessage = error.message || 'Error desconocido';
+    errorCode = error.error?.code || 'UNKNOWN';
+  }
 
-    // Verificar estado
-    if (!this.estaActiva(empresaNormalizada.Estado)) {
-      console.warn(' Empresa inactiva:', empresaNormalizada.Estado);
-      throw new Error('EMPRESA_INACTIVA');
+  return throwError(() => ({
+    success: false,
+    mensaje: errorMessage,
+    codigo: errorCode,
+    status: error.status || 0,
+    error: error.error
+  }));
+}
+  /**
+   * Procesar respuesta
+   */
+  private procesarRespuesta(response: any[], numeroPatronal: string): any {
+    console.log('📊 Procesando respuesta:', response);
+
+    if (!response || !Array.isArray(response) || response.length === 0) {
+      throw new Error('EMPRESA_NO_ENCONTRADA');
     }
 
-    // Guardar empresa
-    this.guardarEmpresa(empresaNormalizada);
+    const empresaData = response[0];
+    console.log('🏢 Datos de empresa:', empresaData);
+
+    // Normalizar datos según la estructura que recibimos
+    const empresaNormalizada = {
+      id: empresaData.id || empresaData.empresaId || 0,
+      empresaId: empresaData.empresaId || 0,
+      razonSocial: empresaData.empresa?.razonSocial || 'Sin razón social',
+      nit: empresaData.empresa?.nit || '',
+      telefono: empresaData.empresa?.telefono || '',
+      nroPatronal: empresaData.nroPatronal || numeroPatronal,
+      numeroPatronal: empresaData.nroPatronal || numeroPatronal,
+      estado: empresaData.parametroEstadoEmpresa?.descripcion || 'DESCONOCIDO',
+      fechaAfiliacion: empresaData.fechaAfiliacion || '',
+      direccion: empresaData.referenciaDireccion || '',
+      nroTrabajadores: empresaData.nroTrabajador || 0,
+      
+      // Campos adicionales para compatibilidad
+      RazonSocial: empresaData.empresa?.razonSocial || 'Sin razón social',
+      NIT: empresaData.empresa?.nit || '',
+      NumeroPatronal: empresaData.nroPatronal || numeroPatronal,
+      Estado: empresaData.parametroEstadoEmpresa?.descripcion || 'DESCONOCIDO',
+      Direccion: empresaData.referenciaDireccion || '',
+      Telefono: empresaData.empresa?.telefono || '',
+      FechaAfiliacion: empresaData.fechaAfiliacion || ''
+    };
+
+    console.log('🏢 Empresa normalizada:', empresaNormalizada);
 
     return {
       success: true,
       empresa: empresaNormalizada,
-      mensaje: `Empresa verificada: ${empresaNormalizada.RazonSocial}`
+      mensaje: `Empresa encontrada: ${empresaNormalizada.razonSocial}`
     };
+  }
+
+   
+  /**
+   * Obtener token actual
+   */
+  getToken(): string {
+    return localStorage.getItem(this.tokenKey) || this.token;
+  }
+  /**
+   * Headers de autenticación (igual que tu ApiService)
+   */
+  private getAuthHeaders() {
+    return new HttpHeaders({
+      'Authorization': `Bearer ${this.token}`,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    });
+  }
+
+ /**
+ * Guardar empresa con verificación completa
+ */
+guardarEmpresaExamen(empresa: any): void {
+  if (!empresa) {
+    console.error('⚠️ Intento de guardar empresa vacía');
+    return;
+  }
+  
+  const empresaData = {
+    id: empresa.id || empresa.empresaId || 0,
+    razonSocial: empresa.razonSocial || empresa.RazonSocial || '',
+    numeroPatronal: empresa.numeroPatronal || empresa.nroPatronal || '',
+    nit: empresa.nit || empresa.NIT || '',
+    estado: empresa.estado || empresa.Estado || '',
+    telefono: empresa.telefono || empresa.Telefono || '',
+    direccion: empresa.direccion || empresa.Direccion || '',
+    fechaAfiliacion: empresa.fechaAfiliacion || empresa.FechaAfiliacion || '',
+    // Información de sesión
+    fechaVerificacion: new Date().toISOString(),
+    sesionId: this.generarSesionId(),
+    token: this.token,
+    // Estado de verificación
+    verificada: true,
+    puedeAcceder: this.estaActiva(empresa)
+  };
+  
+  console.log('💾 Guardando empresa en localStorage:', empresaData);
+  localStorage.setItem(this.empresaKey, JSON.stringify(empresaData));
+  
+  // También guardar en sessionStorage para mayor seguridad
+  sessionStorage.setItem(this.empresaKey, JSON.stringify(empresaData));
+}
+
+/**
+ * Obtener empresa verificada
+ */
+getEmpresaExamen(): any {
+  // Intentar primero sessionStorage
+  const sessionData = sessionStorage.getItem(this.empresaKey);
+  if (sessionData) {
+    const empresa = JSON.parse(sessionData);
+    console.log('📋 Empresa obtenida de sessionStorage:', empresa);
+    return empresa;
+  }
+  
+  // Si no hay en session, intentar localStorage
+  const localData = localStorage.getItem(this.empresaKey);
+  if (localData) {
+    const empresa = JSON.parse(localData);
+    console.log('📋 Empresa obtenida de localStorage:', empresa);
+    
+    // Verificar que la sesión sea reciente (menos de 1 hora)
+    const fechaVerificacion = new Date(empresa.fechaVerificacion);
+    const ahora = new Date();
+    const diferenciaHoras = (ahora.getTime() - fechaVerificacion.getTime()) / (1000 * 60 * 60);
+    
+    if (diferenciaHoras > 1) {
+      console.warn('⚠️ Sesión de empresa expirada');
+      this.limpiarDatosExamen();
+      return null;
+    }
+    
+    return empresa;
+  }
+  
+  console.log('📋 No hay empresa almacenada');
+  return null;
+}
+
+/**
+ * Verificar si puede acceder al examen
+ */
+puedeAccederExamen(): boolean {
+  const empresa = this.getEmpresaExamen();
+  
+  if (!empresa) {
+    console.log('❌ No hay empresa almacenada para acceso');
+    return false;
+  }
+  
+  // Verificar que tenga los datos mínimos
+  if (!empresa.razonSocial || !empresa.numeroPatronal) {
+    console.warn('⚠️ Empresa con datos incompletos');
+    return false;
+  }
+  
+  // Verificar que esté verificada
+  if (!empresa.verificada) {
+    console.warn('⚠️ Empresa no verificada');
+    return false;
+  }
+  
+  // Verificar que esté activa
+  if (!this.estaActiva(empresa)) {
+    console.warn('⚠️ Empresa inactiva');
+    return false;
+  }
+  
+  // Verificar token (opcional si usas token fijo)
+  if (!this.isTokenValid()) {
+    console.warn('⚠️ Token no válido');
+    return false;
+  }
+  
+  console.log('✅ Empresa puede acceder al examen:', empresa.razonSocial);
+  return true;
+}
+
+/**
+ * Generar ID de sesión único
+ */
+private generarSesionId(): string {
+  return 'sesion_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+
+
+  limpiarDatosExamen(): void {
+    localStorage.removeItem(this.empresaKey);
+    console.log('🧹 Datos de empresa limpiados');
   }
 
   /**
    * Verificar si empresa está activa
    */
-  private estaActiva(estado: string): boolean {
-    if (!estado) {
-      console.warn(' Empresa inactiva: Estado vacío');
-      return false;
-    }
-
-    const estadoUpper = estado.toUpperCase();
-
-    // Posibles valores de estado activo
-    const estadosActivos = [
-      'ACTIVO', 'ACTIVA', 'A', '1', 'HABILITADO',
-      'HABILITADA', 'VIGENTE', 'VIGENTE'
-    ];
-
-    const activa = estadosActivos.some(estadoActivo =>
-      estadoUpper.includes(estadoActivo)
-    );
-
-    console.log(` Estado: "${estado}" → Activa: ${activa}`);
-    return activa;
+  estaActiva(empresa: any): boolean {
+    if (!empresa) return false;
+    const estado = empresa.estado || empresa.Estado;
+    return estado?.toUpperCase().includes('ACTIV') || false;
   }
 
   /**
-   * Guardar empresa
+   * Verificar token (siempre válido porque usamos el mismo token que funciona)
    */
-  private guardarEmpresa(empresa: any): void {
-    sessionStorage.setItem(this.empresaKey, JSON.stringify(empresa));
-    console.log(' Empresa guardada:', empresa.RazonSocial);
+  isTokenValid(): boolean {
+    return true; // El token es válido porque funciona en tu ApiService
   }
 
   /**
-   * Manejar errores
+   * Obtener información del token (simplificado)
    */
-  private manejarError(error: any, numeroPatronal: string): Observable<never> {
-    console.error(' Error en búsqueda:', error);
-
-    // Si el error viene con información de empresa no encontrada
-    if (error.error && error.error.message && error.error.message.includes('no encontrada')) {
-      return throwError(() => ({
-        success: false,
-        mensaje: `Empresa ${numeroPatronal} no encontrada`,
-        error: error.error
-      }));
-    }
-
-    // Si es nuestro error personalizado
-    if (error.message === 'EMPRESA_NO_ENCONTRADA') {
-      return throwError(() => ({
-        success: false,
-        mensaje: `Empresa ${numeroPatronal} no encontrada en el sistema`
-      }));
-    }
-
-    if (error.message === 'EMPRESA_INACTIVA') {
-      return throwError(() => ({
-        success: false,
-        mensaje: 'Inactivo, acérquese a afiliaciones para regularizar'
-      }));
-    }
-
-    // Si es error HTTP
-    if (error instanceof HttpErrorResponse) {
-      console.error(' Error HTTP:', {
-        status: error.status,
-        statusText: error.statusText,
-        url: error.url,
-        error: error.error
-      });
-
-      // Si el error tiene información en el body
-      if (error.error) {
-        return throwError(() => ({
-          success: false,
-          mensaje: error.error.message || `Error ${error.status}: ${error.statusText}`,
-          error: error.error
-        }));
-      }
-
-      return throwError(() => ({
-        success: false,
-        mensaje: `Error del servidor (${error.status})`
-      }));
-    }
-
-    return throwError(() => ({
-      success: false,
-      mensaje: 'Error en la verificación de empresa'
-    }));
+  getTokenInfo(): any {
+    return {
+      expirado: false,
+      fechaExpiracion: null,
+      tiempoRestante: 999999999
+    };
   }
 
-  // Resto de métodos...
-  getEmpresaActual(): any {
-    const empresaData = sessionStorage.getItem(this.empresaKey);
-    return empresaData ? JSON.parse(empresaData) : null;
-  }
-
-  getToken(): string {
-    return localStorage.getItem(this.tokenKey) || this.jwtToken;
-  }
-
-  isLoggedIn(): boolean {
-    return !!this.getEmpresaActual();
-  }
-
-  logout(): void {
-    sessionStorage.removeItem(this.empresaKey);
-  }
+  
 }

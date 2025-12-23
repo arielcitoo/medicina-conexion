@@ -1,18 +1,20 @@
 <!-- prelogin.html -->
 <div class="prelogin-container">
   <mat-card class="card-prelogin">
+    <!-- Encabezado -->
     <mat-card-header class="card-header">
       <mat-card-title>
         <div class="title-container">
-          <mat-icon class="title-icon">verified_user</mat-icon>
+          <mat-icon class="title-icon">medical_services</mat-icon>
           <div>
             <h1>Acceso al Registro de Exámenes Preocupacionales</h1>
-            <p class="subtitle">Verificación de Empresa Afiliada al CNS</p>
+            <p class="subtitle">Verificación de Empresa Afiliada a la Caja Nacional de Salud</p>
           </div>
         </div>
       </mat-card-title>
     </mat-card-header>
 
+    <!-- Contenido Principal -->
     <mat-card-content class="card-content">
       <!-- Sección de búsqueda -->
       <div class="search-section">
@@ -20,36 +22,55 @@
           <mat-icon>business</mat-icon>
           <h2>Ingreso de Empresa</h2>
         </div>
-
+        
         <p class="section-description">
-          Ingrese el número patronal de su empresa para verificar su afiliación al CNS y acceder al registro de exámenes preocupacionales.
+          Ingrese el número patronal de su empresa para verificar su afiliación al CNS 
+          y acceder al registro de exámenes preocupacionales.
         </p>
 
         <form [formGroup]="preloginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
           <!-- Campo de número patronal -->
-         <mat-label>Número Patronal</mat-label>
-         <input matInput
-         formControlName="numeroPatronal"
-         placeholder="Ej: 01-730-00001"
-         [maxlength]="12"
-         (keypress)="onKeyPress($event)"
-         (input)="onInput($event)"
-         (paste)="onPaste($event)">
-          <mat-icon matSuffix>badge</mat-icon>
-
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Número Patronal</mat-label>
+            <input matInput 
+                   formControlName="numeroPatronal"
+                   placeholder="Ej: 01-730-00001"
+                   [maxlength]="12"
+                   (keypress)="onKeyPress($event)"
+                   (input)="onInput($event)"
+                   (blur)="onBlur()">
+            <mat-icon matSuffix>format_list_numbered_rtl</mat-icon>
+            
             <!-- Errores de validación -->
-      @if (tieneError('numeroPatronal', 'required')) {
-      <mat-error>El número patronal es obligatorio</mat-error>
-      }
-      @if (tieneError('numeroPatronal', 'pattern')) {
-      <mat-error>Formato: 01-730-00001</mat-error>
-      }
-      @if (tieneError('numeroPatronal', 'minlength') || tieneError('numeroPatronal', 'maxlength')) {
-      <mat-error>Debe tener 12 caracteres</mat-error>
-      }
-      <mat-hint>Formato: 01-730-00001</mat-hint>
-    </mat-form-field>
+            @if (tieneError('numeroPatronal', 'required')) {
+              <mat-error>El número patronal es obligatorio</mat-error>
+            }
+            @if (tieneError('numeroPatronal', 'pattern')) {
+              <mat-error>Formato: 01-730-00001</mat-error>
+            }
+            @if (tieneError('numeroPatronal', 'minlength')) {
+              <mat-error>Mínimo 10 caracteres</mat-error>
+            }
+            @if (tieneError('numeroPatronal', 'maxlength')) {
+              <mat-error>Máximo 12 caracteres</mat-error>
+            }
+            
+            <mat-hint>Formato: 01-730-00001</mat-hint>
+          </mat-form-field>
+
+          <!-- Estado de validación -->
+          <div class="validation-status" [class.valid]="preloginForm.valid" *ngIf="preloginForm.dirty">
+            <mat-icon class="status-icon">
+              {{ preloginForm.valid ? 'check_circle' : 'error_outline' }}
+            </mat-icon>
+            <span>
+              @if (preloginForm.valid) {
+                ✓ Formato válido
+              } @else {
+                Ingrese un número patronal válido
+              }
+            </span>
+          </div>
 
           <!-- Botones de ejemplo -->
           <div class="ejemplos-section">
@@ -59,8 +80,8 @@
             </p>
             <div class="ejemplos-buttons">
               @for (ejemplo of ejemplos; track ejemplo) {
-                <button mat-stroked-button
-                        type="button"
+                <button mat-stroked-button 
+                        type="button" 
                         class="ejemplo-button"
                         (click)="cargarEjemplo(ejemplo)">
                   {{ ejemplo }}
@@ -72,15 +93,16 @@
             </p>
           </div>
 
-          <!-- Botón de búsqueda -->
+          <!-- Botones de acción -->
           <div class="search-button-container">
-            <button mat-raised-button
+            <button mat-raised-button 
                     color="primary"
                     class="search-button"
                     type="submit"
-                    [disabled]="!esBotonHabilitado">
+                    [disabled]="!botonPrincipalHabilitado">
               @if (isLoading) {
                 <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+                <span>Verificando...</span>
               } @else {
                 <mat-icon>
                   @if (empresaEncontrada && empresaActiva) {
@@ -91,11 +113,11 @@
                     search
                   }
                 </mat-icon>
+                <span>{{ textoBotonPrincipal }}</span>
               }
-              <span>{{ textoBotonPrincipal }}</span>
             </button>
 
-            <button mat-button
+            <button mat-button 
                     type="button"
                     class="clear-button"
                     (click)="limpiar()"
@@ -109,92 +131,132 @@
 
       <!-- Resultados de búsqueda -->
       <div class="result-section">
+        <!-- Estado de carga -->
         @if (isLoading) {
           <div class="loading-state">
             <mat-spinner diameter="40"></mat-spinner>
             <p>Buscando empresa en el sistema CNS...</p>
+            <p class="loading-subtext">Esto puede tomar unos segundos</p>
           </div>
         }
 
-        @if (mensajeError && busquedaRealizada) {
+        <!-- Error -->
+        @if (mensajeError && busquedaRealizada && !isLoading) {
           <div class="error-result">
             <div class="result-header">
               <mat-icon class="error-icon">error_outline</mat-icon>
-              <h3>Error en la verificación</h3>
+              <h3>No se pudo verificar la empresa</h3>
             </div>
-            <p>{{ mensajeError }}</p>
+            <p><strong>{{ mensajeError }}</strong></p>
+            <div class="error-advice">
+              <mat-icon>info</mat-icon>
+              <p>Verifique que el número patronal tenga el formato correcto: <strong>01-730-00001</strong></p>
+            </div>
+            <div class="error-actions">
+              <button mat-button (click)="limpiar()">
+                <mat-icon>refresh</mat-icon>
+                Intentar nuevamente
+              </button>
+            </div>
           </div>
         }
 
-        @if (empresaEncontrada && busquedaRealizada) {
+        <!-- Empresa encontrada -->
+        @if (empresaEncontrada && busquedaRealizada && !isLoading) {
           <div class="success-result">
             <div class="result-header">
               @if (empresaActiva) {
                 <mat-icon class="success-icon">check_circle</mat-icon>
-                <h3>Empresa Verificada ✓</h3>
+                <h3>¡Empresa Verificada! ✓</h3>
               } @else {
                 <mat-icon class="warning-icon">warning</mat-icon>
-                <h3>Empresa Inactiva</h3>
+                <h3>Empresa Encontrada (Inactiva)</h3>
               }
             </div>
 
-            <div class="empresa-details">
-              <div class="detail-item">
-                <mat-icon>business</mat-icon>
-                <div class="detail-content">
-                  <strong>Razón Social</strong>
-                  <span>{{ empresaEncontrada.RazonSocial }}</span>
-                </div>
-              </div>
-
-              <div class="detail-item">
-                <mat-icon>fingerprint</mat-icon>
-                <div class="detail-content">
-                  <strong>NIT</strong>
-                  <span>{{ empresaEncontrada.NIT }}</span>
-                </div>
-              </div>
-
-              <div class="detail-item">
-                <mat-icon>numbers</mat-icon>
-                <div class="detail-content">
-                  <strong>Número Patronal</strong>
-                  <span>{{ empresaEncontrada.NumeroPatronal }}</span>
-                </div>
-              </div>
-
-              <div class="detail-item">
-                <mat-icon>info</mat-icon>
-                <div class="detail-content">
-                  <strong>Estado</strong>
-                  <span [class]="empresaActiva ? 'estado-activo' : 'estado-inactivo'">
-                    {{ empresaEncontrada.Estado }}
-                    @if (empresaActiva) {
-                      <mat-icon class="status-icon">check</mat-icon>
-                    } @else {
-                      <mat-icon class="status-icon">close</mat-icon>
-                    }
-                  </span>
-                </div>
+            <!-- Información principal -->
+            <div class="empresa-info-primary">
+              <h4>{{ empresaEncontrada.razonSocial || empresaEncontrada.RazonSocial }}</h4>
+              <div class="empresa-id">
+                <span class="label">Número Patronal:</span>
+                <span class="value">{{ empresaEncontrada.nroPatronal || empresaEncontrada.numeroPatronal }}</span>
               </div>
             </div>
 
-            <!-- Mensaje informativo según estado -->
-            @if (empresaActiva) {
-              <div class="info-message success">
-                <mat-icon>done_all</mat-icon>
-                <div>
-                  <p><strong>¡Empresa verificada correctamente!</strong></p>
-                  <p>Será redirigido al registro de exámenes preocupacionales en breve...</p>
+            <!-- Estado destacado -->
+            <div class="estado-destacado" [class.activo]="empresaActiva" [class.inactivo]="!empresaActiva">
+              <mat-icon>{{ empresaActiva ? 'check_circle' : 'block' }}</mat-icon>
+              <span>
+                <strong>Estado:</strong> 
+                {{ empresaEncontrada.estado || empresaEncontrada.Estado || 'DESCONOCIDO' }}
+              </span>
+            </div>
+
+            <!-- Detalles adicionales -->
+            <div class="empresa-details-grid">
+              <div class="detail-card">
+                <mat-icon>fingerprint</mat-icon>
+                <div class="detail-content">
+                  <strong>NIT</strong>
+                  <span>{{ empresaEncontrada.nit || empresaEncontrada.NIT || 'No disponible' }}</span>
                 </div>
               </div>
-            } @else {
-              <div class="info-message warning">
-                <mat-icon>warning</mat-icon>
-                <div>
-                  <p><strong>Empresa inactiva</strong></p>
-                  <p>Debe regularizar su situación en la oficina de afiliaciones del CNS antes de realizar exámenes.</p>
+
+              <div class="detail-card">
+                <mat-icon>phone</mat-icon>
+                <div class="detail-content">
+                  <strong>Teléfono</strong>
+                  <span>{{ empresaEncontrada.telefono || empresaEncontrada.Telefono || 'No disponible' }}</span>
                 </div>
+              </div>
+
+              @if (empresaEncontrada.direccion || empresaEncontrada.Direccion) {
+                <div class="detail-card">
+                  <mat-icon>location_on</mat-icon>
+                  <div class="detail-content">
+                    <strong>Dirección</strong>
+                    <span>{{ empresaEncontrada.direccion || empresaEncontrada.Direccion }}</span>
+                  </div>
+                </div>
+              }
+
+              @if (empresaEncontrada.fechaAfiliacion || empresaEncontrada.FechaAfiliacion) {
+                <div class="detail-card">
+                  <mat-icon>calendar_today</mat-icon>
+                  <div class="detail-content">
+                    <strong>Fecha Afiliación</strong>
+                    <span>{{ empresaEncontrada.fechaAfiliacion || empresaEncontrada.FechaAfiliacion }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Acciones según estado -->
+            @if (empresaActiva) {
+              <div class="accion-activa">
+                <mat-icon>arrow_forward</mat-icon>
+                <div class="accion-content">
+                  <p>Redirigiendo al registro de exámenes...</p>
+                  <p class="accion-subtext">Será redirigido automáticamente en 3 segundos</p>
+                </div>
+                <button mat-raised-button 
+                        color="primary"
+                        (click)="redirigirAhora()">
+                  <mat-icon>login</mat-icon>
+                  Ingresar Ahora
+                </button>
+              </div>
+            } @else {
+              <div class="accion-inactiva">
+                <mat-icon>info</mat-icon>
+                <div class="accion-content">
+                  <p><strong>Esta empresa no está activa en el sistema CNS.</strong></p>
+                  <p class="accion-subtext">Contacte a la oficina de afiliaciones para regularizar su situación.</p>
+                </div>
+                <button mat-stroked-button (click)="limpiar()">
+                  <mat-icon>search</mat-icon>
+                  Buscar otra empresa
+                </button>
               </div>
             }
           </div>
@@ -212,10 +274,35 @@
               <li>Solo empresas afiliadas y activas pueden registrar exámenes preocupacionales</li>
               <li>Si su empresa aparece como inactiva, debe regularizar su situación en afiliaciones</li>
               <li>Los datos de la empresa se mantendrán durante toda la sesión</li>
+              <li>El sistema CNS verificará automáticamente el estado de su empresa</li>
+              <li>Para asistencia técnica, contacte al área de informática del CNS</li>
             </ul>
           </div>
         </div>
       </div>
+
+      <!-- Debug info (opcional - solo para desarrollo) -->
+      <!-- <div class="debug-panel" *ngIf="debugMode">
+        <h4>🔍 Información de Depuración:</h4>
+        <pre>Formulario válido: {{ preloginForm.valid }}</pre>
+        <pre>Valor: "{{ preloginForm.get('numeroPatronal')?.value }}"</pre>
+        <pre>Errores: {{ preloginForm.get('numeroPatronal')?.errors | json }}</pre>
+        <pre>Empresa encontrada: {{ empresaEncontrada ? 'Sí' : 'No' }}</pre>
+        <pre>Estado activo: {{ empresaActiva ? 'Sí' : 'No' }}</pre>
+        <pre>Busqueda realizada: {{ busquedaRealizada }}</pre>
+        <pre>Cargando: {{ isLoading }}</pre>
+      </div> -->
     </mat-card-content>
+
+    <!-- Footer -->
+    <mat-card-footer class="card-footer">
+      <div class="footer-content">
+        <mat-icon>verified</mat-icon>
+        <div class="footer-text">
+          <p>Sistema CNS - Caja Nacional de Salud © 2024</p>
+          <p class="footer-subtext">Versión 1.0.0 - Desarrollo</p>
+        </div>
+      </div>
+    </mat-card-footer>
   </mat-card>
 </div>

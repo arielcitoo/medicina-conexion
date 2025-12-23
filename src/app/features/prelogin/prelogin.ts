@@ -13,6 +13,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 
+
+
+
 @Component({
   selector: 'app-prelogin',
   imports: [
@@ -23,199 +26,254 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule,
-    ReactiveFormsModule,
+    MatProgressSpinnerModule
+  
     ],
   templateUrl: './prelogin.html',
   styleUrl: './prelogin.css',
 })
 export class Prelogin implements OnInit {
-  private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
-  private cdRef = inject(ChangeDetectorRef); // 🔥 AÑADE ESTA LÍNEA
-
   preloginForm: FormGroup;
   isLoading = false;
   empresaEncontrada: any = null;
   mensajeError: string = '';
   busquedaRealizada = false;
+  debugMode = false; // Cambiar a true solo para desarrollo
 
-  // Ejemplos de números patronales
-  ejemplos = [
-    '01-730-00001',
-    '01-730-00002',
-    '01-730-00003',
-    '01-730-00004'
-  ];
+  ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
+  redireccionEnProgreso = false;
+  contadorRedireccion = 3;
 
-  constructor() {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private cdRef: ChangeDetectorRef
+  ) {
     this.preloginForm = this.fb.group({
       numeroPatronal: ['', [
         Validators.required,
-        Validators.pattern(/^\d{2}-\d{3}-\d{5}$/),
-        Validators.minLength(12),
-        Validators.maxLength(12)
+        Validators.minLength(10),
+        Validators.maxLength(12),
+        Validators.pattern(/^\d{2}-\d{3}-\d{5}$/)
       ]]
     });
+
+    // Verificar si ya hay una empresa verificada
+    this.verificarEmpresaAlmacenada();
   }
 
   ngOnInit(): void {
-    // Usar setTimeout para evitar el error de detección de cambios
+    console.log('✅ Prelogin inicializado');
+    
+    // Auto-cargar ejemplo para pruebas
     setTimeout(() => {
-      const empresaExistente = this.authService.getEmpresaExamen();
-      if (empresaExistente) {
-        this.empresaEncontrada = empresaExistente;
-        this.mostrarMensaje(`Sesión activa: ${empresaExistente.RazonSocial}`, 'success');
-        this.cdRef.detectChanges(); // 🔥 FORZAR DETECCIÓN DE CAMBIOS
+      if (this.debugMode) {
+        this.cargarEjemplo('01-730-00001');
       }
-    }, 0);
+    }, 100);
   }
 
   /**
-   * Manejar envío del formulario - CORREGIDO
+   * Verificar si ya hay una empresa almacenada
+   */
+  private verificarEmpresaAlmacenada(): void {
+    const empresa = this.authService.getEmpresaExamen();
+    if (empresa && this.authService.estaActiva(empresa)) {
+      console.log('🏢 Empresa ya verificada encontrada:', empresa.razonSocial);
+      
+      // Mostrar información de la empresa ya verificada
+      this.empresaEncontrada = empresa;
+      this.busquedaRealizada = true;
+      
+      // Verificar si puede acceder directamente
+      if (this.authService.puedeAccederExamen()) {
+        console.log('🔄 Redirigiendo automáticamente...');
+        this.iniciarRedireccionAutomatica();
+      }
+    }
+  }
+
+  /**
+   * Enviar formulario
    */
   onSubmit(): void {
+    console.log('🚀 Enviando formulario...');
+    
     if (this.preloginForm.invalid) {
-      this.marcarCamposComoTocados();
+      this.mostrarMensaje('Ingrese un número patronal válido', 'error');
+      
+      // Marcar todos los campos como tocados para mostrar errores
+      Object.keys(this.preloginForm.controls).forEach(key => {
+        this.preloginForm.get(key)?.markAsTouched();
+      });
+      
       return;
     }
 
     const numeroPatronal = this.preloginForm.get('numeroPatronal')?.value;
-
-    // Usar setTimeout para evitar el error de detección de cambios
-    setTimeout(() => {
-      this.buscarEmpresa(numeroPatronal);
-    }, 0);
+    this.buscarEmpresa(numeroPatronal);
   }
 
   /**
-   * Buscar empresa en el sistema - CORREGIDO
+   * Buscar empresa en el sistema CNS
    */
   private buscarEmpresa(numeroPatronal: string): void {
-    // Usar setTimeout para asegurar que Angular complete el ciclo actual
-    setTimeout(() => {
-      this.isLoading = true;
-      this.empresaEncontrada = null;
-      this.mensajeError = '';
-      this.busquedaRealizada = true;
+    console.log('🔍 Buscando empresa:', numeroPatronal);
+    
+    this.isLoading = true;
+    this.mensajeError = '';
+    this.empresaEncontrada = null;
+    this.busquedaRealizada = false;
+    this.redireccionEnProgreso = false;
 
-      // Forzar detección de cambios
-      this.cdRef.detectChanges();
-    }, 0);
+    // Forzar actualización de UI
+    this.cdRef.detectChanges();
 
     this.authService.buscarEmpresa(numeroPatronal).subscribe({
       next: (response) => {
-        // Usar setTimeout para manejar la respuesta en el próximo ciclo
-        setTimeout(() => {
-          this.isLoading = false;
-
-          if (response.success && response.empresa) {
-            this.empresaEncontrada = response.empresa;
-
-            // Guardar empresa específicamente para exámenes
-            this.authService.guardarEmpresaExamen(response.empresa);
-
-            this.mostrarMensaje(`✓ Empresa verificada: ${response.empresa.RazonSocial}`, 'success');
-
-            // Redirigir al examen preocupacional después de un breve delay
-            setTimeout(() => {
-              this.router.navigate(['/examen-preocupacional']);
-            }, 1500);
+        console.log('✅ Respuesta exitosa:', response);
+        
+        this.isLoading = false;
+        this.busquedaRealizada = true;
+        
+        if (response.success) {
+          this.empresaEncontrada = response.empresa;
+          
+          // Guardar empresa en localStorage y sessionStorage
+          this.authService.guardarEmpresaExamen(response.empresa);
+          
+          this.mostrarMensaje(response.mensaje, 'success');
+          
+          // Si está activa, iniciar redirección
+          if (this.empresaActiva) {
+            console.log('🏢 Empresa activa, preparando redirección...');
+            this.iniciarRedireccionAutomatica();
           }
-
-          // Forzar detección de cambios
-          this.cdRef.detectChanges();
-        }, 0);
+        }
+        
+        this.cdRef.detectChanges();
       },
       error: (error) => {
-        // Usar setTimeout para manejar el error en el próximo ciclo
-        setTimeout(() => {
-          this.isLoading = false;
-          this.mensajeError = error.mensaje || 'Error al verificar la empresa';
-          this.mostrarMensaje(this.mensajeError, 'error');
-
-          // Forzar detección de cambios
-          this.cdRef.detectChanges();
-        }, 0);
+        console.error('❌ Error en búsqueda:', error);
+        
+        this.isLoading = false;
+        this.busquedaRealizada = true;
+        this.empresaEncontrada = null;
+        this.mensajeError = error.mensaje || 'Error desconocido al buscar empresa';
+        
+        this.mostrarMensaje(this.mensajeError, 'error');
+        this.cdRef.detectChanges();
       }
     });
   }
 
   /**
-   * Cargar ejemplo de número patronal - CORREGIDO
+   * Iniciar redirección automática
    */
-  cargarEjemplo(numero: string): void {
-    this.preloginForm.patchValue({ numeroPatronal: numero });
-
-    // Usar setTimeout para evitar el error de detección de cambios
-    setTimeout(() => {
-      this.mostrarMensaje(`Ejemplo cargado: ${numero}. Haga clic en "Verificar Empresa" para continuar.`, 'info');
-    }, 0);
+  private iniciarRedireccionAutomatica(): void {
+    if (this.redireccionEnProgreso) return;
+    
+    this.redireccionEnProgreso = true;
+    this.contadorRedireccion = 3;
+    
+    console.log('⏱️ Iniciando cuenta regresiva para redirección...');
+    
+    const intervalo = setInterval(() => {
+      this.contadorRedireccion--;
+      this.cdRef.detectChanges();
+      
+      if (this.contadorRedireccion <= 0) {
+        clearInterval(intervalo);
+        this.redirigirAExamen();
+      }
+    }, 1000);
   }
 
   /**
-   * Limpiar formulario - CORREGIDO
+   * Redirigir manualmente al examen
+   */
+  redirigirAhora(): void {
+    if (this.empresaEncontrada && this.empresaActiva) {
+      console.log('🎯 Redirección manual solicitada');
+      this.redirigirAExamen();
+    } else {
+      this.mostrarMensaje('La empresa no está activa o no se encontró', 'error');
+    }
+  }
+
+  /**
+   * Redirigir a la página de examen
+   */
+  private redirigirAExamen(): void {
+    console.log('🔄 Redirigiendo a examen-preocupacional...');
+    
+    // Verificar nuevamente antes de redirigir
+    if (!this.authService.puedeAccederExamen()) {
+      console.error('❌ No se puede acceder al examen');
+      this.mostrarMensaje('No tiene permisos para acceder al examen', 'error');
+      return;
+    }
+    
+    // Navegar a la ruta
+    this.router.navigate(['/examen-preocupacional']).then(success => {
+      if (success) {
+        console.log('✅ Redirección exitosa');
+      } else {
+        console.error('❌ Error en redirección');
+        this.mostrarMensaje('Error al acceder al examen', 'error');
+      }
+    });
+  }
+
+  /**
+   * Cargar ejemplo
+   */
+  cargarEjemplo(numero: string): void {
+    console.log('📥 Cargando ejemplo:', numero);
+    this.preloginForm.patchValue({ numeroPatronal: numero });
+    this.preloginForm.get('numeroPatronal')?.markAsDirty();
+    this.mostrarMensaje(`Ejemplo cargado: ${numero}`, 'info');
+  }
+
+  /**
+   * Limpiar formulario
    */
   limpiar(): void {
+    console.log('🧹 Limpiando formulario...');
+    
     this.preloginForm.reset();
     this.empresaEncontrada = null;
     this.mensajeError = '';
     this.busquedaRealizada = false;
+    this.redireccionEnProgreso = false;
+    
+    // Limpiar datos almacenados
     this.authService.limpiarDatosExamen();
-
-    // Usar setTimeout para evitar el error de detección de cambios
-    setTimeout(() => {
-      this.mostrarMensaje('Formulario limpiado. Ingrese su número patronal.', 'info');
-      this.cdRef.detectChanges();
-    }, 0);
+    
+    this.mostrarMensaje('Formulario limpiado', 'info');
+    this.cdRef.detectChanges();
   }
 
   /**
-   * Mostrar mensaje en snackbar
+   * Mostrar mensaje toast
    */
   private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info'): void {
-    // Usar setTimeout para mostrar el snackbar en el próximo ciclo
-    setTimeout(() => {
-      this.snackBar.open(mensaje, 'Cerrar', {
-        duration: 5000,
-        panelClass: [`snackbar-${tipo}`],
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom'
-      });
-    }, 0);
-  }
-
-  /**
-   * Marcar todos los campos como tocados para mostrar errores
-   */
-  private marcarCamposComoTocados(): void {
-    Object.keys(this.preloginForm.controls).forEach(key => {
-      const control = this.preloginForm.get(key);
-      control?.markAsTouched();
-      control?.markAsDirty();
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 5000,
+      panelClass: [`snackbar-${tipo}`]
     });
-
-    this.mostrarMensaje('Por favor, complete correctamente el número patronal', 'error');
   }
 
   /**
-   * Métodos getter - CORREGIDOS para evitar cambios asíncronos
+   * Getters
    */
   get empresaActiva(): boolean {
-    // Evitar cambios durante la detección de cambios
-    if (!this.empresaEncontrada?.Estado) return false;
-
-    // Usar un valor fijo hasta el próximo ciclo
-    const estado = this.empresaEncontrada.Estado.toUpperCase();
-    const activa = estado.includes('ACTIV') || estado === 'A' || estado === '1' || estado.includes('VIGENTE');
-
-    return activa;
+    return this.authService.estaActiva(this.empresaEncontrada);
   }
 
   get textoBotonPrincipal(): string {
-    // Calcular de forma síncrona
     if (this.isLoading) return 'Verificando...';
     if (this.empresaEncontrada && this.empresaActiva) return 'Ingresar al Registro';
     if (this.empresaEncontrada && !this.empresaActiva) return 'Empresa Inactiva';
@@ -223,93 +281,81 @@ export class Prelogin implements OnInit {
   }
 
   get botonPrincipalHabilitado(): boolean {
-    // Calcular de forma síncrona
-    if (this.isLoading) return false;
-    if (this.empresaEncontrada && this.empresaActiva) return true;
-    return this.preloginForm.valid;
+    return this.preloginForm.valid && !this.isLoading;
   }
 
   /**
-   * Verificar si hay errores en el campo
+   * Verificar errores del formulario
    */
   tieneError(controlName: string, errorType: string): boolean {
     const control = this.preloginForm.get(controlName);
     return control ? control.hasError(errorType) && (control.touched || control.dirty) : false;
   }
 
-  // 🔥 AÑADE ESTOS MÉTODOS QUE FALTAN EN EL TEMPLATE
-  onKeyPress(event: KeyboardEvent): void {
-    const allowedKeys = [
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-      '-',
-      'Backspace', 'Delete', 'Tab', 'Enter',
-      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-      'Home', 'End'
-    ];
+  /**
+   * Evento onBlur
+   */
+  onBlur(): void {
+  console.log(' Campo perdió el foco');
+  
+  const control = this.preloginForm.get('numeroPatronal');
+  
+  // Verificar que el control existe
+  if (!control) {
+    console.error('❌ Control "numeroPatronal" no encontrado');
+    return;
+  }
+  
+  let valor = control.value;
+  
+  if (valor) {
+    // Limpiar y formatear
+    valor = valor.trim().toUpperCase();
+    
+    // Solo actualizar si el valor cambió
+    if (valor !== control.value) {
+      control.setValue(valor, { emitEvent: false });
+    }
+    
+    // Marcar como tocado para mostrar errores
+    control.markAsTouched();
+    
+    // Actualizar validación
+    control.updateValueAndValidity();
+    
+    console.log(' Campo validado:', valor);
+  }
+}
 
-    if (!allowedKeys.includes(event.key)) {
+  /**
+   * Evento onKeyPress
+   */
+  onKeyPress(event: KeyboardEvent): void {
+    const allowed = /[0-9-]|Backspace|Delete|Tab|ArrowLeft|ArrowRight/;
+    if (!allowed.test(event.key)) {
       event.preventDefault();
     }
   }
 
+  /**
+   * Evento onInput
+   */
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^\d-]/g, '');
-
+    
+    // Autoformatear
     if (value.length > 2 && value.charAt(2) !== '-') {
       value = value.slice(0, 2) + '-' + value.slice(2);
     }
     if (value.length > 6 && value.charAt(6) !== '-') {
       value = value.slice(0, 6) + '-' + value.slice(6);
     }
-
+    
     if (value.length > 12) {
       value = value.slice(0, 12);
     }
-
-    this.preloginForm.patchValue({ numeroPatronal: value }, { emitEvent: false });
+    
+    this.preloginForm.patchValue({ numeroPatronal: value });
   }
-
-  onPaste(event: ClipboardEvent): void {
-    event.preventDefault();
-
-    const clipboardData = event.clipboardData;
-    if (!clipboardData) return;
-
-    let pastedText = clipboardData.getData('text');
-    pastedText = pastedText.replace(/[^\d-]/g, '');
-
-    if (pastedText.length > 2 && pastedText.charAt(2) !== '-') {
-      pastedText = pastedText.slice(0, 2) + '-' + pastedText.slice(2);
-    }
-    if (pastedText.length > 6 && pastedText.charAt(6) !== '-') {
-      pastedText = pastedText.slice(0, 6) + '-' + pastedText.slice(6);
-    }
-
-    const input = event.target as HTMLInputElement;
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const currentValue = this.preloginForm.get('numeroPatronal')?.value || '';
-
-    const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end);
-
-    this.preloginForm.patchValue({ numeroPatronal: newValue }, { emitEvent: true });
-  }
-
-  // Añade este método a la clase Prelogin
-esBotonHabilitado(): boolean {
-  // Versión síncrona y segura
-  if (this.isLoading) return false;
-
-  // Usar detección local en lugar de getters
-  if (this.empresaEncontrada) {
-    const estado = this.empresaEncontrada?.Estado?.toUpperCase() || '';
-    const activa = estado.includes('ACTIV') || estado === 'A' ||
-                   estado === '1' || estado.includes('VIGENTE');
-
-    if (this.empresaEncontrada && activa) return true;
-  }
-
-  return this.preloginForm.valid;
-}
 }
