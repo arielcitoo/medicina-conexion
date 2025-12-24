@@ -20,20 +20,20 @@
         Buscar Asegurado
       </div>
       <p class="section-description">
-        Ingrese el CI/NIT y fecha de nacimiento para buscar en el sistema CNS
+        Ingrese el CI y fecha de nacimiento para buscar en el sistema CNS
       </p>
 
       <form [formGroup]="aseguradoForm">
         <div class="form-row">
-          <!-- CI/NIT -->
+          <!-- CI -->
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>CI/NIT *</mat-label>
+            <mat-label>CI </mat-label>
             <input matInput formControlName="ci" 
                    placeholder="Ej: 1234567"
                    [maxlength]="11">
             <mat-icon matSuffix>badge</mat-icon>
             @if (aseguradoForm.get('ci')?.hasError('required')) {
-              <mat-error>El CI/NIT es requerido</mat-error>
+              <mat-error>El CI es requerido</mat-error>
             }
             @if (aseguradoForm.get('ci')?.hasError('pattern')) {
               <mat-error>Formato inválido</mat-error>
@@ -42,14 +42,14 @@
 
           <!-- Fecha de Nacimiento -->
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Fecha de Nacimiento *</mat-label>
+            <mat-label>Fecha de Nacimiento </mat-label>
             <input matInput [matDatepicker]="picker" 
                    formControlName="fechaNacimiento"
                    [max]="maxFechaNacimiento()"
                    placeholder="dd/mm/aaaa">
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
-            <mat-icon matSuffix>calendar_today</mat-icon>
+            <!-- <mat-icon matSuffix></mat-icon> -->
             @if (aseguradoForm.get('fechaNacimiento')?.hasError('required')) {
               <mat-error>La fecha es requerida</mat-error>
             }
@@ -112,7 +112,7 @@
             <div class="detail-item">
               <mat-icon>fingerprint</mat-icon>
               <div class="detail-content">
-                <strong>CI/NIT</strong>
+                <strong>CI</strong>
                 <span>{{ datosAsegurado.ci }}</span>
               </div>
             </div>
@@ -129,10 +129,10 @@
           </div>
 
           <!-- Mensaje informativo -->
-          <div class="info-message">
+          <!-- <div class="info-message">
             <mat-icon>info</mat-icon>
             <p>Ahora complete los datos de contacto obligatorios para agregar el asegurado</p>
-          </div>
+          </div> -->
         </div>
       }
     </div>
@@ -153,7 +153,7 @@
       <div class="form-row">
         <!-- Correo Electrónico -->
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Correo Electrónico *</mat-label>
+          <mat-label>Correo Electrónico </mat-label>
           <input matInput type="email" formControlName="correoElectronico"
                  placeholder="ejemplo@email.com"
                  (input)="validarCorreo()"
@@ -166,12 +166,12 @@
           @if (aseguradoForm.get('correoElectronico')?.hasError('email')) {
             <mat-error class="error-message">Ingrese un correo válido</mat-error>
           }
-          <mat-hint>Ej: nombre.apellido@empresa.com</mat-hint>
+          <mat-hint>Ej: mariarosavedia@gmail.com</mat-hint>
         </mat-form-field>
 
         <!-- Celular -->
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Celular *</mat-label>
+          <mat-label>Celular </mat-label>
           <input matInput formControlName="celular"
                  placeholder="77777777"
                  [maxlength]="8"
