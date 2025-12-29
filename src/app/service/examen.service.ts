@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { ApiService } from './api.service'; // Importar el API service existente
+import { ApiService } from './asegurados.service'; // Importar el API service existente
 import { Asegurado } from '../interfaces/examen.interface';
 
 @Injectable({
@@ -22,13 +22,13 @@ export class ExamenService {
 
     return this.apiService.buscarAsegurado(ci, fechaFormateada).pipe(
       map((response: any) => {
-        console.log('✅ Respuesta API asegurado:', response);
+        console.log(' Respuesta API asegurado:', response);
         
         // Mapear la respuesta del API a nuestro formato
         return this.mapearRespuestaAsegurado(response, ci, fechaNacimiento);
       }),
       catchError((error) => {
-        console.error('❌ Error al buscar asegurado:', error);
+        console.error(' Error al buscar asegurado:', error);
         return of({
           success: false,
           mensaje: this.obtenerMensajeError(error)

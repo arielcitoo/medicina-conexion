@@ -12,6 +12,8 @@ import { filter } from 'rxjs';
   styleUrl: './app.css'
 })
 export class App implements OnInit {
+    currentYear = new Date().getFullYear();
+
    protected readonly title = signal('medicina-del-trabajo');
    constructor(private router: Router) {}
 

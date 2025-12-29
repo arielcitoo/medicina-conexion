@@ -1,80 +1,23 @@
- .header {
-      background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      padding: 15px 0;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-    
-    .logo-icon {
-      font-size: 2rem;
-      color: #0d9488;
-    }
-    
-    .logo-text h1 {
-      margin: 0;
-      font-size: 1.2rem;
-      color: #1f2937;
-    }
-    
-    .logo-text p {
-      margin: 0;
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
-    
-    .nav {
-      display: flex;
-      gap: 20px;
-    }
-    
-    .nav a {
-      text-decoration: none;
-      color: #6b7280;
-      font-weight: 500;
-      padding: 8px 15px;
-      border-radius: 6px;
-      transition: all 0.3s;
-    }
-    
-    .nav a:hover {
-      color: #0d9488;
-      background: rgba(13, 148, 136, 0.1);
-    }
-    
-    .nav a.active {
-      color: #0d9488;
-      background: rgba(13, 148, 136, 0.1);
-      font-weight: 600;
-    }
-    
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-    }
-    
-    .connection-status.connected {
-      background: #d1fae5;
-      color: #065f46;
-    }
+
+
+
+.main-content {
+  min-height: calc(100vh - 120px); /* Altura total menos header y footer */
+  padding-top: 20px;
+}
+
+.simple-footer {
+  background: #f5f5f5;
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  border-top: 1px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    min-height: calc(100vh - 100px);
+    padding-top: 10px;
+  }
+}

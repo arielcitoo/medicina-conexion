@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../service/api.service';
+import { ApiService } from '../../service/asegurados.service';
 import { Asegurado } from '../../shared/models/asegurado.model';
 
 @Component({

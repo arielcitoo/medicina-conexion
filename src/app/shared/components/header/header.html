@@ -1,30 +1,112 @@
-<header class="header">
-      <div class="container">
+ <!-- <header class="header">
+      <div class="container"> -->
         <!-- Logo -->
-        <div class="logo" routerLink="/">
+        <!-- <div class="logo" routerLink="/">
           <span class="logo-icon"></span>
           <div class="logo-text">
             <h1>Medicina del Trabajo</h1>
             <p>Salud Ocupacional</p>
           </div>
-        </div>
+        </div> -->
 
         <!-- Navegación -->
-        <nav class="nav">
+        <!-- <nav class="nav">
 
           <a routerLink="/" routerLinkActive="active"> Inicio</a>
           <a routerLink="/prelogin" routerLinkActive="active"> Empresa</a>
           <a routerLink="/busqueda" routerLinkActive="active"> Buscar Asegurados</a>
           <a routerLink="/citas" routerLinkActive="active"> Citas Médicas</a>
           <a routerLink="/examen" routerLinkActive="active"> Examen Preocupacional</a>
-        </nav>
+        </nav> -->
 
 
 
         <!-- Estado conexión -->
-        <div class="connection-status" [class.connected]="true">
+        <!-- <div class="connection-status" [class.connected]="true">
           <span class="status-icon"></span>
           <span class="status-text">API Conectada</span>
         </div>
+      </div>
+    </header>  -->
+
+
+
+     <header class="session-header" *ngIf="mostrarHeader">
+      <div class="header-container">
+        <!-- Logo CNS -->
+        <div class="logo-section">
+          <mat-icon class="logo-icon">medical_services</mat-icon>
+          <div class="logo-text">
+            <h2>Exámenes Preocupacionales</h2>
+            <p>Sistema CNS</p>
+          </div>
+        </div>
+
+        <!-- Información de Sesión -->
+        <div class="session-info" *ngIf="idAcceso">
+          <!-- ID de Acceso -->
+          <div class="info-item id-item" (click)="copiarId()" [title]="'Copiar ID'">
+            <mat-icon class="info-icon">vpn_key</mat-icon>
+            <div class="info-content">
+              <span class="label">ID de Acceso</span>
+              <span class="value">{{ idAccesoFormateado }}</span>
+            </div>
+            <mat-icon class="copy-icon" *ngIf="!copiado">content_copy</mat-icon>
+            <mat-icon class="copy-icon" *ngIf="copiado">check</mat-icon>
+          </div>
+
+          <!-- Empresa -->
+          <div class="info-item empresa-item" *ngIf="empresa">
+            <mat-icon class="info-icon">business</mat-icon>
+            <div class="info-content">
+              <span class="label">Empresa</span>
+              <span class="value" [title]="empresa.razonSocial">
+                {{ empresa.razonSocial | truncate:30 }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Estado de Sesión -->
+          <div class="info-item estado-item" [class.expira-pronto]="expiraPronto">
+            <mat-icon class="info-icon">{{ estadoIcon }}</mat-icon>
+            <div class="info-content">
+              <span class="label">Sesión</span>
+              <span class="value">
+                {{ estadoTexto }}
+                <span class="tiempo-restante" *ngIf="diasRestantes > 0">
+                  ({{ diasRestantes }}d)
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="header-actions">
+          <button mat-icon-button class="action-btn" [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="copiarId()">
+              <mat-icon>content_copy</mat-icon>
+              <span>Copiar ID</span>
+            </button>
+            <button mat-menu-item (click)="verDetalles()">
+              <mat-icon>info</mat-icon>
+              <span>Detalles de sesión</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="cerrarSesion()" class="logout-btn">
+              <mat-icon>logout</mat-icon>
+              <span>Cerrar sesión</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="progress-bar" *ngIf="mostrarProgreso">
+        <div class="progress-fill" [style.width.%]="porcentajeProgreso"></div>
       </div>
     </header>

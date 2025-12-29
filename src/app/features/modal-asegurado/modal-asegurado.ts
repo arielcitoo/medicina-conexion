@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { Asegurado } from '../../interfaces/examen.interface';
-import { ApiService } from '../../service/api.service';
+import { ApiService } from '../../service/asegurados.service';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { MatSnackBarModule } from '@angular/material/snack-bar'; 

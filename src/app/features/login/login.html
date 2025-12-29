@@ -1,0 +1,182 @@
+<!-- login.component.html -->
+<div class="login-container">
+  <div class="login-card">
+    <!-- Logo y título -->
+    <div class="login-header">
+      <div class="logo-container">
+        <mat-icon class="logo-icon">medical_services</mat-icon>
+        <h1>Exámenes Preocupacionales</h1>
+      </div>
+      <p class="subtitle">Sistema de Registro CNS</p>
+    </div>
+
+    <!-- Selector de modo -->
+    <div class="modo-selector">
+      <button mat-button 
+              [class.active]="modo === 'nuevo'"
+              (click)="cambiarModo('nuevo')">
+        <mat-icon>add_circle</mat-icon>
+        Acceso Nuevo
+      </button>
+      <button mat-button 
+              [class.active]="modo === 'recuperar'"
+              (click)="cambiarModo('recuperar')">
+        <mat-icon>restore</mat-icon>
+        Continuar Registro
+      </button>
+    </div>
+
+    <!-- Formulario según modo -->
+    <div class="form-container">
+      @if (modo === 'nuevo') {
+        <!-- Acceso nuevo -->
+        <div class="nuevo-acceso">
+          <h2><mat-icon>play_arrow</mat-icon> Comenzar Registro</h2>
+          <p class="descripcion">
+            Genere un nuevo registro para realizar exámenes preocupacionales.
+            Se le asignará un ID único para poder continuar más tarde si es necesario.
+          </p>
+
+          <form [formGroup]="loginForm">
+            <div class="terminos-container">
+              <mat-checkbox formControlName="aceptarTerminos" color="primary">
+                Acepto los términos y condiciones del servicio
+              </mat-checkbox>
+              <a href="javascript:void(0)" 
+                 class="ver-terminos" 
+                 (click)="verTerminos()">
+                Ver términos
+              </a>
+            </div>
+
+            <button mat-raised-button 
+                    color="primary"
+                    class="comenzar-btn"
+                    (click)="comenzar()"
+                    [disabled]="!loginForm.valid || isLoading">
+              @if (isLoading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                <mat-icon>play_arrow</mat-icon>
+              }
+              Comenzar
+            </button>
+          </form>
+        </div>
+      } @else {
+        <!-- Acceso con ID -->
+        <div class="recuperar-acceso">
+          <h2><mat-icon>key</mat-icon> Continuar Registro</h2>
+          <p class="descripcion">
+            Ingrese su ID de acceso para continuar con el registro desde donde lo dejó.
+            El ID fue generado al iniciar su registro.
+          </p>
+
+          <form [formGroup]="accesoForm">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>ID de Acceso</mat-label>
+              <input matInput 
+                     formControlName="idAcceso"
+                     placeholder="Ej: EXM-ABC1-2345-DEF6"
+                     (input)="onIdInput($event)"
+                     (blur)="onIdBlur()"
+                     [maxlength]="18">
+              <mat-icon matSuffix>vpn_key</mat-icon>
+              
+              @if (accesoForm.get('idAcceso')?.hasError('required')) {
+                <mat-error>El ID de acceso es requerido</mat-error>
+              }
+              @if (accesoForm.get('idAcceso')?.hasError('pattern')) {
+                <mat-error>Formato: EXM-XXXX-XXXX-XXXX</mat-error>
+              }
+              
+              <mat-hint>
+                @if (idEjemploGenerado) {
+                  <span class="ejemplo-hint">Ejemplo generado - puede editarlo</span>
+                } @else {
+                  <span>Ingrese el ID que recibió al comenzar</span>
+                }
+              </mat-hint>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-stroked-button 
+                      type="button"
+                      (click)="generarEjemplo()"
+                      class="ejemplo-btn">
+                <mat-icon>content_copy</mat-icon>
+                Ver Ejemplo
+              </button>
+
+              <button mat-stroked-button 
+                      type="button"
+                      (click)="copiarIdAlPortapapeles()"
+                      [disabled]="!accesoForm.get('idAcceso')?.value">
+                <mat-icon>content_paste</mat-icon>
+                Copiar
+              </button>
+
+              <button mat-raised-button 
+                      color="primary"
+                      (click)="accederConId()"
+                      [disabled]="!accesoForm.valid || isLoading"
+                      class="continuar-btn">
+                @if (isLoading) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <mat-icon>login</mat-icon>
+                }
+                Continuar
+              </button>
+            </div>
+          </form>
+
+          <!-- Recordatorio -->
+          <div class="recordatorio">
+            <mat-icon>info</mat-icon>
+            <div>
+              <p><strong>¿No recuerda su ID?</strong></p>
+              <p>Revise el correo electrónico o mensaje que recibió al iniciar su registro.</p>
+              <p class="formato-nota">Formato requerido: <code>EXM-XXXX-XXXX-XXXX</code></p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (mensajeError) {
+        <div class="mensaje-alerta" [class.error]="mensajeError.includes('Error') || mensajeError.includes('inválido')">
+          <mat-icon>
+            @if (mensajeError.includes('✅')) {
+              check_circle
+            } @else {
+              error
+            }
+          </mat-icon>
+          <span [innerHTML]="mensajeError"></span>
+        </div>
+      }
+    </div>
+
+    <!-- Información importante -->
+    <div class="info-section">
+      <h3><mat-icon>info</mat-icon> Información Importante</h3>
+      <ul>
+        <li><strong>ID Único:</strong> Se genera automáticamente al comenzar</li>
+        <li><strong>Validez:</strong> Su ID expira después de 7 días</li>
+        <li><strong>Seguridad:</strong> Mantenga su ID en un lugar seguro</li>
+        <li><strong>Personal:</strong> Un ID solo puede ser usado por una persona</li>
+        <li><strong>Recuperación:</strong> Si pierde su ID, deberá comenzar nuevamente</li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <div class="footer-content">
+        <mat-icon>verified</mat-icon>
+        <span>Sistema CNS - Caja Nacional de Salud</span>
+      </div>
+      <div class="version">v1.0.0</div>
+    </div>
+  </div>
+</div>

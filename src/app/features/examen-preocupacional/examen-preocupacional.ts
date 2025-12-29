@@ -6,7 +6,7 @@ import { MatStepper, MatStepperModule, MatStep } from '@angular/material/stepper
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';// Asegúrate del nombre correcto
 import { ExamenService } from '../../service/examen.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthService } from '../../service/empresa.service';
 import { Asegurado } from '../../interfaces/examen.interface';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';

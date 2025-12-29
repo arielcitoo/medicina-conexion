@@ -1,8 +1,8 @@
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../service/auth.service';
-import { Component, OnInit, inject,ChangeDetectorRef} from '@angular/core';
+import { AuthService } from '../../service/empresa.service';
+import { Component, OnInit, OnDestroy, inject,ChangeDetectorRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,13 +11,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-
+import { SesionService } from '../../service/sesion.service';
 
 
 
 @Component({
   selector: 'app-prelogin',
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -32,7 +32,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './prelogin.html',
   styleUrl: './prelogin.css',
 })
-export class Prelogin implements OnInit {
+export class Prelogin implements OnInit,OnDestroy  {
   preloginForm: FormGroup;
   isLoading = false;
   empresaEncontrada: any = null;
@@ -40,8 +40,12 @@ export class Prelogin implements OnInit {
   busquedaRealizada = false;
   debugMode = false; // Cambiar a true solo para desarrollo
 
-  ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
+   // Estados para redirección manual
   redireccionEnProgreso = false;
+  redireccionando = false;
+
+  ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
+
   contadorRedireccion = 3;
 
   constructor(
@@ -49,7 +53,8 @@ export class Prelogin implements OnInit {
     private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private sesionService: SesionService
   ) {
     this.preloginForm = this.fb.group({
       numeroPatronal: ['', [
@@ -65,7 +70,7 @@ export class Prelogin implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('✅ Prelogin inicializado');
+    console.log(' Prelogin inicializado');
     
     // Auto-cargar ejemplo para pruebas
     setTimeout(() => {
@@ -75,31 +80,35 @@ export class Prelogin implements OnInit {
     }, 100);
   }
 
+  ngOnDestroy(): void {
+    // Limpiar cualquier timeout pendiente
+    this.redireccionEnProgreso = false;
+  }
+
+
   /**
    * Verificar si ya hay una empresa almacenada
    */
   private verificarEmpresaAlmacenada(): void {
     const empresa = this.authService.getEmpresaExamen();
     if (empresa && this.authService.estaActiva(empresa)) {
-      console.log('🏢 Empresa ya verificada encontrada:', empresa.razonSocial);
+      console.log(' Empresa ya verificada encontrada:', empresa.razonSocial);
       
       // Mostrar información de la empresa ya verificada
       this.empresaEncontrada = empresa;
       this.busquedaRealizada = true;
       
-      // Verificar si puede acceder directamente
-      if (this.authService.puedeAccederExamen()) {
-        console.log('🔄 Redirigiendo automáticamente...');
-        this.iniciarRedireccionAutomatica();
-      }
+       this.mostrarMensaje(`Empresa ${empresa.razonSocial} ya verificada`, 'info');
+      
+      // Forzar actualización de UI
+      this.cdRef.detectChanges();
     }
   }
-
   /**
    * Enviar formulario
    */
   onSubmit(): void {
-    console.log('🚀 Enviando formulario...');
+    console.log(' Enviando formulario...');
     
     if (this.preloginForm.invalid) {
       this.mostrarMensaje('Ingrese un número patronal válido', 'error');
@@ -133,7 +142,14 @@ export class Prelogin implements OnInit {
 
     this.authService.buscarEmpresa(numeroPatronal).subscribe({
       next: (response) => {
-        console.log('✅ Respuesta exitosa:', response);
+        console.log(' Respuesta exitosa:', response);
+        if (response.success) {
+          this.empresaEncontrada = response.empresa;
+           // Guardar empresa (esto emitirá el cambio al header)
+          this.authService.guardarEmpresaExamen(response.empresa);
+          this.sesionService.actualizarPaso(1, { empresa: response.empresa });
+        }
+        
         
         this.isLoading = false;
         this.busquedaRealizada = true;
@@ -146,17 +162,12 @@ export class Prelogin implements OnInit {
           
           this.mostrarMensaje(response.mensaje, 'success');
           
-          // Si está activa, iniciar redirección
-          if (this.empresaActiva) {
-            console.log('🏢 Empresa activa, preparando redirección...');
-            this.iniciarRedireccionAutomatica();
-          }
-        }
+           }
         
         this.cdRef.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error en búsqueda:', error);
+        console.error(' Error en búsqueda:', error);
         
         this.isLoading = false;
         this.busquedaRealizada = true;
@@ -168,39 +179,87 @@ export class Prelogin implements OnInit {
       }
     });
   }
-
   /**
    * Iniciar redirección automática
    */
-  private iniciarRedireccionAutomatica(): void {
-    if (this.redireccionEnProgreso) return;
+  // private iniciarRedireccionAutomatica(): void {
+  //   if (this.redireccionEnProgreso) return;
     
-    this.redireccionEnProgreso = true;
-    this.contadorRedireccion = 3;
+  //   this.redireccionEnProgreso = true;
+  //   this.contadorRedireccion = 3;
     
-    console.log('⏱️ Iniciando cuenta regresiva para redirección...');
+  //   console.log(' Iniciando cuenta regresiva para redirección...');
     
-    const intervalo = setInterval(() => {
-      this.contadorRedireccion--;
-      this.cdRef.detectChanges();
+  //   const intervalo = setInterval(() => {
+  //     this.contadorRedireccion--;
+  //     this.cdRef.detectChanges();
       
-      if (this.contadorRedireccion <= 0) {
-        clearInterval(intervalo);
-        this.redirigirAExamen();
-      }
-    }, 1000);
-  }
+  //     if (this.contadorRedireccion <= 0) {
+  //       clearInterval(intervalo);
+  //       this.redirigirAExamen();
+  //     }
+  //   }, 1000);
+  // }
 
   /**
    * Redirigir manualmente al examen
    */
   redirigirAhora(): void {
-    if (this.empresaEncontrada && this.empresaActiva) {
-      console.log('🎯 Redirección manual solicitada');
-      this.redirigirAExamen();
-    } else {
-      this.mostrarMensaje('La empresa no está activa o no se encontró', 'error');
+    if (this.redireccionando) {
+      console.log(' Redirección ya en progreso...');
+      return;
     }
+
+    if (!this.empresaEncontrada) {
+      this.mostrarMensaje('Primero debe verificar una empresa', 'error');
+      return;
+    }
+
+    if (!this.empresaActiva) {
+      this.mostrarMensaje('La empresa no está activa', 'error');
+      return;
+    }
+
+    console.log(' Usuario solicitó redirección manual');
+    
+    // Cambiar estado para mostrar feedback
+    this.redireccionando = true;
+    this.cdRef.detectChanges();
+
+    // Pequeño delay para feedback visual
+    setTimeout(() => {
+      this.ejecutarRedireccion();
+    }, 300);
+  }
+
+  /**
+   * Ejecutar redirección real
+   */
+  private ejecutarRedireccion(): void {
+    // Verificar nuevamente con el servicio
+    this.authService.redirigirAExamen()
+      .then(() => {
+        console.log(' Redirigiendo a examen-preocupacional...');
+        
+        // Navegar a la ruta
+        this.router.navigate(['/examen-preocupacional']).then(success => {
+          this.redireccionando = false;
+          
+          if (success) {
+            console.log(' Redirección exitosa');
+          } else {
+            console.error(' Error en redirección');
+            this.mostrarMensaje('Error al acceder al examen. Intente nuevamente.', 'error');
+            this.cdRef.detectChanges();
+          }
+        });
+      })
+      .catch(error => {
+        console.error(' Error en verificación:', error);
+        this.redireccionando = false;
+        this.mostrarMensaje(error || 'No se puede acceder al examen', 'error');
+        this.cdRef.detectChanges();
+      });
   }
 
   /**
@@ -211,7 +270,7 @@ export class Prelogin implements OnInit {
     
     // Verificar nuevamente antes de redirigir
     if (!this.authService.puedeAccederExamen()) {
-      console.error('❌ No se puede acceder al examen');
+      console.error('No se puede acceder al examen');
       this.mostrarMensaje('No tiene permisos para acceder al examen', 'error');
       return;
     }
@@ -219,9 +278,9 @@ export class Prelogin implements OnInit {
     // Navegar a la ruta
     this.router.navigate(['/examen-preocupacional']).then(success => {
       if (success) {
-        console.log('✅ Redirección exitosa');
+        console.log(' Redirección exitosa');
       } else {
-        console.error('❌ Error en redirección');
+        console.error(' Error en redirección');
         this.mostrarMensaje('Error al acceder al examen', 'error');
       }
     });
@@ -241,22 +300,21 @@ export class Prelogin implements OnInit {
    * Limpiar formulario
    */
   limpiar(): void {
-    console.log('🧹 Limpiando formulario...');
+    console.log(' Limpiando formulario...');
     
     this.preloginForm.reset();
     this.empresaEncontrada = null;
     this.mensajeError = '';
     this.busquedaRealizada = false;
-    this.redireccionEnProgreso = false;
+    this.redireccionando = false;
     
     // Limpiar datos almacenados
     this.authService.limpiarDatosExamen();
-    
     this.mostrarMensaje('Formulario limpiado', 'info');
     this.cdRef.detectChanges();
   }
 
-  /**
+ /**
    * Mostrar mensaje toast
    */
   private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info'): void {
@@ -275,13 +333,33 @@ export class Prelogin implements OnInit {
 
   get textoBotonPrincipal(): string {
     if (this.isLoading) return 'Verificando...';
-    if (this.empresaEncontrada && this.empresaActiva) return 'Ingresar al Registro';
+    if (this.empresaEncontrada && this.empresaActiva) return 'Empresa Verificada';
     if (this.empresaEncontrada && !this.empresaActiva) return 'Empresa Inactiva';
     return 'Verificar Empresa';
   }
 
   get botonPrincipalHabilitado(): boolean {
     return this.preloginForm.valid && !this.isLoading;
+  }
+
+  /**
+   * Texto del botón "Ingresar Ahora"
+   */
+  get textoBotonIngresar(): string {
+    if (this.redireccionando) {
+      return 'Redirigiendo...';
+    }
+    return 'Ingresar Ahora';
+  }
+
+  /**
+   * Estado del botón "Ingresar Ahora"
+   */
+  get botonIngresarHabilitado(): boolean {
+    return this.empresaEncontrada && 
+           this.empresaActiva && 
+           !this.redireccionando &&
+           !this.isLoading;
   }
 
   /**
@@ -296,36 +374,26 @@ export class Prelogin implements OnInit {
    * Evento onBlur
    */
   onBlur(): void {
-  console.log(' Campo perdió el foco');
-  
-  const control = this.preloginForm.get('numeroPatronal');
-  
-  // Verificar que el control existe
-  if (!control) {
-    console.error('❌ Control "numeroPatronal" no encontrado');
-    return;
-  }
-  
-  let valor = control.value;
-  
-  if (valor) {
-    // Limpiar y formatear
-    valor = valor.trim().toUpperCase();
+    const control = this.preloginForm.get('numeroPatronal');
     
-    // Solo actualizar si el valor cambió
-    if (valor !== control.value) {
-      control.setValue(valor, { emitEvent: false });
+    if (!control) {
+      console.error(' Control "numeroPatronal" no encontrado');
+      return;
     }
     
-    // Marcar como tocado para mostrar errores
-    control.markAsTouched();
+    let valor = control.value;
     
-    // Actualizar validación
-    control.updateValueAndValidity();
-    
-    console.log(' Campo validado:', valor);
+    if (valor) {
+      valor = valor.trim().toUpperCase();
+      
+      if (valor !== control.value) {
+        control.setValue(valor, { emitEvent: false });
+      }
+      
+      control.markAsTouched();
+      control.updateValueAndValidity();
+    }
   }
-}
 
   /**
    * Evento onKeyPress
@@ -358,4 +426,5 @@ export class Prelogin implements OnInit {
     
     this.preloginForm.patchValue({ numeroPatronal: value });
   }
+
 }
