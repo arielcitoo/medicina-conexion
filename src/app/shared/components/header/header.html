@@ -45,7 +45,7 @@
         <!-- Información de Sesión -->
         <div class="session-info" *ngIf="idAcceso">
           <!-- ID de Acceso -->
-          <div class="info-item id-item" (click)="copiarId()" [title]="'Copiar ID'">
+          <div class="info-item id-item" (click)="copiarId()" [matTooltip]="'Copiar ID: ' + idAcceso">
             <mat-icon class="info-icon">vpn_key</mat-icon>
             <div class="info-content">
               <span class="label">ID de Acceso</span>
@@ -56,12 +56,12 @@
           </div>
 
           <!-- Empresa -->
-          <div class="info-item empresa-item" *ngIf="empresa">
+          <div class="info-item empresa-item" *ngIf="empresa" [matTooltip]="empresa.razonSocial">
             <mat-icon class="info-icon">business</mat-icon>
             <div class="info-content">
               <span class="label">Empresa</span>
-              <span class="value" [title]="empresa.razonSocial">
-                {{ empresa.razonSocial | truncate:30 }}
+              <span class="value">
+                {{ truncarTexto(empresa.razonSocial, 20) }}
               </span>
             </div>
           </div>

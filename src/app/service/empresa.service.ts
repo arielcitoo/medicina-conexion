@@ -13,7 +13,7 @@ export class AuthService {
   
   //  MISMA CONFIGURACIÓN QUE TU ApiService FUNCIONAL
   private baseUrl = 'https://api-desarrollo.cns.gob.bo/erpcns/v1';
-  private token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjcwMTA5MTcsImV4cCI6MTc2NzA0NjkxNywiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NzAxMDg2MSwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IkFBRjNENDk4N0FBMTQ0Qjk4RkEzMkNCNjhCRkIyRDVFIiwiaWF0IjoxNzY3MDEwOTE3LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.je-jP_UhplnFt-H99O_5ZJX8hs88n6sfwiEK6D_C3cZdsBkWOiqW_cIDPhANe9PhgHLP1WFQJPxWfNV-oNwQbkK5se8f2JRNwVu3K-E8INvYwWLDtNF4WBgW-baEPR-iko1D7F7amlIZgwL_05YuK8IDl_mrMFx5cHj6GH-N_9i2nIJotW4DfUKE1YM8kenc7GImf76ktcYA0s3-adRKBQrvYxTe8AzpzPx1tPpmZhOzoRxEB79AXf5157ewm_h_3ltM7JKC0UfCUMIRK_V4ow3ZNOpxJyNaCS5fNprfm5YaNnvdbVq1sr0btqg14bZCIgIet4zVeflo03rMGb7JDQ';
+  private token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjcwOTg2NTcsImV4cCI6MTc2NzEzNDY1NywiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2NzA5ODY1NywiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6IjA1Q0UxNUU5RDU0Q0Q3QTYxRjkzMDY5NDkyMzJCODJBIiwiaWF0IjoxNzY3MDk4NjU3LCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.XAhz1dfCHR7Kn9_2A2HzEmIR0WG2iI8wMtw8SshrBN1lfT420h-XPAcxkNNBecAO0-FlHclElGfMQr-PSpORc-oS7_5zrUmopWK9nnJ9wh4_tSYmbckYoAQuBukV4XXSJfk_KsnPWsMYtPM-bc5GlgcDZmg4WfBAU0P-IcO1Pzeqn29cAqtZDFUq0_-lIv5ZOJXTmqEUooUDb2XkQZAsEHcUap2PWPAtE57y0kEDpfD6uB-VG3twVlj2nQqH8Qmq7nKOVtQX97L7MT2w-D2tfBEogg8uxB4VMuyMO8mgnyFrNCNLyXODBxD5NacotAEzoIKo1WNeEuMux6lKTeet1g';
   private tokenKey = 'jwt_token';
   private empresaKey = 'empresa_examen_preocupacional';
 
@@ -191,13 +191,17 @@ export class AuthService {
       puedeAcceder: this.estaActiva(empresa)
     };
     
-    console.log(' Guardando empresa:', empresaData);
-    
+    console.log(' Guardando empresa y emitiendo cambio:', empresaData.razonSocial);
+
     localStorage.setItem(this.empresaKey, JSON.stringify(empresaData));
     
     // Emitir cambio
     this.empresaSource.next(empresaData);
     
+    //  EMITIR CAMBIO IMPORTANTE!
+  this.empresaSource.next(empresaData);
+    // Verificar que se emitió
+  console.log(' Cambio emitido:', this.empresaSource.value?.razonSocial);
     // Verificar que se guardó correctamente
     setTimeout(() => {
       const guardada = this.getEmpresaExamen();

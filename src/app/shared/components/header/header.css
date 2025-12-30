@@ -1,23 +1,266 @@
-
-
-
-.main-content {
-  min-height: calc(100vh - 120px); /* Altura total menos header y footer */
-  padding-top: 20px;
+.session-header {
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
 }
 
-.simple-footer {
-  background: #f5f5f5;
-  padding: 15px;
-  text-align: center;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 70px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Logo Section */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 0 0 auto;
+}
+
+.logo-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: #4caf50;
+  background: #e8f5e9;
+  border-radius: 50%;
+  padding: 6px;
+}
+
+.logo-text h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+
+.logo-text p {
+  margin: 0;
+  font-size: 12px;
   color: #666;
+}
+
+/* Session Info */
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 15px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  cursor: default;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.id-item {
+  cursor: pointer;
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.id-item:hover {
+  background: #d4edda;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.empresa-item {
+  border-color: #2196f3;
+  background: #e3f2fd;
+}
+
+.estado-item {
+  border-color: #ff9800;
+  background: #fff3e0;
+}
+
+.estado-item.expira-pronto {
+  border-color: #f44336;
+  background: #ffebee;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.info-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.empresa-item .info-icon {
+  color: #2196f3;
+}
+
+.estado-item .info-icon {
+  color: #ff9800;
+}
+
+.estado-item.expira-pronto .info-icon {
+  color: #f44336;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.value {
   font-size: 13px;
-  border-top: 1px solid #e0e0e0;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.id-item .value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.copy-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #666;
+  flex-shrink: 0;
+  transition: color 0.3s;
+}
+
+.id-item:hover .copy-icon {
+  color: #4caf50;
+}
+
+.tiempo-restante {
+  font-size: 11px;
+  color: #666;
+  margin-left: 4px;
+}
+
+.estado-item.expira-pronto .tiempo-restante {
+  color: #f44336;
+  font-weight: 600;
+}
+
+/* Header Actions */
+.header-actions {
+  flex: 0 0 auto;
+}
+
+.action-btn {
+  color: #666;
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  color: #4caf50;
+  background: #f5f5f5;
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 3px;
+  background: #e0e0e0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #81c784);
+  transition: width 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .session-info {
+    gap: 10px;
+    padding: 0 10px;
+  }
+  
+  .info-item {
+    min-width: 160px;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 768px) {
-  .main-content {
-    min-height: calc(100vh - 100px);
-    padding-top: 10px;
+  .header-container {
+    padding: 0 16px;
+    height: 60px;
+  }
+  
+  .session-info {
+    display: none;
+  }
+  
+  .logo-text h2 {
+    font-size: 16px;
+  }
+  
+  .logo-text p {
+    font-size: 11px;
+  }
+  
+  .header-actions {
+    margin-left: auto;
+  }
+}
+
+/* Para mostrar información en móvil */
+@media (max-width: 768px) {
+  .mobile-info-button {
+    display: block;
+    margin-left: 10px;
   }
 }

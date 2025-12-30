@@ -43,7 +43,7 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     // Emitir cambios
     this.sesionActual.next(sesion);
     
-    console.log('🆕 Nueva sesión creada:', idAcceso);
+    console.log(' Nueva sesión creada:', idAcceso);
     return idAcceso;
   }
 
