@@ -44,7 +44,7 @@ export class Prelogin implements OnInit,OnDestroy  {
   redireccionEnProgreso = false;
   redireccionando = false;
 
-  ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
+ // ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
 
   contadorRedireccion = 3;
 
@@ -73,11 +73,11 @@ export class Prelogin implements OnInit,OnDestroy  {
     console.log(' Prelogin inicializado');
     
     // Auto-cargar ejemplo para pruebas
-    setTimeout(() => {
-      if (this.debugMode) {
-        this.cargarEjemplo('01-730-00001');
-      }
-    }, 100);
+    // setTimeout(() => {
+    //   if (this.debugMode) {
+    //     this.cargarEjemplo('01-730-00001');
+    //   }
+    // }, 100);
   }
 
   ngOnDestroy(): void {

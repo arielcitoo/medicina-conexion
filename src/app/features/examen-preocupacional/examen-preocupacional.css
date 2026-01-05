@@ -400,3 +400,49 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+/* Mensaje condicional */
+.conditional-info {
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.conditional-info.required {
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+}
+
+.conditional-info.optional {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+}
+
+.conditional-info mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.conditional-info.required mat-icon {
+  color: #ff9800;
+}
+
+.conditional-info.optional mat-icon {
+  color: #4caf50;
+}
+
+/* Estilo para validaciones condicionales */
+.conditional-field {
+  transition: all 0.3s ease;
+}
+
+.conditional-field.required {
+  border-color: #ff9800 !important;
+}
+
+.conditional-field.optional {
+  border-color: #4caf50 !important;
+}

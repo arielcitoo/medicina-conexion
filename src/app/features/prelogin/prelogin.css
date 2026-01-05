@@ -487,3 +487,101 @@
 .accion-inactiva button {
   min-width: 200px;
 }
+
+.search-section {
+  text-align: center;
+}
+
+.section-title {
+  justify-content: center !important;
+  text-align: center;
+}
+
+.section-description {
+  text-align: center;
+  margin: 0 auto 30px;
+  max-width: 600px;
+}
+
+.search-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.search-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+/* Centrar estado de validación */
+.validation-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+}
+
+/* Centrar resultados */
+.result-section {
+  margin: 40px auto 0;
+}
+
+.result-header {
+  justify-content: center !important;
+  text-align: center;
+}
+
+.empresa-info-primary {
+  text-align: center;
+}
+
+.empresa-id {
+  justify-content: center !important;
+}
+
+.estado-destacado {
+  margin: 20px auto;
+  max-width: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Centrar acciones */
+.accion-activa,
+.accion-inactiva {
+  text-align: center;
+}
+
+.accion-activa button,
+.accion-inactiva button {
+  margin: 0 auto !important;
+}
+
+/* Centrar información adicional */
+.info-section {
+  margin: 40px auto 0;
+}
+
+.info-card {
+  text-align: center;
+}
+
+/* Centrar footer */
+
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.footer-content mat-icon {
+  color: #4caf50;
+}

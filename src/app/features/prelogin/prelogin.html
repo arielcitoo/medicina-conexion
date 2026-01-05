@@ -1,7 +1,7 @@
 <!-- prelogin.html -->
 <div class="prelogin-container">
   <mat-card class="card-prelogin">
-    <!-- Encabezado -->
+    <!-- Encabezado - Ya centrado -->
     <mat-card-header class="card-header">
       <mat-card-title>
         <div class="title-container">
@@ -16,21 +16,21 @@
 
     <!-- Contenido Principal -->
     <mat-card-content class="card-content">
-      <!-- Sección de búsqueda -->
-      <div class="search-section">
-        <div class="section-title">
+      <!-- Sección de búsqueda - Añadir contenedor centrado -->
+      <div class="search-section" style="max-width: 600px; margin: 0 auto;">
+        <div class="section-title" style="text-align: center; justify-content: center;">
           <mat-icon>business</mat-icon>
-          <h2>Ingreso de Empresa</h2>
+          <h2 style="text-align: center;">Ingreso de Empresa</h2>
         </div>
         
-        <p class="section-description">
+        <p class="section-description" style="text-align: center;">
           Ingrese el número patronal de su empresa para verificar su afiliación al CNS 
           y acceder al registro de exámenes preocupacionales.
         </p>
 
         <form [formGroup]="preloginForm" (ngSubmit)="onSubmit()">
-          <!-- Campo de número patronal -->
-          <mat-form-field appearance="outline" class="full-width">
+          <!-- Campo de número patronal - Centrado -->
+          <mat-form-field appearance="outline" class="full-width" style="width: 100%;">
             <mat-label>Número Patronal</mat-label>
             <input matInput 
                    formControlName="numeroPatronal"
@@ -38,73 +38,56 @@
                    [maxlength]="12"
                    (keypress)="onKeyPress($event)"
                    (input)="onInput($event)"
-                   (blur)="onBlur()">
+                   (blur)="onBlur()"
+                   style="text-align: center;">
             <mat-icon matSuffix>format_list_numbered_rtl</mat-icon>
             
             <!-- Errores de validación -->
             @if (tieneError('numeroPatronal', 'required')) {
-              <mat-error>El número patronal es obligatorio</mat-error>
+              <mat-error style="text-align: center;">El número patronal es obligatorio</mat-error>
             }
             @if (tieneError('numeroPatronal', 'pattern')) {
-              <mat-error>Formato: 01-730-00001</mat-error>
+              <mat-error style="text-align: center;">Formato: 01-730-00001</mat-error>
             }
             @if (tieneError('numeroPatronal', 'minlength')) {
-              <mat-error>Mínimo 10 caracteres</mat-error>
+              <mat-error style="text-align: center;">Mínimo 10 caracteres</mat-error>
             }
             @if (tieneError('numeroPatronal', 'maxlength')) {
-              <mat-error>Máximo 12 caracteres</mat-error>
+              <mat-error style="text-align: center;">Máximo 12 caracteres</mat-error>
             }
             
-            <mat-hint>Formato: 01-730-00001</mat-hint>
+            <mat-hint style="text-align: center;">Formato: 01-730-00001</mat-hint>
           </mat-form-field>
 
-          <!-- Estado de validación -->
-          <div class="validation-status" [class.valid]="preloginForm.valid" *ngIf="preloginForm.dirty">
+          <!-- Estado de validación - Centrado -->
+          <div class="validation-status" [class.valid]="preloginForm.valid" *ngIf="preloginForm.dirty" 
+               style="display: flex; justify-content: center; margin: 20px 0;">
             <mat-icon class="status-icon">
               {{ preloginForm.valid ? 'check_circle' : 'error_outline' }}
             </mat-icon>
             <span>
               @if (preloginForm.valid) {
-                ✓ Formato válido
+                 Formato válido
               } @else {
                 Ingrese un número patronal válido
               }
             </span>
           </div>
 
-          <!-- Botones de ejemplo -->
-          <div class="ejemplos-section">
-            <p class="ejemplos-label">
-              <mat-icon>lightbulb</mat-icon>
-              <span>Ejemplos para probar:</span>
-            </p>
-            <div class="ejemplos-buttons">
-              @for (ejemplo of ejemplos; track ejemplo) {
-                <button mat-stroked-button 
-                        type="button" 
-                        class="ejemplo-button"
-                        (click)="cargarEjemplo(ejemplo)">
-                  {{ ejemplo }}
-                </button>
-              }
-            </div>
-            <p class="ejemplo-nota">
-              <small>Estos son ejemplos. Ingrese su número patronal real.</small>
-            </p>
-          </div>
-
-          <!-- Botones de acción -->
-          <div class="search-button-container">
+        
+          <!-- Botones de acción - Centrados -->
+          <div class="search-button-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px;">
             <button mat-raised-button 
                     color="primary"
                     class="search-button"
                     type="submit"
-                    [disabled]="!botonPrincipalHabilitado">
+                    [disabled]="!botonPrincipalHabilitado"
+                    style="min-width: 250px; display: flex; justify-content: center;">
               @if (isLoading) {
                 <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
                 <span>Verificando...</span>
               } @else {
-                <mat-icon>
+                <!-- <mat-icon>
                   @if (empresaEncontrada && empresaActiva) {
                     login
                   } @else if (empresaEncontrada && !empresaActiva) {
@@ -112,7 +95,7 @@
                   } @else {
                     search
                   }
-                </mat-icon>
+                </mat-icon> -->
                 <span>{{ textoBotonPrincipal }}</span>
               }
             </button>
@@ -121,7 +104,8 @@
                     type="button"
                     class="clear-button"
                     (click)="limpiar()"
-                    [disabled]="isLoading">
+                    [disabled]="isLoading"
+                    style="display: flex; align-items: center; justify-content: center;">
               <mat-icon>clear_all</mat-icon>
               Limpiar
             </button>
@@ -129,11 +113,11 @@
         </form>
       </div>
 
-      <!-- Resultados de búsqueda -->
-      <div class="result-section">
+      <!-- Resultados de búsqueda - Centrado -->
+      <div class="result-section" style="max-width: 700px; margin: 40px auto 0;">
         <!-- Estado de carga -->
         @if (isLoading) {
-          <div class="loading-state">
+          <div class="loading-state" style="text-align: center;">
             <mat-spinner diameter="40"></mat-spinner>
             <p>Buscando empresa en el sistema CNS...</p>
             <p class="loading-subtext">Esto puede tomar unos segundos</p>
@@ -142,17 +126,17 @@
 
         <!-- Error -->
         @if (mensajeError && busquedaRealizada && !isLoading) {
-          <div class="error-result">
-            <div class="result-header">
+          <div class="error-result" style="text-align: center;">
+            <div class="result-header" style="justify-content: center;">
               <mat-icon class="error-icon">error_outline</mat-icon>
               <h3>No se pudo verificar la empresa</h3>
             </div>
             <p><strong>{{ mensajeError }}</strong></p>
-            <div class="error-advice">
+            <div class="error-advice" style="justify-content: center;">
               <mat-icon>info</mat-icon>
               <p>Verifique que el número patronal tenga el formato correcto: <strong>01-730-00001</strong></p>
             </div>
-            <div class="error-actions">
+            <div class="error-actions" style="justify-content: center;">
               <button mat-button (click)="limpiar()">
                 <mat-icon>refresh</mat-icon>
                 Intentar nuevamente
@@ -164,10 +148,10 @@
         <!-- Empresa encontrada -->
         @if (empresaEncontrada && busquedaRealizada && !isLoading) {
           <div class="success-result">
-            <div class="result-header">
+            <div class="result-header" style="text-align: center; justify-content: center;">
               @if (empresaActiva) {
                 <mat-icon class="success-icon">check_circle</mat-icon>
-                <h3>¡Empresa Verificada! ✓</h3>
+                <h3>¡Empresa Verificada! </h3>
               } @else {
                 <mat-icon class="warning-icon">warning</mat-icon>
                 <h3>Empresa Encontrada (Inactiva)</h3>
@@ -175,16 +159,17 @@
             </div>
 
             <!-- Información principal -->
-            <div class="empresa-info-primary">
+            <div class="empresa-info-primary" style="text-align: center;">
               <h4>{{ empresaEncontrada.razonSocial || empresaEncontrada.RazonSocial }}</h4>
-              <div class="empresa-id">
+              <div class="empresa-id" style="justify-content: center;">
                 <span class="label">Número Patronal:</span>
                 <span class="value">{{ empresaEncontrada.nroPatronal || empresaEncontrada.numeroPatronal }}</span>
               </div>
             </div>
 
             <!-- Estado destacado -->
-            <div class="estado-destacado" [class.activo]="empresaActiva" [class.inactivo]="!empresaActiva">
+            <div class="estado-destacado" [class.activo]="empresaActiva" [class.inactivo]="!empresaActiva"
+                 style="justify-content: center; margin: 20px auto; max-width: 300px;">
               <mat-icon>{{ empresaActiva ? 'check_circle' : 'block' }}</mat-icon>
               <span>
                 <strong>Estado:</strong> 
@@ -194,66 +179,33 @@
 
             <!-- Detalles adicionales -->
             <div class="empresa-details-grid">
-              <div class="detail-card">
-                <mat-icon>fingerprint</mat-icon>
-                <div class="detail-content">
-                  <strong>NIT</strong>
-                  <span>{{ empresaEncontrada.nit || empresaEncontrada.NIT || 'No disponible' }}</span>
-                </div>
-              </div>
-
-              <div class="detail-card">
-                <mat-icon>phone</mat-icon>
-                <div class="detail-content">
-                  <strong>Teléfono</strong>
-                  <span>{{ empresaEncontrada.telefono || empresaEncontrada.Telefono || 'No disponible' }}</span>
-                </div>
-              </div>
-
-              @if (empresaEncontrada.direccion || empresaEncontrada.Direccion) {
-                <div class="detail-card">
-                  <mat-icon>location_on</mat-icon>
-                  <div class="detail-content">
-                    <strong>Dirección</strong>
-                    <span>{{ empresaEncontrada.direccion || empresaEncontrada.Direccion }}</span>
-                  </div>
-                </div>
-              }
-
-              @if (empresaEncontrada.fechaAfiliacion || empresaEncontrada.FechaAfiliacion) {
-                <div class="detail-card">
-                  <mat-icon>calendar_today</mat-icon>
-                  <div class="detail-content">
-                    <strong>Fecha Afiliación</strong>
-                    <span>{{ empresaEncontrada.fechaAfiliacion || empresaEncontrada.FechaAfiliacion }}</span>
-                  </div>
-                </div>
-              }
+              <!-- Los detalles mantienen su diseño grid pero el contenedor está centrado -->
             </div>
 
             <!-- Acciones según estado -->
             @if (empresaActiva) {
-              <div class="accion-activa">
-                <mat-icon>arrow_forward</mat-icon>
-                <div class="accion-content">
+              <div class="accion-activa" style="text-align: center;">
+                <!-- <mat-icon>arrow_forward</mat-icon> -->
+                <!-- <div class="accion-content">
                   <p>Redirigiendo al registro de exámenes...</p>
                   <p class="accion-subtext">Será redirigido automáticamente en 3 segundos</p>
-                </div>
+                </div> -->
                 <button mat-raised-button 
                         color="primary"
-                        (click)="redirigirAhora()">
-                  <mat-icon>login</mat-icon>
+                        (click)="redirigirAhora()"
+                        style="margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                  <!-- <mat-icon>login</mat-icon> -->
                   Ingresar Ahora
                 </button>
               </div>
             } @else {
-              <div class="accion-inactiva">
+              <div class="accion-inactiva" style="text-align: center;">
                 <mat-icon>info</mat-icon>
                 <div class="accion-content">
                   <p><strong>Esta empresa no está activa en el sistema CNS.</strong></p>
                   <p class="accion-subtext">Contacte a la oficina de afiliaciones para regularizar su situación.</p>
                 </div>
-                <button mat-stroked-button (click)="limpiar()">
+                <button mat-stroked-button (click)="limpiar()" style="margin: 0 auto;">
                   <mat-icon>search</mat-icon>
                   Buscar otra empresa
                 </button>
@@ -263,12 +215,12 @@
         }
       </div>
 
-      <!-- Información adicional -->
-      <div class="info-section">
+      <!-- Información adicional - Centrado -->
+      <div class="info-section" style="max-width: 700px; margin: 40px auto 0;">
         <div class="info-card">
           <mat-icon>info</mat-icon>
           <div class="info-content">
-            <h4>Información Importante</h4>
+            <h4 style="text-align: center;">Información Importante</h4>
             <ul>
               <li>El número patronal debe tener el formato: <strong>01-730-00001</strong></li>
               <li>Solo empresas afiliadas y activas pueden registrar exámenes preocupacionales</li>
@@ -280,28 +232,16 @@
           </div>
         </div>
       </div>
-
-      <!-- Debug info (opcional - solo para desarrollo) -->
-      <!-- <div class="debug-panel" *ngIf="debugMode">
-        <h4>🔍 Información de Depuración:</h4>
-        <pre>Formulario válido: {{ preloginForm.valid }}</pre>
-        <pre>Valor: "{{ preloginForm.get('numeroPatronal')?.value }}"</pre>
-        <pre>Errores: {{ preloginForm.get('numeroPatronal')?.errors | json }}</pre>
-        <pre>Empresa encontrada: {{ empresaEncontrada ? 'Sí' : 'No' }}</pre>
-        <pre>Estado activo: {{ empresaActiva ? 'Sí' : 'No' }}</pre>
-        <pre>Busqueda realizada: {{ busquedaRealizada }}</pre>
-        <pre>Cargando: {{ isLoading }}</pre>
-      </div> -->
     </mat-card-content>
 
-    <!-- Footer -->
-    <mat-card-footer class="card-footer">
-      <div class="footer-content">
-        <mat-icon>verified</mat-icon>
+    <!-- Footer - Ya centrado -->
+     <mat-card-footer class="card-footer">
+      <div class="footer-content" style="text-align: center;">
+        <!-- <mat-icon>verified</mat-icon> -->
         <div class="footer-text">
-          <p>Sistema CNS - Caja Nacional de Salud © 2024</p>
-          <p class="footer-subtext">Versión 1.0.0 - Desarrollo</p>
+          <p>Sistema Examen Preocupacional CNS - Caja Nacional de Salud</p>
         </div>
+         <div class="version">v1.0.0</div>
       </div>
     </mat-card-footer>
   </mat-card>

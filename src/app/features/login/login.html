@@ -22,7 +22,7 @@
               [class.active]="modo === 'recuperar'"
               (click)="cambiarModo('recuperar')">
         <mat-icon>restore</mat-icon>
-        Continuar Registro
+        Registro En Proceso 
       </button>
     </div>
 
@@ -31,7 +31,7 @@
       @if (modo === 'nuevo') {
         <!-- Acceso nuevo -->
         <div class="nuevo-acceso">
-          <h2><mat-icon>play_arrow</mat-icon> Comenzar Registro</h2>
+          <h2>Comenzar Registro</h2>
           <p class="descripcion">
             Genere un nuevo registro para realizar exámenes preocupacionales.
             Se le asignará un ID único para poder continuar más tarde si es necesario.
@@ -57,7 +57,7 @@
               @if (isLoading) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {
-                <mat-icon>play_arrow</mat-icon>
+                <!-- <mat-icon>play_arrow</mat-icon> -->
               }
               Comenzar
             </button>
@@ -66,7 +66,7 @@
       } @else {
         <!-- Acceso con ID -->
         <div class="recuperar-acceso">
-          <h2><mat-icon>key</mat-icon> Continuar Registro</h2>
+          <h2>Continuar Registro</h2>
           <p class="descripcion">
             Ingrese su ID de acceso para continuar con el registro desde donde lo dejó.
             El ID fue generado al iniciar su registro.
@@ -163,7 +163,7 @@
       <h3><mat-icon>info</mat-icon> Información Importante</h3>
       <ul>
         <li><strong>ID Único:</strong> Se genera automáticamente al comenzar</li>
-        <li><strong>Validez:</strong> Su ID expira después de 7 días</li>
+        <!-- <li><strong>Validez:</strong> Su ID expira después de 7 días</li> -->
         <li><strong>Seguridad:</strong> Mantenga su ID en un lugar seguro</li>
         <li><strong>Personal:</strong> Un ID solo puede ser usado por una persona</li>
         <li><strong>Recuperación:</strong> Si pierde su ID, deberá comenzar nuevamente</li>
@@ -173,8 +173,8 @@
     <!-- Footer -->
     <div class="login-footer">
       <div class="footer-content">
-        <mat-icon>verified</mat-icon>
-        <span>Sistema CNS - Caja Nacional de Salud</span>
+        <!-- <mat-icon>verified</mat-icon> -->
+        <span>Sistema Examen Preocupacional CNS - Caja Nacional de Salud</span>
       </div>
       <div class="version">v1.0.0</div>
     </div>

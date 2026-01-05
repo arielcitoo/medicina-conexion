@@ -18,6 +18,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
 @Component({
@@ -51,7 +53,6 @@ export class ExamenPreocupacional implements OnInit {
    // Inyección de dependencias con inject()
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
-
   private examenService = inject(ExamenService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -67,13 +68,14 @@ export class ExamenPreocupacional implements OnInit {
   isLoading = false;
   imagenReciboPreview: string | null = null;
 
-
+ // Subject para observar cambios en cantidad de asegurados
+  private cantidadAseguradosSubject = new Subject<number>();
 
   // Columnas de la tabla
  readonly displayedColumns: string[] = [
   'nombre',
   'ci',
-  'empresa', // Nueva columna
+  'empresa', 
   'correo',
   'celular',
   'archivos',
@@ -118,7 +120,7 @@ export class ExamenPreocupacional implements OnInit {
     }
   }
 
-  console.log(' TODAS las condiciones cumplidas para avanzar');
+  console.log(' Todas las condiciones cumplidas para avanzar');
   return true;
 }
 
@@ -130,8 +132,10 @@ export class ExamenPreocupacional implements OnInit {
       totalImporte: ['', [Validators.required, Validators.min(0)]],
       cantidadAsegurados: ['', [Validators.required, Validators.min(1)]],
       imagenRecibo: [null],
-      correoEmpleador: ['', [Validators.required, Validators.email]],
-      celularEmpleador: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]]
+      //correoEmpleador: ['', [Validators.required, Validators.email]],
+      //celularEmpleador: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]]
+      correoEmpleador: ['', []], // Sin validación inicial
+      celularEmpleador: ['', []]  // Sin validación inicial
     });
 
      // Paso 2: Lista de asegurados
@@ -145,13 +149,18 @@ export class ExamenPreocupacional implements OnInit {
     // Obtener empresa verificada
     this.empresa = this.authService.getEmpresaExamen();
 
-    if (!this.empresa) {
+     if (!this.empresa) {
       console.error(' No existe empresa verificada');
-      // Aquí podrías redirigir al prelogin
+      this.router.navigate(['/prelogin']);
+      this.mostrarSnackbar('Debe verificar su empresa primero', 'error');
       return;
     }
     
     console.log(' Empresa en examen:', this.empresa.razonSocial);
+
+        // Suscribirse a cambios en cantidad de asegurados
+    this.setupCantidadAseguradosSubscription();
+
     // Verificar si hay empresa verificada
     const empresa = this.authService.getEmpresaExamen();
     if (!empresa || !this.authService.puedeAccederExamen()) {
@@ -164,14 +173,77 @@ export class ExamenPreocupacional implements OnInit {
     console.log(' Empresa verificada:', empresa);
     // Escuchar cambios en cantidad de asegurados
     this.paso1Form.get('cantidadAsegurados')?.valueChanges.subscribe(valor => {
+      this.cantidadAseguradosSubject.next(valor);
       const aseguradosActuales = this.asegurados;
       if (aseguradosActuales.length > valor) {
         this.mostrarSnackbar(`Debe eliminar ${aseguradosActuales.length - valor} asegurados`);
       }
     });
+
+     // Inicializar con valor actual
+    const cantidadInicial = this.paso1Form.get('cantidadAsegurados')?.value || 1;
+    this.cantidadAseguradosSubject.next(cantidadInicial);
+
 // Opcional: limpiar datos de empresa después de finalizar
     this.authService.limpiarDatosExamen();
   }
+
+ /**
+   * Configurar suscripción para cambios en cantidad de asegurados
+   */
+  private setupCantidadAseguradosSubscription(): void {
+    this.cantidadAseguradosSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe((cantidad: number) => {
+      console.log('Cambio en cantidad de asegurados:', cantidad);
+      this.actualizarValidacionesPaso1(cantidad);
+    });
+  }
+
+    /**
+   * Actualizar validaciones del paso 1 según cantidad de asegurados
+   */
+  private actualizarValidacionesPaso1(cantidad: number): void {
+    const correoControl = this.paso1Form.get('correoEmpleador');
+    const celularControl = this.paso1Form.get('celularEmpleador');
+
+    if (cantidad > 1) {
+      // Si cantidad > 1, hacer obligatorios
+      console.log(`Cantidad ${cantidad} > 1 - Haciendo correo y celular obligatorios`);
+      correoControl?.setValidators([Validators.required, Validators.email]);
+      celularControl?.setValidators([Validators.required, Validators.pattern('^[0-9]{8}$')]);
+    } else {
+      // Si cantidad = 1, hacer opcionales
+      console.log(`Cantidad ${cantidad} = 1 - Haciendo correo y celular opcionales`);
+      correoControl?.setValidators([Validators.email]); // Solo validación de formato si se ingresa
+      celularControl?.setValidators([Validators.pattern('^[0-9]{8}$')]); // Solo validación de formato si se ingresa
+    }
+
+    // Actualizar validaciones
+    correoControl?.updateValueAndValidity();
+    celularControl?.updateValueAndValidity();
+
+    // Forzar detección de cambios para actualizar UI
+    this.cdRef.detectChanges();
+  }
+
+// Mantén el método privado pero crea un getter público
+/**
+ * Getter público para usar en el template
+ */
+get cantidadAseguradosActual(): number {
+  return this.paso1Form.get('cantidadAsegurados')?.value || 0;
+}
+
+/**
+ * Método público que se puede llamar desde el template
+ */
+onCantidadAseguradosChange(): void {
+  const cantidad = this.paso1Form.get('cantidadAsegurados')?.value || 0;
+  this.actualizarValidacionesPaso1(cantidad);
+}
+
  /**
    * Paso 2: Abrir modal para agregar asegurado - CORREGIDO
    */
@@ -205,7 +277,7 @@ export class ExamenPreocupacional implements OnInit {
       console.log(' Resultado recibido de la modal:', result);
 
       if (result) {
-        // AGREGAR INMEDIATAMENTE
+        // agreagar inmediatamnnete
         this.agregarAseguradoInmediatamente(result);
       } else {
         console.log(' Modal cerrada sin resultado');
@@ -310,6 +382,80 @@ private forzarActualizacionUI(): void {
     puedeAvanzar: this.puedeAvanzarPaso2()
   });
 }
+
+/**
+   * Verificar si puede avanzar al paso 1
+   */
+  puedeAvanzarPaso1(): boolean {
+  // Primero verificar los campos básicos
+  const camposBasicosValidos = 
+    this.paso1Form.get('numeroRecibo')?.valid &&
+    this.paso1Form.get('totalImporte')?.valid &&
+    this.paso1Form.get('cantidadAsegurados')?.valid;
+  
+  if (!camposBasicosValidos) {
+    return false;
+  }
+
+  // Verificar si la cantidad es mayor a 1, entonces validar correo y celular
+  const cantidad = this.paso1Form.get('cantidadAsegurados')?.value;
+  
+  if (cantidad > 1) {
+    // Si cantidad > 1, correo y celular son obligatorios
+    const correoValido = this.paso1Form.get('correoEmpleador')?.valid || false;
+    const celularValido = this.paso1Form.get('celularEmpleador')?.valid || false;
+    
+    return correoValido && celularValido;
+  } else {
+    // Si cantidad = 1, solo validar formato si tienen valor
+    const correoControl = this.paso1Form.get('correoEmpleador');
+    const celularControl = this.paso1Form.get('celularEmpleador');
+    
+    // Si tiene valor, debe tener formato válido, si no tiene valor es válido
+    const correoValido = !correoControl?.value || (correoControl?.valid || false);
+    const celularValido = !celularControl?.value || (celularControl?.valid || false);
+    
+    return correoValido && celularValido;
+    }
+  }
+
+  /**
+   * Obtener mensaje de validación para correo
+   */
+  getCorreoErrorMessage(): string {
+    const control = this.paso1Form.get('correoEmpleador');
+    const cantidad = this.paso1Form.get('cantidadAsegurados')?.value;
+    
+    if (control?.hasError('required') && cantidad > 1) {
+      return 'El correo es obligatorio cuando hay más de un asegurado';
+    }
+    
+    if (control?.hasError('email')) {
+      return 'Ingrese un correo válido';
+    }
+    
+    return '';
+  }
+
+/**
+   * Obtener mensaje de validación para celular
+   */
+  getCelularErrorMessage(): string {
+    const control = this.paso1Form.get('celularEmpleador');
+    const cantidad = this.paso1Form.get('cantidadAsegurados')?.value;
+    
+    if (control?.hasError('required') && cantidad > 1) {
+      return 'El celular es obligatorio cuando hay más de un asegurado';
+    }
+    
+    if (control?.hasError('pattern')) {
+      return 'Ingrese 8 dígitos';
+    }
+    
+    return '';
+  }
+
+
   /**
    * Paso 1: Manejo de imagen del recibo
    */
