@@ -11,7 +11,6 @@
     </mat-card-header>
 
     <mat-card-content>
-      <!-- Stepper -->
       <mat-stepper #stepper linear>
 
         <!-- PASO 1: Datos del Recibo -->
@@ -23,7 +22,7 @@
             </h3>
 
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
+              <mat-form-field appearance="outline" class="form-field required-field">
                 <mat-label>Número de Recibo</mat-label>
                 <input matInput formControlName="numeroRecibo" placeholder="Ej: 019393">
                 <mat-icon matSuffix>tag</mat-icon>
@@ -32,8 +31,8 @@
                 }
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Total Importe </mat-label>
+              <mat-form-field appearance="outline" class="form-field required-field">
+                <mat-label>Total Importe</mat-label>
                 <input matInput type="number" formControlName="totalImporte" placeholder="0.00">
                 <span matPrefix> Bs. &nbsp;</span>
                 <mat-icon matSuffix>attach_money</mat-icon>
@@ -44,26 +43,61 @@
             </div>
 
             <div class="form-row">
-                      <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Cantidad de Asegurados</mat-label>
-          <input matInput type="number" formControlName="cantidadAsegurados"
-                [min]="1" placeholder="Ej: 5" 
-                (change)="onCantidadAseguradosChange()">
-          <mat-icon matSuffix>people</mat-icon>
-          @if (paso1Form.get('cantidadAsegurados')?.hasError('required')) {
-            <mat-error>La cantidad es requerida</mat-error>
-          }
-  @if (asegurados.length > 0) {
-    <mat-hint>{{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }} agregados</mat-hint>
-  }
+              <mat-form-field appearance="outline" class="form-field required-field">
+                <mat-label>Cantidad de Asegurados</mat-label>
+                <input matInput type="number" formControlName="cantidadAsegurados"
+                       [min]="1" placeholder="Ej: 5">
+                <mat-icon matSuffix>people</mat-icon>
+                @if (paso1Form.get('cantidadAsegurados')?.hasError('required')) {
+                  <mat-error>La cantidad es requerida</mat-error>
+                }
+                @if (asegurados.length > 0) {
+                  <mat-hint>{{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }} agregados</mat-hint>
+                }
               </mat-form-field>
             </div>
+
+            <!-- Información condicional -->
+            @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
+              <div class="info-box">
+                <mat-icon>info</mat-icon>
+                <p><strong>Importante:</strong> Como hay más de un asegurado, se requiere el correo y celular del empleador para recibir notificaciones.</p>
+              </div>
+
+              <!-- Campos de contacto del empleador (solo visibles cuando cantidad > 1) -->
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field required-field">
+                  <mat-label>Correo Electrónico del Empleador</mat-label>
+                  <input matInput type="email" formControlName="correoEmpleador"
+                         placeholder="empleador@empresa.com">
+                  <mat-icon matSuffix>email</mat-icon>
+                  @if (getCorreoErrorMessage()) {
+                    <mat-error>{{ getCorreoErrorMessage() }}</mat-error>
+                  }
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="form-field required-field">
+                  <mat-label>Celular del Empleador</mat-label>
+                  <input matInput formControlName="celularEmpleador"
+                         placeholder="72882569">
+                  <mat-icon matSuffix>phone</mat-icon>
+                  @if (getCelularErrorMessage()) {
+                    <mat-error>{{ getCelularErrorMessage() }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            } @else if (paso1Form.get('cantidadAsegurados')?.value === 1) {
+              <div class="info-box">
+                <mat-icon>info</mat-icon>
+                <p>Para un solo asegurado, los datos de contacto del empleador no son requeridos.</p>
+              </div>
+            }
 
             <!-- Subir Imagen Recibo -->
             <div class="file-upload-section">
               <h4>
                 <mat-icon>cloud_upload</mat-icon>
-                Subir Imagen del Recibo (JPG, PNG o PDF - Máx. 5MB)
+                Subir Imagen del Recibo * (JPG, PNG o PDF - Máx. 5MB)
               </h4>
 
               <div class="file-upload-container">
@@ -71,7 +105,6 @@
                        (change)="onFileReciboSelected($event)"
                        accept="image/*,.pdf">
 
-                <!-- Botón corregido -->
                 <button mat-raised-button color="primary"
                         (click)="fileInputRecibo.click()">
                   <mat-icon>upload</mat-icon>
@@ -79,62 +112,54 @@
                 </button>
 
                 @if (paso1Form.get('imagenRecibo')?.value) {
-                  <span class="file-name">
-                    {{ paso1Form.get('imagenRecibo')?.value?.name }}
-                  </span>
+                  <div class="file-info">
+                    <span class="file-name">
+                      {{ paso1Form.get('imagenRecibo')?.value?.name }}
+                    </span>
+                    <button mat-icon-button color="warn"
+                            (click)="eliminarImagenRecibo()"
+                            matTooltip="Eliminar archivo">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                 }
               </div>
 
               <!-- Preview de la imagen -->
               @if (imagenReciboPreview) {
-                <div class="image-preview">
-                  <img [src]="imagenReciboPreview" alt="Preview del recibo">
-                  <button mat-icon-button color="warn"
-                          (click)="paso1Form.patchValue({imagenRecibo: null}); imagenReciboPreview =null">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                <div class="image-preview-container">
+                  <p class="preview-title">
+                    <mat-icon>visibility</mat-icon>
+                    Vista previa:
+                  </p>
+                  <div class="image-preview">
+                    <img [src]="imagenReciboPreview" alt="Preview del recibo">
+                    <button mat-icon-button color="warn" class="delete-file-btn"
+                            (click)="eliminarImagenRecibo()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
                 </div>
               }
-            </div>
 
-             <!-- Información sobre validaciones condicionales -->
-            @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
-              <div class="info-box" style="margin-bottom: 20px;">
-                <mat-icon>info</mat-icon>
-                <p><strong>Importante:</strong> Como hay más de un asegurado, el correo y celular del empleador son obligatorios para recibir notificaciones.</p>
-              </div>
-            } @else {
-              <div class="info-box" style="margin-bottom: 20px;">
-                <mat-icon>info</mat-icon>
-                <p>El correo y celular del empleador son opcionales cuando solo hay un asegurado.</p>
-              </div>
-            }
-
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Correo Electrónico del Empleador</mat-label>
-                <input matInput type="email" formControlName="correoEmpleador"
-                       placeholder="empleador@empresa.com">
-                <mat-icon matSuffix>email</mat-icon>
-                 @if (getCorreoErrorMessage()) {
-                  <mat-error>{{ getCorreoErrorMessage() }}</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Celular del Empleador</mat-label>
-                <input matInput formControlName="celularEmpleador"
-                       placeholder="72882569">
-                <mat-icon matSuffix>phone</mat-icon>
-                @if (getCelularErrorMessage()) {
-                  <mat-error>{{ getCelularErrorMessage() }}</mat-error>
-                }
-              </mat-form-field>
+              <!-- Validación de imagen -->
+              @if (paso1Form.get('imagenRecibo')?.invalid && paso1Form.get('imagenRecibo')?.touched) {
+                <div class="file-error">
+                  @if (paso1Form.get('imagenRecibo')?.hasError('required')) {
+                    <span>La imagen del recibo es obligatoria</span>
+                  }
+                  @if (paso1Form.get('imagenRecibo')?.hasError('maxSize')) {
+                    <span>El archivo no debe superar los 5MB</span>
+                  }
+                  @if (paso1Form.get('imagenRecibo')?.hasError('fileType')) {
+                    <span>Solo se permiten imágenes o PDF</span>
+                  }
+                </div>
+              }
             </div>
           </form>
 
           <div class="step-actions">
-            <!-- Botón Siguiente corregido -->
             <button mat-button matStepperNext [disabled]="!puedeAvanzarPaso1()"
                     color="primary">
               <mat-icon>arrow_forward</mat-icon>
@@ -159,7 +184,6 @@
               </p>
             </div>
 
-            <!-- Botón para agregar asegurado CORREGIDO -->
             <div class="add-button-container">
               <button mat-raised-button color="primary" (click)="abrirModalAsegurado()"
                       [disabled]="asegurados.length >= paso1Form.get('cantidadAsegurados')?.value">
@@ -168,125 +192,93 @@
               </button>
             </div>
 
-            <!-- Tabla de asegurados -->
-           <!-- Reemplazar la tabla actual con esto: -->
-@if (asegurados.length > 0) {
-  <div class="table-container mat-elevation-z2">
-    <table mat-table [dataSource]="asegurados" class="asegurados-table">
-      
-      <!-- Nombre Completo -->
-      <ng-container matColumnDef="nombre">
-        <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="nombre-cell">
-            <!-- <mat-icon>person</mat-icon> -->
-            <span>{{ asegurado.nombreCompleto }}</span>
-          </div>
-        </td>
-      </ng-container>
+            @if (asegurados.length > 0) {
+              <div class="table-container mat-elevation-z2">
+                <table mat-table [dataSource]="asegurados" class="asegurados-table">
+                  <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      {{ asegurado.nombreCompleto }}
+                    </td>
+                  </ng-container>
 
-      <!-- CI/NIT -->
-      <ng-container matColumnDef="ci">
-        <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="ci-cell">
-            <!-- <mat-icon>badge</mat-icon> -->
-            <span>{{ asegurado.ci }}</span>
-          </div>
-        </td>
-      </ng-container>
+                  <ng-container matColumnDef="ci">
+                    <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      {{ asegurado.ci }}
+                    </td>
+                  </ng-container>
 
-      <!-- Empresa (nueva columna) -->
-      <ng-container matColumnDef="empresa">
-        <th mat-header-cell *matHeaderCellDef>Empresa</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="empresa-cell">
-            <!-- <mat-icon>business</mat-icon> -->
-            <span>{{ asegurado.empresa || 'No especificada' }}</span>
-          </div>
-        </td>
-      </ng-container>
+                  <ng-container matColumnDef="correo">
+                    <th mat-header-cell *matHeaderCellDef>Correo</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      <span [class.missing]="!asegurado.correoElectronico">
+                        {{ asegurado.correoElectronico || 'No asignado' }}
+                      </span>
+                    </td>
+                  </ng-container>
 
-      <!-- Correo -->
-      <ng-container matColumnDef="correo">
-        <th mat-header-cell *matHeaderCellDef>Correo</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="correo-cell" [class.missing]="!asegurado.correoElectronico">
-            <!-- <mat-icon>email</mat-icon> -->
-            <span>{{ asegurado.correoElectronico || 'No asignado' }}</span>
-          </div>
-        </td>
-      </ng-container>
+                  <ng-container matColumnDef="celular">
+                    <th mat-header-cell *matHeaderCellDef>Celular</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      <span [class.missing]="!asegurado.celular">
+                        {{ asegurado.celular || 'No asignado' }}
+                      </span>
+                    </td>
+                  </ng-container>
 
-      <!-- Celular -->
-      <ng-container matColumnDef="celular">
-        <th mat-header-cell *matHeaderCellDef>Celular</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="celular-cell" [class.missing]="!asegurado.celular">
-            <!-- <mat-icon>phone</mat-icon> -->
-            <span>{{ asegurado.celular || 'No asignado' }}</span>
-          </div>
-        </td>
-      </ng-container>
+                  <ng-container matColumnDef="archivos">
+                    <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      <div class="file-upload-buttons">
+                        <div class="file-upload-item">
+                          <input type="file" #anversoInput hidden
+                                 (change)="onFileGestoraSelected($event, asegurado.id!, 'anverso')"
+                                 accept="image/*,.pdf">
+                          <button mat-mini-fab color="primary"
+                                  [matTooltip]="getNombreArchivo(asegurado.id!, 'anverso')"
+                                  (click)="anversoInput.click()">
+                            <mat-icon>cloud_upload</mat-icon>
+                          </button>
+                          <span class="file-status" [class.complete]="archivosAsegurados[asegurado.id!]?.anverso">
+                            A
+                          </span>
+                        </div>
 
-      <!-- Archivos -->
-      <ng-container matColumnDef="archivos">
-        <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <div class="archivos-cell">
-            <!-- Anverso -->
-            <div class="file-upload-item">
-              <input type="file" #anversoInput hidden
-                     (change)="onFileGestoraSelected($event, asegurado.id!, 'anverso')"
-                     accept="image/*,.pdf">
-              <button mat-mini-fab color="primary"
-                      [matTooltip]="getNombreArchivo(asegurado.id!, 'anverso')"
-                      (click)="anversoInput.click()">
-                <mat-icon>cloud_upload</mat-icon>
-              </button>
-              <span class="file-label" [class.complete]="archivosAsegurados[asegurado.id!]?.anverso">
-                Anverso
-              </span>
-            </div>
+                        <div class="file-upload-item">
+                          <input type="file" #reversoInput hidden
+                                 (change)="onFileGestoraSelected($event, asegurado.id!, 'reverso')"
+                                 accept="image/*,.pdf">
+                          <button mat-mini-fab color="primary"
+                                  [matTooltip]="getNombreArchivo(asegurado.id!, 'reverso')"
+                                  (click)="reversoInput.click()">
+                            <mat-icon>cloud_upload</mat-icon>
+                          </button>
+                          <span class="file-status" [class.complete]="archivosAsegurados[asegurado.id!]?.reverso">
+                            R
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                  </ng-container>
 
-            <!-- Reverso -->
-            <div class="file-upload-item">
-              <input type="file" #reversoInput hidden
-                     (change)="onFileGestoraSelected($event, asegurado.id!, 'reverso')"
-                     accept="image/*,.pdf">
-              <button mat-mini-fab color="primary"
-                      [matTooltip]="getNombreArchivo(asegurado.id!, 'reverso')"
-                      (click)="reversoInput.click()">
-                <mat-icon>cloud_upload</mat-icon>
-              </button>
-              <span class="file-label" [class.complete]="archivosAsegurados[asegurado.id!]?.reverso">
-                Reverso
-              </span>
-            </div>
-          </div>
-        </td>
-      </ng-container>
+                  <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                    <td mat-cell *matCellDef="let asegurado">
+                      <button mat-icon-button color="warn"
+                              (click)="eliminarAsegurado(asegurado.id!)"
+                              matTooltip="Eliminar asegurado">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </td>
+                  </ng-container>
 
-      <!-- Acciones -->
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>Acciones</th>
-        <td mat-cell *matCellDef="let asegurado">
-          <button mat-icon-button color="warn"
-                  (click)="eliminarAsegurado(asegurado.id!)"
-                  matTooltip="Eliminar asegurado">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              </div>
+            }
 
-      <!-- Encabezado y filas -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-  </div>
-}
-
-            <!-- Mensaje si no hay asegurados -->
             @if (asegurados.length === 0) {
               <div class="empty-state">
                 <mat-icon>group</mat-icon>
@@ -294,37 +286,34 @@
               </div>
             }
 
-            <!-- Estado de archivos -->
-@if (asegurados.length > 0) {
-  <div class="files-status" [class.complete]="puedeAvanzarPaso2">
-    @if (puedeAvanzarPaso2()) {
-      <mat-icon>check_circle</mat-icon>
-      <span class="success-text"> Todos los requisitos están completos. Puede avanzar al siguiente paso.</span>
-    } @else {
-      <mat-icon class="error-icon">error</mat-icon>
-      <div class="error-details">
-        <span class="error-text"> Faltan requisitos para avanzar:</span>
-        <ul>
-          <li>Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}</li>
-          <li>Con correo/celular: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}</li>
-          <li>Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length }}</li>
-        </ul>
-      </div>
-    }
-  </div>
-}
+            @if (asegurados.length > 0) {
+              <div class="files-status" [class.complete]="puedeAvanzarPaso2()">
+                @if (puedeAvanzarPaso2()) {
+                  <mat-icon>check_circle</mat-icon>
+                  <span class="success-text">Todos los requisitos están completos. Puede avanzar al siguiente paso.</span>
+                } @else {
+                  <mat-icon class="error-icon">error</mat-icon>
+                  <div class="error-details">
+                    <span class="error-text">Faltan requisitos para avanzar:</span>
+                    <ul>
+                      <li>Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}</li>
+                      <li>Con correo/celular: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}</li>
+                      <li>Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length }}</li>
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
           </form>
 
           <div class="step-actions">
-            <!-- Botón Anterior corregido -->
             <button mat-button matStepperPrevious color="basic">
               <mat-icon>arrow_back</mat-icon>
               <span>Anterior</span>
             </button>
 
-            <!-- Botón Siguiente corregido -->
             <button mat-button matStepperNext 
-                [disabled]="!puedeAvanzarPaso2()"
+                    [disabled]="!puedeAvanzarPaso2()"
                     color="primary">
               <mat-icon>arrow_forward</mat-icon>
               <span>Siguiente</span>
@@ -339,7 +328,35 @@
             Resumen del Registro
           </h3>
 
-          <!-- Resumen del Recibo -->
+          <mat-card class="summary-card" style="margin-bottom: 20px;">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>business</mat-icon>
+                Datos de la Empresa
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <strong>Razón Social:</strong>
+                  <span>{{ empresa?.razonSocial || 'No disponible' }}</span>
+                </div>
+                <div class="summary-item">
+                  <strong>NIT:</strong>
+                  <span>{{ empresa?.nit || empresa?.NIT || 'No disponible' }}</span>
+                </div>
+                <div class="summary-item">
+                  <strong>Número Patronal:</strong>
+                  <span>{{ empresa?.nroPatronal || empresa?.numeroPatronal || 'No disponible' }}</span>
+                </div>
+                <div class="summary-item">
+                  <strong>ID de Registro:</strong>
+                  <span class="id-ingreso">{{ idIngresoGenerado }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
           <mat-card class="summary-card">
             <mat-card-header>
               <mat-card-title>
@@ -355,20 +372,22 @@
                 </div>
                 <div class="summary-item">
                   <strong>Total Importe:</strong>
-                  <span>Bs. {{ paso1Form.get('totalImporte')?.value | number:'1.2-2' }}</span>
+                  <span>Bs. {{ formatNumber(paso1Form.get('totalImporte')?.value) }}</span>
                 </div>
                 <div class="summary-item">
                   <strong>Cantidad de Asegurados:</strong>
                   <span>{{ paso1Form.get('cantidadAsegurados')?.value }}</span>
                 </div>
-                <div class="summary-item">
-                  <strong>Correo Empleador:</strong>
-                  <span>{{ paso1Form.get('correoEmpleador')?.value }}</span>
-                </div>
-                <div class="summary-item">
-                  <strong>Celular Empleador:</strong>
-                  <span>{{ paso1Form.get('celularEmpleador')?.value }}</span>
-                </div>
+                @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
+                  <div class="summary-item">
+                    <strong>Correo Empleador:</strong>
+                    <span>{{ paso1Form.get('correoEmpleador')?.value }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <strong>Celular Empleador:</strong>
+                    <span>{{ paso1Form.get('celularEmpleador')?.value }}</span>
+                  </div>
+                }
                 <div class="summary-item">
                   <strong>Recibo Cargado:</strong>
                   @if (paso1Form.get('imagenRecibo')?.value) {
@@ -385,7 +404,6 @@
             </mat-card-content>
           </mat-card>
 
-          <!-- Resumen de Asegurados -->
           <mat-card class="summary-card">
             <mat-card-header>
               <mat-card-title>
@@ -398,7 +416,7 @@
                 @for (asegurado of asegurados; track asegurado.id; let i = $index) {
                   <div class="asegurado-summary-item">
                     <h4>
-                      <!-- <mat-icon>person</mat-icon> -->
+                      <mat-icon>person</mat-icon>
                       Asegurado {{ i + 1 }}: {{ asegurado.nombreCompleto }}
                     </h4>
                     <div class="summary-grid">
@@ -447,30 +465,28 @@
           </div>
 
           <div class="status-indicator">
-  <div class="status-item" [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
-    <span class="status-number">{{ asegurados.length }}</span>
-    <span class="status-label">Asegurados</span>
-  </div>
-  
-  <div class="status-item" [class.complete]="contarAseguradosCompletos() === asegurados.length">
-    <span class="status-number">{{ contarAseguradosCompletos() }}</span>
-    <span class="status-label">Con contacto</span>
-  </div>
-  
-  <div class="status-item" [class.complete]="contarAseguradosConArchivos() === asegurados.length">
-    <span class="status-number">{{ contarAseguradosConArchivos() }}</span>
-    <span class="status-label">Con archivos</span>
-  </div>
-</div>
+            <div class="status-item" [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
+              <span class="status-number">{{ asegurados.length }}</span>
+              <span class="status-label">Asegurados</span>
+            </div>
+            
+            <div class="status-item" [class.complete]="contarAseguradosCompletos() === asegurados.length">
+              <span class="status-number">{{ contarAseguradosCompletos() }}</span>
+              <span class="status-label">Con contacto</span>
+            </div>
+            
+            <div class="status-item" [class.complete]="contarAseguradosConArchivos() === asegurados.length">
+              <span class="status-number">{{ contarAseguradosConArchivos() }}</span>
+              <span class="status-label">Con archivos</span>
+            </div>
+          </div>
 
           <div class="step-actions">
-            <!-- Botón Anterior corregido -->
             <button mat-button matStepperPrevious color="basic">
               <mat-icon>arrow_back</mat-icon>
               <span>Anterior</span>
             </button>
 
-            <!-- Botón Finalizar Registro CORREGIDO -->
             <button mat-raised-button color="primary"
                     (click)="finalizarRegistro()"
                     [disabled]="isLoading || !puedeAvanzarPaso2()">
