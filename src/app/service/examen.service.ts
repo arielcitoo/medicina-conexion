@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ApiService } from './asegurados.service'; // Importar el API service existente
-import { Asegurado } from '../interfaces/examen.interface';
+import { Asegurado } from '../shared/models/examen.interface';
 
 @Injectable({
   providedIn: 'root'
