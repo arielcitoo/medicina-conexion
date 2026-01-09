@@ -1,35 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup,ReactiveFormsModule , Validators } from '@angular/forms';
-import { Router,RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SesionService } from '../../service/sesion.service';
-import { AuthService } from '../../service/empresa.service';
+import { EmpresaService } from '../../service/empresa.service';
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatHint, MatError, MatFormField, MatLabel } from "@angular/material/form-field";
+import { SharedMaterialModule } from '../../shared/modules/material.module'; // angular Material módulos compartidos
 
-// IMPORTAR MÓDULOS DE ANGULAR MATERIAL NECESARIOS
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
-import { MatMenuModule } from '@angular/material/menu';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-login',
   imports: [
-    MatCheckboxModule,
-    MatButtonModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatCardModule,
-    MatMenuModule,
-    ReactiveFormsModule,
+    SharedMaterialModule,
     MatIcon, 
     MatProgressSpinner, 
     MatHint, 
@@ -52,7 +36,7 @@ export class Login implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private sesionService: SesionService,
-    private authService: AuthService
+    private empresaService: EmpresaService
   ) {
     this.loginForm = this.fb.group({
       aceptarTerminos: [false, Validators.requiredTrue]
@@ -219,7 +203,7 @@ export class Login implements OnInit {
       case 1: // Empresa verificada
         // Cargar empresa si existe en datos parciales
         if (sesion.datosParciales?.empresa) {
-          this.authService.guardarEmpresaExamen(sesion.datosParciales.empresa);
+          this.empresaService.guardarEmpresaExamen(sesion.datosParciales.empresa);
         }
         this.router.navigate(['/prelogin']);
         break;
@@ -237,7 +221,7 @@ export class Login implements OnInit {
   private mostrarMensajeExito(mensaje: string): void {
     // En un sistema real, usarías un servicio de notificaciones
     console.log('✅', mensaje);
-    // Podrías implementar un toast aquí
+
     alert(mensaje); // Temporal - reemplazar con toast
   }
 

@@ -1,34 +1,17 @@
 
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../service/empresa.service';
+import { EmpresaService } from '../../service/empresa.service';
 import { Component, OnInit, OnDestroy, inject,ChangeDetectorRef} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SesionService } from '../../service/sesion.service';
-
+import { SharedMaterialModule } from '../../shared/modules/material.module'; //Angular Material módulos compartidos
 
 
 @Component({
   selector: 'app-prelogin',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule
-  
-    ],
+  imports: [ SharedMaterialModule ],
   templateUrl: './prelogin.html',
   styleUrl: './prelogin.css',
 })
@@ -50,7 +33,7 @@ export class Prelogin implements OnInit,OnDestroy  {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    private empresaService: EmpresaService,
     private router: Router,
     private snackBar: MatSnackBar,
     private cdRef: ChangeDetectorRef,
@@ -90,8 +73,8 @@ export class Prelogin implements OnInit,OnDestroy  {
    * Verificar si ya hay una empresa almacenada
    */
   private verificarEmpresaAlmacenada(): void {
-    const empresa = this.authService.getEmpresaExamen();
-    if (empresa && this.authService.estaActiva(empresa)) {
+    const empresa = this.empresaService.getEmpresaExamen();
+    if (empresa && this.empresaService.estaActiva(empresa)) {
       console.log(' Empresa ya verificada encontrada:', empresa.razonSocial);
       
       // Mostrar información de la empresa ya verificada
@@ -140,13 +123,13 @@ export class Prelogin implements OnInit,OnDestroy  {
     // Forzar actualización de UI
     this.cdRef.detectChanges();
 
-    this.authService.buscarEmpresa(numeroPatronal).subscribe({
+    this.empresaService.buscarEmpresa(numeroPatronal).subscribe({
       next: (response) => {
         console.log(' Respuesta exitosa:', response);
         if (response.success) {
           this.empresaEncontrada = response.empresa;
            // Guardar empresa (esto emitirá el cambio al header)
-          this.authService.guardarEmpresaExamen(response.empresa);
+          this.empresaService.guardarEmpresaExamen(response.empresa);
           this.sesionService.actualizarPaso(1, { empresa: response.empresa });
         }
         
@@ -158,7 +141,7 @@ export class Prelogin implements OnInit,OnDestroy  {
           this.empresaEncontrada = response.empresa;
           
           // Guardar empresa en localStorage y sessionStorage
-          this.authService.guardarEmpresaExamen(response.empresa);
+          this.empresaService.guardarEmpresaExamen(response.empresa);
           
           this.mostrarMensaje(response.mensaje, 'success');
           
@@ -179,27 +162,7 @@ export class Prelogin implements OnInit,OnDestroy  {
       }
     });
   }
-  /**
-   * Iniciar redirección automática
-   */
-  // private iniciarRedireccionAutomatica(): void {
-  //   if (this.redireccionEnProgreso) return;
-    
-  //   this.redireccionEnProgreso = true;
-  //   this.contadorRedireccion = 3;
-    
-  //   console.log(' Iniciando cuenta regresiva para redirección...');
-    
-  //   const intervalo = setInterval(() => {
-  //     this.contadorRedireccion--;
-  //     this.cdRef.detectChanges();
-      
-  //     if (this.contadorRedireccion <= 0) {
-  //       clearInterval(intervalo);
-  //       this.redirigirAExamen();
-  //     }
-  //   }, 1000);
-  // }
+
 
   /**
    * Redirigir manualmente al examen
@@ -237,7 +200,7 @@ export class Prelogin implements OnInit,OnDestroy  {
    */
   private ejecutarRedireccion(): void {
     // Verificar nuevamente con el servicio
-    this.authService.redirigirAExamen()
+    this.empresaService.redirigirAExamen()
       .then(() => {
         console.log(' Redirigiendo a examen-preocupacional...');
         
@@ -262,29 +225,7 @@ export class Prelogin implements OnInit,OnDestroy  {
       });
   }
 
-  /**
-   * Redirigir a la página de examen
-   */
-  private redirigirAExamen(): void {
-    console.log('🔄 Redirigiendo a examen-preocupacional...');
-    
-    // Verificar nuevamente antes de redirigir
-    if (!this.authService.puedeAccederExamen()) {
-      console.error('No se puede acceder al examen');
-      this.mostrarMensaje('No tiene permisos para acceder al examen', 'error');
-      return;
-    }
-    
-    // Navegar a la ruta
-    this.router.navigate(['/examen-preocupacional']).then(success => {
-      if (success) {
-        console.log(' Redirección exitosa');
-      } else {
-        console.error(' Error en redirección');
-        this.mostrarMensaje('Error al acceder al examen', 'error');
-      }
-    });
-  }
+  
 
   /**
    * Cargar ejemplo
@@ -309,7 +250,7 @@ export class Prelogin implements OnInit,OnDestroy  {
     this.redireccionando = false;
     
     // Limpiar datos almacenados
-    this.authService.limpiarDatosExamen();
+    this.empresaService.limpiarDatosExamen();
     this.mostrarMensaje('Formulario limpiado', 'info');
     this.cdRef.detectChanges();
   }
@@ -328,7 +269,7 @@ export class Prelogin implements OnInit,OnDestroy  {
    * Getters
    */
   get empresaActiva(): boolean {
-    return this.authService.estaActiva(this.empresaEncontrada);
+    return this.empresaService.estaActiva(this.empresaEncontrada);
   }
 
   get textoBotonPrincipal(): string {

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../service/asegurados.service';
+import { AseguradosService } from '../../service/asegurados.service';
 import { Asegurado } from '../../shared/models/asegurado.model';
 
 @Component({
@@ -19,7 +19,7 @@ documento = '';
   error = '';
   asegurado: Asegurado | null = null;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiAseguradosService: AseguradosService) {}
 
   buscarAsegurado() {
     if (!this.documento || !this.fechaNacimiento) {
@@ -33,7 +33,7 @@ documento = '';
 
     console.log('🔍 Buscando asegurado:', this.documento, this.fechaNacimiento);
 
-    this.apiService.buscarAsegurado(this.documento, this.fechaNacimiento).subscribe({
+    this.apiAseguradosService.buscarAsegurado(this.documento, this.fechaNacimiento).subscribe({
       next: (response) => {
         console.log('Asegurado encontrado:', response);
        // this.asegurado = response;

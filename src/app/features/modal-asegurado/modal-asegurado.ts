@@ -1,22 +1,15 @@
 
 import { Component, Inject, OnInit, inject,ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { CommonModule } from '@angular/common';
-import { Asegurado } from '../../interfaces/examen.interface';
-import { ApiService } from '../../service/asegurados.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Asegurado } from '../../shared/models/examen.interface';
+import { AseguradosService } from '../../service/asegurados.service';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { MatSnackBarModule } from '@angular/material/snack-bar'; 
-import { MatSelectModule } from '@angular/material/select'; 
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
+import { SharedMaterialModule } from '../../shared/modules/material.module'; //angular Material módulos compartidos
+
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -32,18 +25,7 @@ export const MY_DATE_FORMATS = {
 
 @Component({
   selector: 'app-modal-asegurado',
-  imports: [
-    MatSnackBarModule,
-    MatSelectModule,
-     CommonModule,
-    ReactiveFormsModule,
-    MatDatepickerModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatDialogModule],
+  imports: [SharedMaterialModule],
 
   standalone: true,
   templateUrl: './modal-asegurado.html',
@@ -55,7 +37,7 @@ export const MY_DATE_FORMATS = {
   ]
 })
 export class ModalAsegurado implements OnInit {
-  private apiService = inject(ApiService);
+  private apiAseguradosService = inject(AseguradosService);
   private cdRef = inject(ChangeDetectorRef);
 
   aseguradoForm: FormGroup;
@@ -312,7 +294,7 @@ actualizarPuedeAgregar(): void {
     const fechaNacimiento = this.aseguradoForm.get('fechaNacimiento')?.value;
     const fechaFormateada = this.formatFechaParaAPI(fechaNacimiento);
 
-    this.apiService.buscarAsegurado(documento, fechaFormateada)
+    this.apiAseguradosService.buscarAsegurado(documento, fechaFormateada)
       .pipe(
         map(response => {
           return this.mapearRespuestaApi(response, documento);

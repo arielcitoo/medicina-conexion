@@ -1,33 +1,19 @@
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { SesionService } from '../../../service/sesion.service';
-import { AuthService } from '../../../service/empresa.service';
+import { EmpresaService } from '../../../service/empresa.service';
 import { Subscription } from 'rxjs';
 import { MatIcon } from "@angular/material/icon";
-import { TruncatePipe } from "../../../interceptors/truncate.pipe";
-import { MatDividerModule } from '@angular/material/divider';
+import { SharedMaterialModule } from '../../modules/material.module'; //Angular Material módulos compartidos
 
-
-// ✅ Importar módulos Material NECESARIOS
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule ,MatMenuTrigger} from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-header',
   imports: [
-    MatDividerModule,
-    MatMenuModule,
-    MatMenuTrigger,
-    CommonModule, 
+    SharedMaterialModule,
     RouterModule, 
-    MatIcon, 
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    TruncatePipe
+    MatIcon
   ],
   templateUrl: './header.html',
   styleUrl: './header.css',
@@ -48,20 +34,20 @@ export class Header implements OnInit, OnDestroy {
 
   constructor(
     private sesionService: SesionService,
-    private authService: AuthService,
+    private empresaService: EmpresaService,
     private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    console.log('🔄 SessionHeader inicializado');
+    console.log('SessionHeader inicializado');
     
     // Obtener ID de acceso inicial
     this.idAcceso = this.sesionService.getIdAcceso();
     
     // Obtener empresa inicial
-    this.empresa = this.authService.getEmpresaExamen();
+    this.empresa = this.empresaService.getEmpresaExamen();
     
-    console.log('📋 Estado inicial header:', {
+    console.log(' Estado inicial header:', {
       idAcceso: this.idAcceso,
       empresa: this.empresa?.razonSocial || 'No hay empresa'
     });
@@ -69,7 +55,7 @@ export class Header implements OnInit, OnDestroy {
     // Suscribirse a cambios en la sesión
     this.sesionSubscription = this.sesionService.getSesionActual()
       .subscribe(sesion => {
-        console.log('🔄 Cambio en sesión detectado:', sesion?.id);
+        console.log(' Cambio en sesión detectado:', sesion?.id);
         if (sesion) {
           this.actualizarEstadoSesion(sesion);
         } else {
@@ -80,9 +66,9 @@ export class Header implements OnInit, OnDestroy {
       });
     
     // Suscribirse a cambios en la empresa
-    this.authSubscription = this.authService.empresaChanged$
+    this.authSubscription = this.empresaService.empresaChanged$
       .subscribe(empresa => {
-        console.log('🔄 Cambio en empresa detectado:', empresa?.razonSocial);
+        console.log('Cambio en empresa detectado:', empresa?.razonSocial);
         this.empresa = empresa;
         this.cdRef.detectChanges();
       });
@@ -117,7 +103,7 @@ export class Header implements OnInit, OnDestroy {
     const diasTranscurridos = totalDias - this.diasRestantes;
     this.porcentajeProgreso = Math.max(0, Math.min(100, (diasTranscurridos / totalDias) * 100));
     
-    console.log('📊 Estado sesión actualizado:', {
+    console.log('Estado sesión actualizado:', {
       diasRestantes: this.diasRestantes,
       expiraPronto: this.expiraPronto,
       porcentajeProgreso: this.porcentajeProgreso
@@ -126,7 +112,7 @@ export class Header implements OnInit, OnDestroy {
 
   get mostrarHeader(): boolean {
     const mostrar = !!this.idAcceso;
-    console.log('👁️ Mostrar header?', mostrar, 'ID:', this.idAcceso);
+    console.log(' Mostrar header?', mostrar, 'ID:', this.idAcceso);
     return mostrar;
   }
 
@@ -179,7 +165,7 @@ export class Header implements OnInit, OnDestroy {
           this.cdRef.detectChanges();
         }, 2000);
         
-        console.log('📋 ID copiado:', this.idAcceso);
+        console.log('ID copiado:', this.idAcceso);
       }).catch(err => {
         console.error('Error al copiar ID:', err);
       });
@@ -201,7 +187,7 @@ Expira en: ${this.diasRestantes} días
   cerrarSesion(): void {
     if (confirm('¿Está seguro de cerrar la sesión? Perderá el ID de acceso.')) {
       this.sesionService.limpiarSesion();
-      this.authService.limpiarDatosExamen();
+      this.empresaService.limpiarDatosExamen();
       window.location.href = '/login';
     }
   }

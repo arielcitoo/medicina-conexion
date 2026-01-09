@@ -1,44 +1,23 @@
 import { ModalAsegurado } from '../modal-asegurado/modal-asegurado';
-import { Component, OnInit, ViewChild, computed, inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray,  } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatStepper, MatStepperModule, MatStep } from '@angular/material/stepper';
+import { MatStepper, MatStep } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';// Asegúrate del nombre correcto
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExamenService } from '../../service/examen.service';
-import { AuthService } from '../../service/empresa.service';
-import { Asegurado } from '../../interfaces/examen.interface';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
-import { CommonModule,DatePipe } from '@angular/common';
+import { EmpresaService } from '../../service/empresa.service';
+import { Asegurado } from '../../shared/models/examen.interface';
 import { ChangeDetectorRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ExamenExitoModal, ExitoModalData } from '../examen-exito-modal/examen-exito-modal';
-
-
-
+import { SharedMaterialModule } from '../../shared/modules/material.module'; // Angular Material módulos compartidos
 
 @Component({
   selector: 'app-examen-preocupacional',
   imports: [
-    CommonModule,
-    MatStepperModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatTooltipModule,
-    MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
+    SharedMaterialModule,
     MatStep
 ],
   standalone: true,
@@ -79,7 +58,7 @@ export class ExamenPreocupacional implements OnInit {
     'acciones'
   ];
 
-  constructor(private authService: AuthService) {
+  constructor(private empresaService: EmpresaService) {
     // Paso 1: Datos del Recibo con validación personalizada para la imagen
     this.paso1Form = this.fb.group({
       numeroRecibo: ['', [Validators.required, Validators.pattern('^[0-9\\-]+$')]],
@@ -98,7 +77,7 @@ export class ExamenPreocupacional implements OnInit {
   ngOnInit(): void {
     console.log('Examen Preocupacional Component inicializado');
     
-    this.empresa = this.authService.getEmpresaExamen();
+    this.empresa = this.empresaService.getEmpresaExamen();
 
     if (!this.empresa) {
       console.error(' No existe empresa verificada');

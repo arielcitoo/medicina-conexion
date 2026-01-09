@@ -1,7 +1,7 @@
 // auth.guard.ts
 import { Injectable } from '@angular/core';
 import { Router, CanActivate } from '@angular/router';
-import { AuthService } from '../service/empresa.service';
+import { EmpresaService } from '../service/empresa.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,7 @@ import { AuthService } from '../service/empresa.service';
 export class AuthGuard implements CanActivate {
   
    constructor(
-    private authService: AuthService,
+    private empresaService: EmpresaService,
     private router: Router
   ) {}
 
@@ -17,7 +17,7 @@ export class AuthGuard implements CanActivate {
     console.log('Verificando acceso a examen-preocupacional...');
     
     // Verificar si hay una empresa verificada y activa
-    const puedeAcceder = this.authService.puedeAccederExamen();
+    const puedeAcceder = this.empresaService.puedeAccederExamen();
     
     if (!puedeAcceder) {
       console.warn(' Acceso denegado. Redirigiendo a prelogin...');

@@ -4,7 +4,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Header} from './shared/components/header/header';
 import { filter } from 'rxjs';
 import { SesionService } from './service/sesion.service';
-import { AuthService } from './service/empresa.service';
+import { EmpresaService } from './service/empresa.service';
 
 @Component({
   selector: 'app-root',
@@ -25,14 +25,14 @@ export class App implements OnInit {
    protected readonly title = signal('medicina-del-trabajo');
    constructor(private router: Router,
      private sesionService: SesionService,
-    private authService: AuthService) {}
+    private empresaService: EmpresaService) {}
 
 ngOnInit(): void {
     console.log(' App inicializado');
     
     // Verificar estado inicial
     this.tieneSesion = !!this.sesionService.getIdAcceso();
-    this.tieneEmpresa = !!this.authService.getEmpresaExamen();
+    this.tieneEmpresa = !!this.empresaService.getEmpresaExamen();
     
     console.log(' Estado inicial AppComponent:', {
       tieneSesion: this.tieneSesion,

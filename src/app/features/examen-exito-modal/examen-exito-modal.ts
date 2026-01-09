@@ -1,9 +1,6 @@
 import { Component, Inject, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef,  } from '@angular/material/dialog';
+import { SharedMaterialModule } from '../../shared/modules/material.module'; //angular Material módulos compartidos
 
 export interface ExitoModalData {
   idIngreso: string;
@@ -12,21 +9,15 @@ export interface ExitoModalData {
   totalAsegurados: number;
   importeTotal: number;
   empresa: {
-    razonSocial: string;
-    nit: string;
-    numeroPatronal: string;
+  razonSocial: string;
+  nit: string;
+  numeroPatronal: string;
   };
 }
 
 @Component({
   selector: 'app-examen-exito-modal',
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatDialogModule
-  ],
+  imports: [SharedMaterialModule],
   templateUrl: './examen-exito-modal.html',
   styleUrl: './examen-exito-modal.css',
 })

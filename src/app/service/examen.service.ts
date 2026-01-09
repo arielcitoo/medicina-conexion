@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { ApiService } from './asegurados.service'; // Importar el API service existente
-import { Asegurado } from '../interfaces/examen.interface';
+import { AseguradosService } from './asegurados.service'; // Importar el API service existente
+import { Asegurado } from '../shared/models/examen.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExamenService {
   
-  constructor(private apiService: ApiService) {}
+  constructor(private apiAseguradosService: AseguradosService) {}
 
   /**
    * Buscar asegurado por CI y fecha de nacimiento usando el API service existente
@@ -20,7 +20,7 @@ export class ExamenService {
     
     console.log('🔍 Buscando asegurado con:', { ci, fechaFormateada });
 
-    return this.apiService.buscarAsegurado(ci, fechaFormateada).pipe(
+    return this.apiAseguradosService.buscarAsegurado(ci, fechaFormateada).pipe(
       map((response: any) => {
         console.log(' Respuesta API asegurado:', response);
         
