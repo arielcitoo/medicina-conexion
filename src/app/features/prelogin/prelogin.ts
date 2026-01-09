@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SesionService } from '../../service/sesion.service';
-import { EmpresModels, EmpresaApiResponse } from '../../shared/models';
+
 
 
 @Component({
@@ -26,9 +26,7 @@ import { EmpresModels, EmpresaApiResponse } from '../../shared/models';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule,
-    Empresa, 
-    EmpresaApiResponse
+    MatProgressSpinnerModule
   
     ],
   templateUrl: './prelogin.html',
@@ -130,23 +128,57 @@ export class Prelogin implements OnInit,OnDestroy  {
   /**
    * Buscar empresa en el sistema CNS
    */
-  buscarEmpresa(numeroPatronal: string): void {
-  this.empresaService.buscarEmpresa(numeroPatronal).subscribe({
-    next: (response: EmpresaApiResponse) => {
-      if (response.success) {
-        this.empresaEncontrada = response.data;
-        this.mensajeError = '';
-      } else {
+  private buscarEmpresa(numeroPatronal: string): void {
+    console.log('🔍 Buscando empresa:', numeroPatronal);
+    
+    this.isLoading = true;
+    this.mensajeError = '';
+    this.empresaEncontrada = null;
+    this.busquedaRealizada = false;
+    this.redireccionEnProgreso = false;
+
+    // Forzar actualización de UI
+    this.cdRef.detectChanges();
+
+    this.authService.buscarEmpresa(numeroPatronal).subscribe({
+      next: (response) => {
+        console.log(' Respuesta exitosa:', response);
+        if (response.success) {
+          this.empresaEncontrada = response.empresa;
+           // Guardar empresa (esto emitirá el cambio al header)
+          this.authService.guardarEmpresaExamen(response.empresa);
+          this.sesionService.actualizarPaso(1, { empresa: response.empresa });
+        }
+        
+        
+        this.isLoading = false;
+        this.busquedaRealizada = true;
+        
+        if (response.success) {
+          this.empresaEncontrada = response.empresa;
+          
+          // Guardar empresa en localStorage y sessionStorage
+          this.authService.guardarEmpresaExamen(response.empresa);
+          
+          this.mostrarMensaje(response.mensaje, 'success');
+          
+           }
+        
+        this.cdRef.detectChanges();
+      },
+      error: (error) => {
+        console.error(' Error en búsqueda:', error);
+        
+        this.isLoading = false;
+        this.busquedaRealizada = true;
         this.empresaEncontrada = null;
-        this.mensajeError = response.mensaje;
+        this.mensajeError = error.mensaje || 'Error desconocido al buscar empresa';
+        
+        this.mostrarMensaje(this.mensajeError, 'error');
+        this.cdRef.detectChanges();
       }
-    },
-    error: (error) => {
-      this.empresaEncontrada = null;
-      this.mensajeError = error.message;
-    }
-  });
-}
+    });
+  }
   /**
    * Iniciar redirección automática
    */
