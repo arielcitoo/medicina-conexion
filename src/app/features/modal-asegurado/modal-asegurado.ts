@@ -2,7 +2,7 @@
 import { Component, Inject, OnInit, inject,ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Asegurado } from '../../shared/models/examen.interface';
+import { Asegurado } from '../../interfaces/examen.interface';
 import { AseguradosService } from '../../service/asegurados.service';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { of } from 'rxjs';
