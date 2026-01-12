@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { SesionAcceso } from '../shared/models/sesion-acceso';
+import { SesionAcceso } from '../interface/sesion-acceso.interface';
 
 @Injectable({
   providedIn: 'root',
