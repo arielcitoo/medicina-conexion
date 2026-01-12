@@ -3,126 +3,81 @@ import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
-const API_CONFIG = {
-  baseUrl: 'https://api-desarrollo.cns.gob.bo/erpcns',
-  version: 'v1',
-  defaultToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjgyNDUwMzEsImV4cCI6MTc2ODI4MTAzMSwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2ODI0NTAzMSwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6Ijc2NkYwM0RDQzQ2QTA2MDEyQjQ4REU1MzI1NDk3QzU5IiwiaWF0IjoxNzY4MjQ1MDMxLCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.nYMBDOU9zoZkUBSHvRyRj6IgrtjHAjrNEXwL8kV6l-ePqhLnE25UtzMVhqcIJllrOvyJppzELCsqCAHZ4tgh-EGin2WRAnVuMqeij0ofiq2E5O1EWV0kx7xNJSOybYcIozudoKc2McWHgf6FuLt6VCSqDCFSciKEEvzqhYgwAuY521VmdsOKgIDnpsyRRIKGF95t1rAW8ZdKivAKFqYKFX8tjBAwGhlsU9Yzcs__Wb8mNIi_Kbr8BmIz1Q6RW_BgbhLBZQXYqOdE1BupBRDMX1eYhstb8XBkYRC-gchgFNGT_BCrnfqhzn6gpziKpRrHoKEbiXD5VvWhgQ7bcC_Tag'
-};
+
+import { BaseApiService } from '../service/base-api.service';
+import { Asegurado, BusquedaAseguradoResponse } from '../interface/asegurado.interface';
+import { API_CONFIG } from '../shared/config/api.config';
+
 
 @Injectable({
   providedIn: 'root'
 })
-export class AseguradosService {
-  private http = inject(HttpClient);
-  private baseUrl = `${API_CONFIG.baseUrl}/${API_CONFIG.version}`;
-  private token = API_CONFIG.defaultToken;
-
-  constructor() {
-    console.log(' API Service inicializado');
-    console.log(' Base URL:', this.baseUrl);
-    console.log(' Token (primeros 50 chars):', this.token.substring(0, 50) + '...');
-  }
+export class AseguradosService extends BaseApiService {
 
   /**
-   * CONSULTA PRINCIPAL: Buscar asegurado titular
+   * Buscar asegurado titular por documento de identidad y fecha de nacimiento
    */
-  buscarAsegurado(documento: string, fechaNacimiento: string): Observable<any> {
-    const url = `${this.baseUrl}/Afiliaciones/Asegurados/AseguradoTitular`;
+  buscarAsegurado(documento: string, fechaNacimiento: string): Observable<BusquedaAseguradoResponse> {
+    const url = `${this.baseUrl}${API_CONFIG.endpoints.aseguradoTitular}`;
     const params = new HttpParams()
       .set('DocumentoIdentidad', documento)
       .set('FechaNacimiento', fechaNacimiento);
 
-    console.log(' Buscando asegurado:');
-    console.log('   URL:', url);
-    console.log('   Documento:', documento);
-    console.log('   Fecha Nacimiento:', fechaNacimiento);
-    console.log('   Token (primeros 30):', this.token.substring(0, 30) + '...');
-
-    const headers = this.getAuthHeaders();
-    console.log('   Headers:', headers);
-
-    return this.http.get(url, {
+    return this.http.get<any>(url, {
       params,
-      headers
+      headers: this.getAuthHeaders()
     }).pipe(
-      tap(response => {
-        console.log(' Respuesta exitosa de la API:', response);
-      }),
-      catchError(this.handleError)
+      map(response => this.mapToAseguradoResponse(response))
     );
   }
 
   /**
-   * Headers de autenticación
+   * Mapea la respuesta de la API al formato de la interfaz
    */
-  private getAuthHeaders() {
-    return new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    });
-  }
-
-  /**
-   * Manejo de errores
-   */
-  private handleError(error: HttpErrorResponse) {
-    console.error(' Error en API Service:');
-    console.error('   Status:', error.status);
-    console.error('   Status Text:', error.statusText);
-    console.error('   URL:', error.url);
-    console.error('   Headers:', error.headers);
-    console.error('   Error:', error.error);
-
-    let errorMessage = 'Error desconocido';
-
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error del cliente: ${error.error.message}`;
-    } else {
-      switch (error.status) {
-        case 0:
-          errorMessage = 'Error de conexión. Verifique su conexión a internet.';
-          break;
-        case 400:
-          errorMessage = 'Solicitud incorrecta. Verifique los datos enviados.';
-          break;
-        case 401:
-          errorMessage = 'No autorizado. Token JWT inválido o expirado.';
-          break;
-        case 403:
-          errorMessage = 'Acceso prohibido. No tiene permisos para acceder a este recurso.';
-          break;
-        case 404:
-          errorMessage = 'Recurso no encontrado.';
-          break;
-        case 500:
-          errorMessage = 'Error interno del servidor.';
-          break;
-        case 502:
-        case 503:
-        case 504:
-          errorMessage = 'Servicio temporalmente no disponible. Intente más tarde.';
-          break;
-        default:
-          errorMessage = `Error ${error.status}: ${error.message}`;
-      }
+  private mapToAseguradoResponse(apiResponse: any): BusquedaAseguradoResponse {
+    if (!apiResponse) {
+      return {
+        success: false,
+        message: 'No se encontraron datos del asegurado'
+      };
     }
 
-    return throwError(() => new Error(errorMessage));
+    const asegurado: Asegurado = {
+      aseguradoId: apiResponse.aseguradoId || 0,
+      matricula: apiResponse.matricula || '',
+      estadoAsegurado: apiResponse.estadoAsegurado || '',
+      documentoIdentidad: apiResponse.documentoIdentidad || '',
+      extencion: apiResponse.extencion || '',
+      complemento: apiResponse.complemento || '',
+      fechaNacimiento: apiResponse.fechaNacimiento || '',
+      paterno: apiResponse.paterno || '',
+      materno: apiResponse.materno || '',
+      nombres: apiResponse.nombres || '',
+      genero: apiResponse.genero || '',
+      tipoAsegurado: apiResponse.tipoAsegurado || '',
+      razonSocial: apiResponse.razonSocial || '',
+      nroPatronal: apiResponse.nroPatronal || '',
+      estadoMora: apiResponse.estadoMora || '',
+      grupoFamiliarId: apiResponse.grupoFamiliarId || 0,
+      nombreCompleto: this.generarNombreCompleto(apiResponse)
+    };
+
+    return {
+      success: true,
+      data: asegurado,
+      message: 'Asegurado encontrado correctamente'
+    };
   }
 
   /**
-   * Actualizar token
+   * Genera el nombre completo a partir de los componentes
    */
-  setToken(newToken: string): void {
-    this.token = newToken;
-    console.log(' Token actualizado');
-  }
+  private generarNombreCompleto(asegurado: any): string {
+    const partes = [];
+    if (asegurado.nombres) partes.push(asegurado.nombres);
+    if (asegurado.paterno) partes.push(asegurado.paterno);
+    if (asegurado.materno) partes.push(asegurado.materno);
 
-  /**
-   * Verificar token
-   */
-  checkToken(): boolean {
-    return !!this.token && this.token.length > 100;
+    return partes.join(' ');
   }
 }
