@@ -7,7 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExamenService } from '../../service/examen.service';
 import { EmpresaService } from '../../service/empresa.service';
-import { Asegurado } from '../../interfaces/examen.interface';
+import { Asegurado } from '../../shared/models/examen.interface';
 import { ChangeDetectorRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
