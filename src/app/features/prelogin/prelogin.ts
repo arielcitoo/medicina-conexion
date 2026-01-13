@@ -27,7 +27,7 @@ export class Prelogin implements OnInit,OnDestroy  {
   redireccionEnProgreso = false;
   redireccionando = false;
 
- // ejemplos = ['01-730-00001', '01-730-00002', '01-730-00003'];
+
 
   contadorRedireccion = 3;
 
@@ -54,7 +54,7 @@ export class Prelogin implements OnInit,OnDestroy  {
 
   ngOnInit(): void {
     console.log(' Prelogin inicializado');
-    
+
     // Auto-cargar ejemplo para pruebas
     // setTimeout(() => {
     //   if (this.debugMode) {
@@ -76,13 +76,13 @@ export class Prelogin implements OnInit,OnDestroy  {
     const empresa = this.empresaService.getEmpresaExamen();
     if (empresa && this.empresaService.estaActiva(empresa)) {
       console.log(' Empresa ya verificada encontrada:', empresa.razonSocial);
-      
+
       // Mostrar información de la empresa ya verificada
       this.empresaEncontrada = empresa;
       this.busquedaRealizada = true;
-      
+
        this.mostrarMensaje(`Empresa ${empresa.razonSocial} ya verificada`, 'info');
-      
+
       // Forzar actualización de UI
       this.cdRef.detectChanges();
     }
@@ -92,15 +92,15 @@ export class Prelogin implements OnInit,OnDestroy  {
    */
   onSubmit(): void {
     console.log(' Enviando formulario...');
-    
+
     if (this.preloginForm.invalid) {
       this.mostrarMensaje('Ingrese un número patronal válido', 'error');
-      
+
       // Marcar todos los campos como tocados para mostrar errores
       Object.keys(this.preloginForm.controls).forEach(key => {
         this.preloginForm.get(key)?.markAsTouched();
       });
-      
+
       return;
     }
 
@@ -113,7 +113,7 @@ export class Prelogin implements OnInit,OnDestroy  {
    */
   private buscarEmpresa(numeroPatronal: string): void {
     console.log('🔍 Buscando empresa:', numeroPatronal);
-    
+
     this.isLoading = true;
     this.mensajeError = '';
     this.empresaEncontrada = null;
@@ -132,31 +132,31 @@ export class Prelogin implements OnInit,OnDestroy  {
           this.empresaService.guardarEmpresaExamen(response.empresa);
           this.sesionService.actualizarPaso(1, { empresa: response.empresa });
         }
-        
-        
+
+
         this.isLoading = false;
         this.busquedaRealizada = true;
-        
+
         if (response.success) {
           this.empresaEncontrada = response.empresa;
-          
+
           // Guardar empresa en localStorage y sessionStorage
           this.empresaService.guardarEmpresaExamen(response.empresa);
-          
+
           this.mostrarMensaje(response.mensaje, 'success');
-          
+
            }
-        
+
         this.cdRef.detectChanges();
       },
       error: (error) => {
         console.error(' Error en búsqueda:', error);
-        
+
         this.isLoading = false;
         this.busquedaRealizada = true;
         this.empresaEncontrada = null;
         this.mensajeError = error.mensaje || 'Error desconocido al buscar empresa';
-        
+
         this.mostrarMensaje(this.mensajeError, 'error');
         this.cdRef.detectChanges();
       }
@@ -184,7 +184,7 @@ export class Prelogin implements OnInit,OnDestroy  {
     }
 
     console.log(' Usuario solicitó redirección manual');
-    
+
     // Cambiar estado para mostrar feedback
     this.redireccionando = true;
     this.cdRef.detectChanges();
@@ -203,11 +203,11 @@ export class Prelogin implements OnInit,OnDestroy  {
     this.empresaService.redirigirAExamen()
       .then(() => {
         console.log(' Redirigiendo a examen-preocupacional...');
-        
+
         // Navegar a la ruta
         this.router.navigate(['/examen-preocupacional']).then(success => {
           this.redireccionando = false;
-          
+
           if (success) {
             console.log(' Redirección exitosa');
           } else {
@@ -225,7 +225,7 @@ export class Prelogin implements OnInit,OnDestroy  {
       });
   }
 
-  
+
 
   /**
    * Cargar ejemplo
@@ -242,13 +242,13 @@ export class Prelogin implements OnInit,OnDestroy  {
    */
   limpiar(): void {
     console.log(' Limpiando formulario...');
-    
+
     this.preloginForm.reset();
     this.empresaEncontrada = null;
     this.mensajeError = '';
     this.busquedaRealizada = false;
     this.redireccionando = false;
-    
+
     // Limpiar datos almacenados
     this.empresaService.limpiarDatosExamen();
     this.mostrarMensaje('Formulario limpiado', 'info');
@@ -297,8 +297,8 @@ export class Prelogin implements OnInit,OnDestroy  {
    * Estado del botón "Ingresar Ahora"
    */
   get botonIngresarHabilitado(): boolean {
-    return this.empresaEncontrada && 
-           this.empresaActiva && 
+    return this.empresaEncontrada &&
+           this.empresaActiva &&
            !this.redireccionando &&
            !this.isLoading;
   }
@@ -316,21 +316,21 @@ export class Prelogin implements OnInit,OnDestroy  {
    */
   onBlur(): void {
     const control = this.preloginForm.get('numeroPatronal');
-    
+
     if (!control) {
       console.error(' Control "numeroPatronal" no encontrado');
       return;
     }
-    
+
     let valor = control.value;
-    
+
     if (valor) {
       valor = valor.trim().toUpperCase();
-      
+
       if (valor !== control.value) {
         control.setValue(valor, { emitEvent: false });
       }
-      
+
       control.markAsTouched();
       control.updateValueAndValidity();
     }
@@ -352,7 +352,7 @@ export class Prelogin implements OnInit,OnDestroy  {
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^\d-]/g, '');
-    
+
     // Autoformatear
     if (value.length > 2 && value.charAt(2) !== '-') {
       value = value.slice(0, 2) + '-' + value.slice(2);
@@ -360,11 +360,11 @@ export class Prelogin implements OnInit,OnDestroy  {
     if (value.length > 6 && value.charAt(6) !== '-') {
       value = value.slice(0, 6) + '-' + value.slice(6);
     }
-    
+
     if (value.length > 12) {
       value = value.slice(0, 12);
     }
-    
+
     this.preloginForm.patchValue({ numeroPatronal: value });
   }
 

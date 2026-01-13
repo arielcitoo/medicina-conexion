@@ -1,405 +1,202 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
-
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { BaseApiService } from '../service/base-api.service';
+import { Empresa, VerificacionEmpresaResponse } from '../interface/empresa.interface';
+import { API_CONFIG, STORAGE_KEYS, ERROR_MESSAGES } from '../shared/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export class EmpresaService {
-    private http = inject(HttpClient);
-    
-  
-  //  MISMA CONFIGURACIÓN QUE TU ApiService FUNCIONAL
-  private baseUrl = 'https://api-desarrollo.cns.gob.bo/erpcns/v1';
-  private token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjExMjFCOEVCNTk4NTc5RjQwOTA1MDJEMDAyOUMxNjExMzU1MUIzOUZSUzI1NiIsInR5cCI6ImF0K2p3dCIsIng1dCI6IkVTRzQ2MW1GZWZRSkJRTFFBcHdXRVRWUnM1OCJ9.eyJuYmYiOjE3NjgyNDUwMzEsImV4cCI6MTc2ODI4MTAzMSwiaXNzIjoiaHR0cHM6Ly9hdXRoLWRlc2Fycm9sbG8uY25zLmdvYi5ibyIsImF1ZCI6WyJhZG1pbkNsaWVudF9hcGkiLCJBUElfRXhhbXBsZSIsImVycFNlcnZpY2VzIiwidGVzdC1ycmhoIiwiQVBJX1JFUE9SVCJdLCJjbGllbnRfaWQiOiJleGFtcGxlX3N3YWdnZXJ1aSIsInN1YiI6Ijg2NDIxMzU2LWM4NjQtNDA4NS1hNGJhLTdkODQ4ZWRiZjU0MCIsImF1dGhfdGltZSI6MTc2ODI0NTAzMSwiaWRwIjoibG9jYWwiLCJpZGVudGl0eSI6IjBjYTExZDY1LWM0MjAtNGIzYi04NjZkLTJlMTU5MGI4YTkzMyIsInNpZCI6Ijc2NkYwM0RDQzQ2QTA2MDEyQjQ4REU1MzI1NDk3QzU5IiwiaWF0IjoxNzY4MjQ1MDMxLCJzY29wZSI6WyJlcnBTZXJ2aWNlcyJdLCJhbXIiOlsicHdkIl19.nYMBDOU9zoZkUBSHvRyRj6IgrtjHAjrNEXwL8kV6l-ePqhLnE25UtzMVhqcIJllrOvyJppzELCsqCAHZ4tgh-EGin2WRAnVuMqeij0ofiq2E5O1EWV0kx7xNJSOybYcIozudoKc2McWHgf6FuLt6VCSqDCFSciKEEvzqhYgwAuY521VmdsOKgIDnpsyRRIKGF95t1rAW8ZdKivAKFqYKFX8tjBAwGhlsU9Yzcs__Wb8mNIi_Kbr8BmIz1Q6RW_BgbhLBZQXYqOdE1BupBRDMX1eYhstb8XBkYRC-gchgFNGT_BCrnfqhzn6gpziKpRrHoKEbiXD5VvWhgQ7bcC_Tag';
-  private tokenKey = 'jwt_token';
-  private empresaKey = 'empresa_examen_preocupacional';
 
-    // Subject para cambios en la empresa
-  private empresaSource = new BehaviorSubject<any>(null);
+export class EmpresaService extends BaseApiService {
+  private empresaSource = new BehaviorSubject<Empresa | null>(null);
   empresaChanged$ = this.empresaSource.asObservable();
 
-
-
   constructor() {
-    console.log(' AuthService inicializado');
-    //console.log(' Base URL:', this.baseUrl);
+    super();
+    this.cargarEmpresaInicial();
   }
 
- /**
-   * Cargar empresa inicial al iniciar
+  /**
+   * Cargar empresa desde localStorage al iniciar
    */
   private cargarEmpresaInicial(): void {
     const empresa = this.getEmpresaExamen();
     if (empresa) {
-      console.log(' Empresa cargada al inicio:', empresa.razonSocial);
+      this.empresaSource.next(empresa);
     }
   }
-
 
   /**
    * Buscar empresa por número patronal
    */
-  buscarEmpresa(numeroPatronal: string): Observable<any> {
-    const url = `${this.baseUrl}/Afiliaciones/EmpresasAfiliadas/Search`;
+  buscarEmpresa(numeroPatronal: string): Observable<VerificacionEmpresaResponse> {
+    const url = `${this.baseUrl}${API_CONFIG.endpoints.empresasAfiliadas}`;
     const params = new HttpParams()
       .set('Tipo', '3')
       .set('Search', numeroPatronal);
 
-    console.log('🔍 Buscando empresa:', numeroPatronal);
-
-    const headers = this.getAuthHeaders();
-
     return this.http.get<any[]>(url, {
       params,
-      headers
+      headers: this.getAuthHeaders()
     }).pipe(
-      tap(response => {
-        console.log(' Respuesta API empresa:', response);
-      }),
       map(response => this.procesarRespuestaEmpresa(response, numeroPatronal)),
       tap(resultado => {
         if (resultado.success) {
-          // Guardar automáticamente la empresa encontrada
           this.guardarEmpresaExamen(resultado.empresa);
         }
-      }),
-      catchError(this.handleError)
+      })
     );
   }
 
-
-   /**
-   * Procesar respuesta de empresa
+  /**
+   * Procesa la respuesta de la API y la normaliza
+   * Garantiza que siempre retorne una Empresa válida cuando success = true
    */
-  private procesarRespuestaEmpresa(response: any[], numeroPatronal: string): any {
-    console.log(' Procesando respuesta empresa:', response);
-
+  private procesarRespuestaEmpresa(response: any[], numeroPatronal: string): VerificacionEmpresaResponse {
     if (!response || !Array.isArray(response) || response.length === 0) {
-      throw new Error('EMPRESA_NO_ENCONTRADA');
+      return {
+        success: false,
+        mensaje: ERROR_MESSAGES.empresaNotFound,
+        codigo: 'EMPRESA_NO_ENCONTRADA',
+        empresa: this.crearEmpresaVacia() // Empresa vacía pero válida
+      };
     }
 
     const empresaData = response[0];
-    
-    // Normalizar datos
-    const empresaNormalizada = {
+    const empresaNormalizada = this.normalizarEmpresa(empresaData, numeroPatronal);
+
+    return {
+      success: true,
+      mensaje: `Empresa encontrada: ${empresaNormalizada.razonSocial}`,
+      codigo: 'EMPRESA_ENCONTRADA',
+      empresa: empresaNormalizada
+    };
+  }
+
+  /**
+   * Normaliza los datos de la empresa a un formato consistente
+   */
+  private normalizarEmpresa(empresaData: any, numeroPatronal: string): Empresa {
+    const estado = empresaData.parametroEstadoEmpresa?.descripcion || empresaData.estado || 'DESCONOCIDO';
+    const razonSocial = empresaData.empresa?.razonSocial || empresaData.razonSocial || 'Sin razón social';
+    const nit = empresaData.empresa?.nit || empresaData.nit || '';
+
+    return {
       id: empresaData.id || empresaData.empresaId || Date.now(),
-      empresaId: empresaData.empresaId || 0,
-      razonSocial: empresaData.empresa?.razonSocial || 
-                   empresaData.razonSocial || 
-                   'Sin razón social',
-      nit: empresaData.empresa?.nit || empresaData.nit || '',
-      telefono: empresaData.empresa?.telefono || empresaData.telefono || '',
-      nroPatronal: empresaData.nroPatronal || numeroPatronal,
       numeroPatronal: empresaData.nroPatronal || numeroPatronal,
-      estado: empresaData.parametroEstadoEmpresa?.descripcion || 
-              empresaData.estado || 
-              'DESCONOCIDO',
-      fechaAfiliacion: empresaData.fechaAfiliacion || '',
+      razonSocial: razonSocial,
+      ruc: nit,
       direccion: empresaData.referenciaDireccion || empresaData.direccion || '',
-      nroTrabajadores: empresaData.nroTrabajador || 0,
-      
-      // Campos compatibilidad
-      RazonSocial: empresaData.empresa?.razonSocial || 'Sin razón social',
-      NIT: empresaData.empresa?.nit || '',
-      NumeroPatronal: empresaData.nroPatronal || numeroPatronal,
-      Estado: empresaData.parametroEstadoEmpresa?.descripcion || 'DESCONOCIDO',
-      Direccion: empresaData.referenciaDireccion || '',
-      Telefono: empresaData.empresa?.telefono || '',
-      FechaAfiliacion: empresaData.fechaAfiliacion || ''
+      telefono: empresaData.empresa?.telefono || empresaData.telefono || '',
+      estado: estado,
+      email: empresaData.email || '',
+      fechaAfiliacion: new Date(empresaData.fechaAfiliacion || Date.now()),
+      tipoEmpresa: empresaData.tipoEmpresa || ''
     };
-
-    console.log(' Empresa normalizada:', empresaNormalizada);
-
+  }
+/**
+   * Crea una empresa vacía pero válida para mantener consistencia de tipos
+   */
+  private crearEmpresaVacia(): Empresa {
     return {
-      success: true,
-      empresa: empresaNormalizada,
-      mensaje: `Empresa encontrada: ${empresaNormalizada.razonSocial}`
+      id: 0,
+      numeroPatronal: '',
+      razonSocial: '',
+      ruc: '',
+      direccion: '',
+      telefono: '',
+      estado: '',
+      email: '',
+      fechaAfiliacion: new Date(),
+      tipoEmpresa: ''
     };
   }
- 
+
   /**
-   * Procesar respuesta
+   * Guardar empresa en localStorage y emitir cambio
    */
-  private procesarRespuesta(response: any[], numeroPatronal: string): any {
-    console.log(' Procesando respuesta:', response);
+  guardarEmpresaExamen(empresa: Empresa): void {
+    if (!empresa) return;
 
-    if (!response || !Array.isArray(response) || response.length === 0) {
-      throw new Error('EMPRESA_NO_ENCONTRADA');
-    }
-
-    const empresaData = response[0];
-    console.log(' Datos de empresa:', empresaData);
-
-    // Normalizar datos según la estructura que recibimos
-    const empresaNormalizada = {
-      id: empresaData.id || empresaData.empresaId || 0,
-      empresaId: empresaData.empresaId || 0,
-      razonSocial: empresaData.empresa?.razonSocial || 'Sin razón social',
-      nit: empresaData.empresa?.nit || '',
-      telefono: empresaData.empresa?.telefono || '',
-      nroPatronal: empresaData.nroPatronal || numeroPatronal,
-      numeroPatronal: empresaData.nroPatronal || numeroPatronal,
-      estado: empresaData.parametroEstadoEmpresa?.descripcion || 'DESCONOCIDO',
-      fechaAfiliacion: empresaData.fechaAfiliacion || '',
-      direccion: empresaData.referenciaDireccion || '',
-      nroTrabajadores: empresaData.nroTrabajador || 0,
-      
-      // Campos adicionales para compatibilidad
-      RazonSocial: empresaData.empresa?.razonSocial || 'Sin razón social',
-      NIT: empresaData.empresa?.nit || '',
-      NumeroPatronal: empresaData.nroPatronal || numeroPatronal,
-      Estado: empresaData.parametroEstadoEmpresa?.descripcion || 'DESCONOCIDO',
-      Direccion: empresaData.referenciaDireccion || '',
-      Telefono: empresaData.empresa?.telefono || '',
-      FechaAfiliacion: empresaData.fechaAfiliacion || ''
-    };
-
-    console.log(' Empresa normalizada:', empresaNormalizada);
-
-    return {
-      success: true,
-      empresa: empresaNormalizada,
-      mensaje: `Empresa encontrada: ${empresaNormalizada.razonSocial}`
-    };
-  }
-
-   
-  /**
-   * Obtener token actual
-   */
-  getToken(): string {
-    return localStorage.getItem(this.tokenKey) || this.token;
-  }
- 
-
- /**
-   * Guardar empresa en localStorage (MÉTODO MEJORADO)
-   */
-  guardarEmpresaExamen(empresa: any): void {
-    if (!empresa) {
-      console.error('⚠️ Intento de guardar empresa vacía');
-      return;
-    }
-    
     const empresaData = {
       ...empresa,
       fechaVerificacion: new Date().toISOString(),
       verificada: true,
       puedeAcceder: this.estaActiva(empresa)
     };
-    
-    console.log(' Guardando empresa y emitiendo cambio:', empresaData.razonSocial);
 
-    localStorage.setItem(this.empresaKey, JSON.stringify(empresaData));
-    
-    // Emitir cambio
+    localStorage.setItem(STORAGE_KEYS.empresaExamen, JSON.stringify(empresaData));
     this.empresaSource.next(empresaData);
-    
-    //  EMITIR CAMBIO IMPORTANTE!
-  this.empresaSource.next(empresaData);
-    // Verificar que se emitió
-  console.log(' Cambio emitido:', this.empresaSource.value?.razonSocial);
-    // Verificar que se guardó correctamente
-    setTimeout(() => {
-      const guardada = this.getEmpresaExamen();
-      console.log(' Empresa guardada verificación:', guardada ? 'ÉXITO' : 'FALLO');
-    }, 100);
   }
 
-
-  /**
-   * Obtener empresa actual
+   /**
+   * Obtener empresa desde localStorage
    */
-   getEmpresaExamen(): any {
+  getEmpresaExamen(): Empresa | null {
     try {
-      const data = localStorage.getItem(this.empresaKey);
-      
-      if (!data) {
-        console.log(' No hay empresa almacenada');
+      const data = localStorage.getItem(STORAGE_KEYS.empresaExamen);
+      if (!data) return null;
+
+      const empresa = JSON.parse(data) as Empresa & { fechaVerificacion: string };
+
+      // Verificar que la empresa aún sea válida (menos de 1 hora)
+      const fechaVerificacion = new Date(empresa.fechaVerificacion);
+      const ahora = new Date();
+      const diferenciaHoras = (ahora.getTime() - fechaVerificacion.getTime()) / (1000 * 60 * 60);
+
+      if (diferenciaHoras > 1) {
+        this.limpiarDatosExamen();
         return null;
       }
-      
-      const empresa = JSON.parse(data);
-      
-      // Verificar que la empresa aún sea válida (menos de 1 hora)
-      if (empresa.fechaVerificacion) {
-        const fechaVerificacion = new Date(empresa.fechaVerificacion);
-        const ahora = new Date();
-        const diferenciaHoras = (ahora.getTime() - fechaVerificacion.getTime()) / (1000 * 60 * 60);
-        
-        if (diferenciaHoras > 1) {
-          console.warn(' Datos de empresa expirados (más de 1 hora)');
-          this.limpiarDatosExamen();
-          return null;
-        }
-      }
-      
-      console.log(' Empresa obtenida de storage:', empresa.razonSocial);
-      
-      // Emitir empresa actual
+
       this.empresaSource.next(empresa);
-      
       return empresa;
-      
-    } catch (error) {
-      console.error(' Error al obtener empresa:', error);
+    } catch {
       return null;
     }
   }
 
-/**
- * Verificar si puede acceder al examen
- */
-puedeAccederExamen(): boolean {
-    console.log(' Verificando acceso al examen...');
-    
+  /**
+   * Verificar si puede acceder al examen
+   */
+  puedeAccederExamen(): boolean {
     const empresa = this.getEmpresaExamen();
-    
-    if (!empresa) {
-      console.error(' No hay empresa almacenada');
-      return false;
-    }
-    
-    console.log(' Empresa encontrada:', empresa.razonSocial);
-    console.log(' Datos empresa:', {
-      verificada: empresa.verificada,
-      estado: empresa.estado,
-      activa: this.estaActiva(empresa)
-    });
-    
-    // Verificar que esté verificada
-    if (!empresa.verificada) {
-      console.warn(' Empresa no verificada');
-      return false;
-    }
-    
-    // Verificar que esté activa
-    if (!this.estaActiva(empresa)) {
-      console.warn(' Empresa no activa');
-      return false;
-    }
-    
-    // Verificar token
-    if (!this.isTokenValid()) {
-      console.warn(' Token no válido');
-      return false;
-    }
-    
-    console.log(' Empresa puede acceder al examen');
+
+    if (!empresa) return false;
+    if (!this.estaActiva(empresa)) return false;
+    if (!this.isTokenValid()) return false;
+
     return true;
   }
 
-   /**
-   * Redirigir al examen (nuevo método)
-   */
-  redirigirAExamen(): Promise<boolean> {
-    console.log(' Iniciando redirección al examen...');
-    
-    return new Promise((resolve, reject) => {
-      // Verificar acceso
-      if (!this.puedeAccederExamen()) {
-        const error = 'No tiene permisos para acceder al examen. Verifique que la empresa esté activa.';
-        console.error('❌', error);
-        reject(error);
-        return;
-      }
-      
-      console.log(' Redirección autorizada');
-      resolve(true);
-    });
-  }
-/**
- * Generar ID de sesión único
- */
-private generarSesionId(): string {
-  return 'sesion_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-
   /**
-   * Limpiar datos
+   * Redirigir al examen (método asíncrono)
    */
-  limpiarDatosExamen(): void {
-    localStorage.removeItem(this.empresaKey);
-    this.empresaSource.next(null);
-    console.log('🧹 Datos de empresa limpiados');
+  async redirigirAExamen(): Promise<boolean> {
+    if (!this.puedeAccederExamen()) {
+      throw new Error('No tiene permisos para acceder al examen. Verifique que la empresa esté activa.');
+    }
+    return true;
   }
 
   /**
    * Verificar si empresa está activa
    */
-  estaActiva(empresa: any): boolean {
+  estaActiva(empresa: Empresa): boolean {
     if (!empresa) return false;
-    
-    const estado = empresa.estado || empresa.Estado || '';
-    const estadoUpper = estado.toUpperCase();
-    
-    console.log('🔍 Verificando estado empresa:', estadoUpper);
-    
-    const estaActiva = estadoUpper.includes('ACTIV') || 
-                       estadoUpper === 'ACTIVO' || 
-                       estadoUpper === 'ACTIVA' ||
-                       estadoUpper.includes('VIGENTE');
-    
-    console.log('📊 Resultado verificación:', estaActiva ? 'ACTIVA' : 'INACTIVA');
-    return estaActiva;
+
+    const estado = empresa.estado.toUpperCase();
+    return estado.includes('ACTIV') || estado === 'ACTIVO' || estado === 'ACTIVA' || estado.includes('VIGENTE');
   }
 
-    /**
-   * Verificar token
-   */
-  isTokenValid(): boolean {
-    // Por ahora, siempre válido porque usamos token fijo
-    return !!this.token && this.token.length > 100;
-  }
-
-   /**
-   * Headers de autenticación
-   */
-  private getAuthHeaders() {
-    return new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    });
-  }
   /**
-   * Obtener información del token (simplificado)
+   * Limpiar datos de empresa
    */
-  getTokenInfo(): any {
-    return {
-      expirado: false,
-      fechaExpiracion: null,
-      tiempoRestante: 999999999
-    };
-  }
-/**
-   * Manejo de errores
-   */
-  private handleError(error: any) {
-    console.error(' Error en AuthService:', error);
-    
-    let errorMessage = 'Error desconocido';
-    
-    if (error.status === 0) {
-      errorMessage = 'Error de conexión. Verifique su conexión a internet.';
-    } else if (error.status === 404) {
-      errorMessage = 'Empresa no encontrada. Verifique el número patronal.';
-    } else if (error.status === 401) {
-      errorMessage = 'Error de autenticación. Token inválido.';
-    } else if (error.message === 'EMPRESA_NO_ENCONTRADA') {
-      errorMessage = 'No se encontró ninguna empresa con ese número patronal.';
-    } else {
-      errorMessage = error.message || 'Error desconocido';
-    }
-    
-    return throwError(() => ({
-      success: false,
-      mensaje: errorMessage,
-      status: error.status || 0
-    }));
+  limpiarDatosExamen(): void {
+    localStorage.removeItem(STORAGE_KEYS.empresaExamen);
+    this.empresaSource.next(null);
   }
 }

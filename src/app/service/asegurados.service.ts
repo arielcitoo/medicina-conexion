@@ -35,49 +35,53 @@ export class AseguradosService extends BaseApiService {
    * Mapea la respuesta de la API al formato de la interfaz
    */
   private mapToAseguradoResponse(apiResponse: any): BusquedaAseguradoResponse {
-    if (!apiResponse) {
-      return {
-        success: false,
-        message: 'No se encontraron datos del asegurado'
-      };
-    }
+  //console.log(' Respuesta cruda de la API:', apiResponse);
 
-    const asegurado: Asegurado = {
-      aseguradoId: apiResponse.aseguradoId || 0,
-      matricula: apiResponse.matricula || '',
-      estadoAsegurado: apiResponse.estadoAsegurado || '',
-      documentoIdentidad: apiResponse.documentoIdentidad || '',
-      extencion: apiResponse.extencion || '',
-      complemento: apiResponse.complemento || '',
-      fechaNacimiento: apiResponse.fechaNacimiento || '',
-      paterno: apiResponse.paterno || '',
-      materno: apiResponse.materno || '',
-      nombres: apiResponse.nombres || '',
-      genero: apiResponse.genero || '',
-      tipoAsegurado: apiResponse.tipoAsegurado || '',
-      razonSocial: apiResponse.razonSocial || '',
-      nroPatronal: apiResponse.nroPatronal || '',
-      estadoMora: apiResponse.estadoMora || '',
-      grupoFamiliarId: apiResponse.grupoFamiliarId || 0,
-      nombreCompleto: this.generarNombreCompleto(apiResponse)
-    };
-
+  if (!apiResponse) {
     return {
-      success: true,
-      data: asegurado,
-      message: 'Asegurado encontrado correctamente'
+      success: false,
+      message: 'No se encontraron datos del asegurado'
     };
   }
+
+  const asegurado: Asegurado = {
+    aseguradoId: apiResponse.aseguradoId || 0,
+    matricula: apiResponse.matricula || '',
+    estadoAsegurado: apiResponse.estadoAsegurado || '',
+    documentoIdentidad: apiResponse.documentoIdentidad || '',
+    extencion: apiResponse.extencion || '',
+    complemento: apiResponse.complemento || '',
+    fechaNacimiento: apiResponse.fechaNacimiento || '',
+    paterno: apiResponse.primerApellido || '',
+    materno: apiResponse.segundoApellido || '',
+    nombres: apiResponse.nombres || '',
+    genero: apiResponse.genero || '',
+    tipoAsegurado: apiResponse.tipoAsegurado || '',
+    razonSocial: apiResponse.razonSocial || '',
+    nroPatronal: apiResponse.nroPatronal || '',
+    estadoMora: apiResponse.estadoMora || '',
+    grupoFamiliarId: apiResponse.grupoFamiliarId || 0,
+    nombreCompleto: this.generarNombreCompleto(apiResponse)
+  };
+
+  //console.log('📋 Asegurado mapeado:', asegurado);
+
+  return {
+    success: true,
+    data: asegurado,
+    message: 'Asegurado encontrado correctamente'
+  };
+}
 
   /**
    * Genera el nombre completo a partir de los componentes
    */
-  private generarNombreCompleto(asegurado: any): string {
-    const partes = [];
-    if (asegurado.nombres) partes.push(asegurado.nombres);
-    if (asegurado.paterno) partes.push(asegurado.paterno);
-    if (asegurado.materno) partes.push(asegurado.materno);
+ private generarNombreCompleto(asegurado: any): string {
+  const partes = [];
+  if (asegurado.nombres) partes.push(asegurado.nombres);
+  if (asegurado.primerApellido) partes.push(asegurado.primerApellido);
+  if (asegurado.segundoApellido) partes.push(asegurado.segundoApellido);
 
-    return partes.join(' ');
-  }
+  return partes.join(' ');
+}
 }

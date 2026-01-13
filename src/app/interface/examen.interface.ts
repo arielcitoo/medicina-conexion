@@ -5,14 +5,14 @@ export interface Asegurado {
   ci: string;
   fechaNacimiento: Date | string;
 
- // Campos laborales adicionales
+  // Campos laborales adicionales
   cargo: string;
   area: string;
   fechaIngreso: Date | string;
-  nitEmpresa:string;
+  nitEmpresa: string;
   empresa: string;
-    
- // Campos de contacto
+
+  // Campos de contacto
   correoElectronico: string;
   celular: string;
 
@@ -26,6 +26,7 @@ export interface Asegurado {
   codigoAsegurado?: string;
   edad?: number;
   fechaAfiliacion?: Date;
+
   // Campos para el formulario gestora
   formularioAnversoUrl?: string;
   formularioReversoUrl?: string;
