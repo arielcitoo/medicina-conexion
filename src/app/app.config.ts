@@ -6,6 +6,7 @@ import { routes } from './app.routes';
 import { AseguradosService } from './service/asegurados.service';
 import { BrowserModule } from '@angular/platform-browser';
 import { SharedMaterialModule } from './shared/modules/material.module';//angular Material módulos compartidos
+//import { ExamenPreocupacionalService } from './service/examen-preocupacional.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,6 +18,7 @@ export const appConfig: ApplicationConfig = {
      AseguradosService,
       importProvidersFrom(
       SharedMaterialModule,
+  //    ExamenPreocupacionalService,
       BrowserModule   
       ),
   ]

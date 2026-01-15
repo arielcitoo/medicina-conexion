@@ -1,15 +1,19 @@
 
-import { Component, Inject, OnInit, inject,ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Asegurado } from '../../interface/examen.interface';
+import { AseguradoExamen, AseguradoBackend } from '../../interface/examen.interface'; // Cambiar import
 import { AseguradosService } from '../../service/asegurados.service';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
-import { SharedMaterialModule } from '../../shared/modules/material.module'; //angular Material módulos compartidos
+import { SharedMaterialModule } from '../../shared/modules/material.module';
 import { BusquedaAseguradoResponse } from '../../interface/asegurado.interface';
+import { AseguradoCreateDTO } from '../../service/examen-preocupacional.service'; // Añadir este import
+
+
+
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -44,19 +48,26 @@ export class ModalAsegurado implements OnInit {
   isLoading = false;
   busquedaRealizada = false;
   errorBusqueda: string | null = null;
-  datosAsegurado: Asegurado | null = null;
+  datosAsegurado: AseguradoBackend | null = null; // Cambiar tipo a AseguradoBackend
   puedeAgregar = false;
 
- constructor(
+  constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<ModalAsegurado>,
-    @Inject(MAT_DIALOG_DATA) public data: { maxAsegurados?: number }
+    @Inject(MAT_DIALOG_DATA) public data: { 
+      maxAsegurados?: number;
+      empresaId?: number;
+      empresaNombre?: string;
+      empresaNit?: string;
+    }
   ) {
     this.aseguradoForm = this.fb.group({
       ci: ['', [Validators.required, Validators.pattern('^[0-9]{7,10}[A-Za-z]?$')]],
       fechaNacimiento: ['', Validators.required],
       correoElectronico: ['', [Validators.required, Validators.email]],
-      celular: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]]
+      celular: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
+      empresa: [data.empresaNombre || '', Validators.required], // Añadir campo empresa
+      nitEmpresa: [data.empresaNit || '', Validators.required] // Añadir campo nitEmpresa
     });
 
     setTimeout(() => {
@@ -66,13 +77,13 @@ export class ModalAsegurado implements OnInit {
     }, 100);
   }
 
- ngOnInit(): void {
+  ngOnInit(): void {
     this.aseguradoForm.valueChanges.subscribe(() => {
       this.actualizarPuedeAgregar();
     });
   }
 
- get ciError(): string {
+  get ciError(): string {
     const ciControl = this.aseguradoForm.get('ci');
     if (ciControl?.hasError('required')) {
       return 'El CI es requerido';
@@ -89,7 +100,7 @@ export class ModalAsegurado implements OnInit {
     return fecha;
   }
 
- puedeBuscar(): boolean {
+  puedeBuscar(): boolean {
     const ciValid = this.aseguradoForm.get('ci')?.valid ?? false;
     const fechaValid = this.aseguradoForm.get('fechaNacimiento')?.valid ?? false;
     return ciValid && fechaValid;
@@ -98,7 +109,7 @@ export class ModalAsegurado implements OnInit {
   /**
    * Formatea fecha para la API (formato YYYY-MM-DD)
    */
-   private formatFechaParaAPI(fecha: Date | string): string {
+  private formatFechaParaAPI(fecha: Date | string): string {
     if (!fecha) return '';
 
     let date: Date;
@@ -118,60 +129,48 @@ export class ModalAsegurado implements OnInit {
   }
 
   /**
-   * Mapea la respuesta del servicio a la interfaz Asegurado del modal
+   * Mapea la respuesta del servicio a la interfaz AseguradoBackend
    */
-  private mapearRespuestaApi(apiResponse: BusquedaAseguradoResponse, documento: string): Asegurado | null {
-    // Verificar si la respuesta es exitosa y tiene datos
-    if (!apiResponse.success || !apiResponse.data) {
-      this.errorBusqueda = apiResponse.message || 'No se encontró un asegurado con los datos proporcionados';
-      return null;
-    }
-
-    const datos = apiResponse.data;
-
-    // Construir nombre completo usando los campos de la interfaz correcta
-    const nombreCompleto = datos.nombreCompleto ||
-                          `${datos.nombres || ''} ${datos.paterno || ''} ${datos.materno || ''}`.trim();
-
-    // Construir objeto Asegurado para el modal
-    return {
-      id: datos.aseguradoId || Date.now(),
-      nombreCompleto: nombreCompleto || 'Nombre no disponible',
-      documentoIdentidad: datos.documentoIdentidad || documento,
-      ci: datos.documentoIdentidad || documento,
-      fechaNacimiento: datos.fechaNacimiento ||
-                      this.formatFechaParaAPI(this.aseguradoForm.get('fechaNacimiento')?.value),
-
-      // Campos que el usuario completará
-      correoElectronico: '',
-      celular: '',
-
-      // Empresa - usar los campos correctos de la respuesta
-      empresa: datos.razonSocial || 'No especificada',
-      nitEmpresa: datos.nroPatronal || '',
-
-      // Campos adicionales
-      genero: datos.genero || 'N/D',
-      cargo: '', // Campos que no vienen en la respuesta
-      area: '',
-      fechaIngreso: '',
-
-      // Campos para compatibilidad
-      primerApellido: datos.paterno,
-      segundoApellido: datos.materno,
-      nombres: datos.nombres,
-      estado: datos.estadoAsegurado,
-      aseguradoId: datos.aseguradoId,
-      codigoAsegurado: datos.matricula,
-      edad: this.calcularEdad(datos.fechaNacimiento),
-   //   fechaAfiliacion: datos.fechaAfiliacion ? new Date(datos.fechaAfiliacion) : undefined
-    };
+  private mapearRespuestaApi(apiResponse: BusquedaAseguradoResponse, documento: string): AseguradoBackend | null {
+  if (!apiResponse.success || !apiResponse.data) {
+    this.errorBusqueda = apiResponse.message || 'No se encontró un asegurado con los datos proporcionados';
+    return null;
   }
+
+  const datos = apiResponse.data;
+
+  const nombreCompleto = datos.nombreCompleto ||
+                        `${datos.nombres || ''} ${datos.paterno || ''} ${datos.materno || ''}`.trim();
+
+  // Retornar objeto AseguradoBackend
+  return {
+    id: datos.aseguradoId || 0, // ID del asegurado en el backend
+    ci: datos.documentoIdentidad || documento,
+    nombreCompleto: nombreCompleto || 'Nombre no disponible',
+    documentoIdentidad: datos.documentoIdentidad || documento,
+    fechaNacimiento: datos.fechaNacimiento || this.formatFechaParaAPI(this.aseguradoForm.get('fechaNacimiento')?.value),
+    correoElectronico: datos.correoElectronico || '',
+    celular: datos.celular || '',
+    empresa: datos.razonSocial || this.data.empresaNombre || 'No especificada',
+    nitEmpresa: datos.nroPatronal || this.data.empresaNit || '',
+    genero: datos.genero || 'N/D',
+    cargo: datos.cargo || '',
+    area: datos.area || '',
+    fechaIngreso: datos.fechaIngreso || '',
+    primerApellido: datos.paterno,
+    segundoApellido: datos.materno,
+    nombres: datos.nombres,
+    estado: datos.estadoAsegurado,
+    codigoAsegurado: datos.matricula,
+    edad: this.calcularEdad(datos.fechaNacimiento),
+    empresaId: datos.empresaId || this.data.empresaId
+  };
+}
 
   /**
    * Calcula la edad a partir de la fecha de nacimiento
    */
- private calcularEdad(fechaNacimiento: string): number | undefined {
+  private calcularEdad(fechaNacimiento: string): number | undefined {
     if (!fechaNacimiento) return undefined;
 
     try {
@@ -189,10 +188,11 @@ export class ModalAsegurado implements OnInit {
       return undefined;
     }
   }
+
   /**
    * Obtiene mensaje de error
    */
- private obtenerMensajeError(error: any): string {
+  private obtenerMensajeError(error: any): string {
     if (error.status === 404) {
       return 'No se encontró un asegurado con el CI y fecha de nacimiento proporcionados';
     } else if (error.status === 401) {
@@ -214,7 +214,6 @@ export class ModalAsegurado implements OnInit {
     const correoControl = this.aseguradoForm.get('correoElectronico');
     const celularControl = this.aseguradoForm.get('celular');
 
-    // Usar valores por defecto para evitar undefined
     const correoValido = Boolean(
       correoControl?.valid &&
       correoControl.value?.trim().length > 0
@@ -225,7 +224,10 @@ export class ModalAsegurado implements OnInit {
       celularControl.value?.toString().length === 8
     );
 
-    this.puedeAgregar = tieneDatos && correoValido && celularValido;
+    const empresaValida = this.aseguradoForm.get('empresa')?.valid ?? false;
+    const nitEmpresaValido = this.aseguradoForm.get('nitEmpresa')?.valid ?? false;
+
+    this.puedeAgregar = tieneDatos && correoValido && celularValido && empresaValida && nitEmpresaValido;
     this.cdRef.detectChanges();
   }
 
@@ -233,18 +235,29 @@ export class ModalAsegurado implements OnInit {
    * Agrega el asegurado y cierra el modal
    */
   agregarAsegurado(): void {
-    if (!this.puedeAgregar || !this.datosAsegurado) {
-      return;
-    }
-
-    const asegurado: Asegurado = {
-      ...this.datosAsegurado,
-      correoElectronico: this.aseguradoForm.get('correoElectronico')?.value?.trim() || '',
-      celular: this.aseguradoForm.get('celular')?.value?.toString() || ''
-    };
-
-    this.dialogRef.close(asegurado);
+  if (!this.puedeAgregar || !this.datosAsegurado) {
+    return;
   }
+
+  // Formatear fecha correctamente
+  const fechaNacimiento = this.datosAsegurado.fechaNacimiento;
+  const fechaFormateada = this.formatFechaParaAPI(fechaNacimiento);
+  
+  // Crear AseguradoCreateDTO para enviar al componente padre
+  const aseguradoDTO: AseguradoCreateDTO = {
+    aseguradoId: this.datosAsegurado.id || 0,
+    ci: this.aseguradoForm.get('ci')?.value || '',
+    nombreCompleto: this.datosAsegurado.nombreCompleto || '',
+    fechaNacimiento: fechaFormateada, // Usar fecha formateada
+    genero: this.datosAsegurado.genero,
+    correoElectronico: this.aseguradoForm.get('correoElectronico')?.value?.trim() || '',
+    celular: this.aseguradoForm.get('celular')?.value?.toString() || '',
+    empresa: this.aseguradoForm.get('empresa')?.value || '',
+    nitEmpresa: this.aseguradoForm.get('nitEmpresa')?.value || ''
+  };
+
+  this.dialogRef.close(aseguradoDTO);
+}
 
   cancelar(): void {
     this.dialogRef.close();
@@ -280,6 +293,19 @@ export class ModalAsegurado implements OnInit {
         finalize(() => {
           this.isLoading = false;
           this.busquedaRealizada = true;
+          
+          // Si no se encontró asegurado, habilitar campos para completar manualmente
+          if (!this.datosAsegurado) {
+            this.aseguradoForm.get('empresa')?.enable();
+            this.aseguradoForm.get('nitEmpresa')?.enable();
+          } else {
+            // Si se encontró, completar los campos con los datos del backend
+            this.aseguradoForm.patchValue({
+              empresa: this.datosAsegurado.empresa || this.data.empresaNombre || '',
+              nitEmpresa: this.datosAsegurado.nitEmpresa || this.data.empresaNit || ''
+            });
+          }
+          
           this.actualizarPuedeAgregar();
           this.cdRef.detectChanges();
         })
@@ -332,5 +358,38 @@ export class ModalAsegurado implements OnInit {
 
     control?.markAsTouched();
     this.actualizarPuedeAgregar();
+  }
+
+  /**
+   * Crea un nuevo asegurado si no existe en el backend
+   */
+  crearNuevoAsegurado(): void {
+    if (!this.datosAsegurado) {
+      // Si no se encontró el asegurado, crear uno nuevo localmente
+      this.datosAsegurado = {
+        id: 0, // ID 0 indica que no existe en el backend
+        ci: this.aseguradoForm.get('ci')?.value || '',
+        nombreCompleto: '',
+        documentoIdentidad: this.aseguradoForm.get('ci')?.value || '',
+        fechaNacimiento: this.formatFechaParaAPI(this.aseguradoForm.get('fechaNacimiento')?.value),
+        correoElectronico: '',
+        celular: '',
+        empresa: this.aseguradoForm.get('empresa')?.value || '',
+        nitEmpresa: this.aseguradoForm.get('nitEmpresa')?.value || '',
+        cargo: '',
+        area: '',
+        fechaIngreso: '',
+        genero: 'N/D',
+        estado: 'ACTIVO'
+      };
+      
+      this.mostrarMensaje('Complete los datos del asegurado manualmente');
+      this.actualizarPuedeAgregar();
+    }
+  }
+
+  private mostrarMensaje(mensaje: string): void {
+    // Puedes implementar un snackbar o simplemente mostrar en consola
+    console.log(mensaje);
   }
 }

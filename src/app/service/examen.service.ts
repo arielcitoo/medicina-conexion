@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { AseguradosService } from './asegurados.service'; // Importar el API service existente
-import { Asegurado } from '../interface/examen.interface';
+import { BusquedaAseguradoResponse } from '../interface/asegurado.interface'; // Importar el API service existente
+import { AseguradoExamen  } from '../interface/examen.interface';
+import { AseguradosService } from './asegurados.service';
+
 
 @Injectable({
   providedIn: 'root'
@@ -14,21 +16,17 @@ export class ExamenService {
   /**
    * Buscar asegurado por CI y fecha de nacimiento usando el API service existente
    */
-  buscarAsegurado(ci: string, fechaNacimiento: Date): Observable<{success: boolean, data?: Asegurado, mensaje?: string}> {
+  buscarAsegurado(ci: string, fechaNacimiento: Date): Observable<{success: boolean, data?: AseguradoExamen, mensaje?: string}> {
     // Formatear fecha como YYYY-MM-DD
     const fechaFormateada = this.formatearFecha(fechaNacimiento);
     
-    console.log('🔍 Buscando asegurado con:', { ci, fechaFormateada });
-
     return this.apiAseguradosService.buscarAsegurado(ci, fechaFormateada).pipe(
-      map((response: any) => {
-        console.log(' Respuesta API asegurado:', response);
+      map((response: BusquedaAseguradoResponse) => {
         
         // Mapear la respuesta del API a nuestro formato
         return this.mapearRespuestaAsegurado(response, ci, fechaNacimiento);
       }),
       catchError((error) => {
-        console.error(' Error al buscar asegurado:', error);
         return of({
           success: false,
           mensaje: this.obtenerMensajeError(error)
@@ -40,55 +38,69 @@ export class ExamenService {
   /**
    * Mapear respuesta del API a nuestro formato
    */
-  private mapearRespuestaAsegurado(response: any, ci: string, fechaNacimiento: Date): 
-    {success: boolean, data?: Asegurado, mensaje?: string} {
+  private mapearRespuestaAsegurado(response: BusquedaAseguradoResponse, ci: string, fechaNacimiento: Date): 
+    {success: boolean, data?: AseguradoExamen, mensaje?: string} {
     
     // Si la respuesta está vacía o no tiene datos
-    if (!response || (Array.isArray(response) && response.length === 0)) {
+    if (!response || !response.success || !response.data) {
       return {
         success: false,
-        mensaje: 'Asegurado no encontrado con los datos proporcionados'
+        mensaje: response?.message || 'Asegurado no encontrado con los datos proporcionados'
       };
     }
 
-    // Si es un array, tomar el primer elemento
-    const datosAsegurado = Array.isArray(response) ? response[0] : response;
+    const datosAsegurado = response.data;
     
-    // Validar que tenga datos mínimos
-    if (!datosAsegurado || (!datosAsegurado.NombreCompleto && !datosAsegurado.nombreCompleto)) {
-      return {
-        success: false,
-        mensaje: 'Datos del asegurado incompletos'
-      };
-    }
-
-    // Crear objeto Asegurado
-    const asegurado: Asegurado = {
-      id: datosAsegurado.Id || datosAsegurado.id || Date.now(),
-      ci: ci,
-      fechaNacimiento: fechaNacimiento,
-      nombreCompleto: datosAsegurado.NombreCompleto || datosAsegurado.nombreCompleto || '',
-      documentoIdentidad: datosAsegurado.NumeroDocumentoIdentidad || datosAsegurado.DocumentoIdentidad || ci,
-      correoElectronico: datosAsegurado.Email || datosAsegurado.CorreoElectronico || '',
-      celular: datosAsegurado.Telefono || datosAsegurado.Celular || '',
-      // Campos adicionales que podría traer el API
-      ...(datosAsegurado.Genero && { genero: datosAsegurado.Genero }),
-      ...(datosAsegurado.EstadoCivil && { estadoCivil: datosAsegurado.EstadoCivil }),
-      ...(datosAsegurado.FechaIngreso && { fechaIngreso: new Date(datosAsegurado.FechaIngreso) })
+    // Crear objeto AseguradoExamen
+    const asegurado: AseguradoExamen = {
+      aseguradoId: datosAsegurado.aseguradoId || 0,
+      ci: datosAsegurado.documentoIdentidad || ci,
+      nombreCompleto: datosAsegurado.nombreCompleto || `${datosAsegurado.nombres} ${datosAsegurado.paterno} ${datosAsegurado.materno}`.trim(),
+      fechaNacimiento: datosAsegurado.fechaNacimiento || this.formatearFecha(fechaNacimiento),
+      correoElectronico: datosAsegurado.correoElectronico || '',
+      celular: datosAsegurado.celular || '',
+      empresa: datosAsegurado.razonSocial || '',
+      nitEmpresa: datosAsegurado.nroPatronal || '',
+      genero: datosAsegurado.genero,
+      // Campos opcionales
+      ...(datosAsegurado.cargo && { cargo: datosAsegurado.cargo }),
+      ...(datosAsegurado.area && { area: datosAsegurado.area }),
+      ...(datosAsegurado.fechaIngreso && { fechaIngreso: datosAsegurado.fechaIngreso }),
+      // Campos de la interfaz AseguradoExamen
+      idTemporal: Date.now() // ID temporal para la UI
     };
 
     return {
       success: true,
       data: asegurado,
-      mensaje: 'Asegurado encontrado exitosamente'
+      mensaje: response.message || 'Asegurado encontrado exitosamente'
     };
   }
 
   /**
    * Formatear fecha a YYYY-MM-DD
    */
-  private formatearFecha(fecha: Date): string {
-    return fecha.toISOString().split('T')[0];
+  private formatearFecha(fecha: Date | string): string {
+    if (!fecha) return '';
+    
+    let date: Date;
+    
+    if (typeof fecha === 'string') {
+      if (fecha.includes('/')) {
+        const [dia, mes, anio] = fecha.split('/').map(Number);
+        date = new Date(Date.UTC(anio, mes - 1, dia, 12, 0, 0));
+      } else {
+        date = new Date(fecha);
+      }
+    } else {
+      date = fecha;
+    }
+    
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
   }
 
   /**
@@ -107,8 +119,6 @@ export class ExamenService {
     return 'Error al buscar el asegurado';
   }
 
-  
-
   /**
    * Guardar examen preocupacional
    */
@@ -119,13 +129,9 @@ export class ExamenService {
       mensaje: 'Examen preocupacional registrado exitosamente',
       id: Math.floor(Math.random() * 1000)
     }).pipe(map(response => {
-      // Simular delay
       return new Promise(resolve => {
         setTimeout(() => resolve(response), 1500);
       });
     }));
   }
-
-
-  
 }

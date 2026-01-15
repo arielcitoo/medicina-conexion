@@ -228,50 +228,52 @@
                   </ng-container>
 
                   <ng-container matColumnDef="archivos">
-                    <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <div class="file-upload-buttons">
-                        <div class="file-upload-item">
-                          <input type="file" #anversoInput hidden
-                                 (change)="onFileGestoraSelected($event, asegurado.id!, 'anverso')"
-                                 accept="image/*,.pdf">
-                          <button mat-mini-fab color="primary"
-                                  [matTooltip]="getNombreArchivo(asegurado.id!, 'anverso')"
-                                  (click)="anversoInput.click()">
-                            <mat-icon>cloud_upload</mat-icon>
-                          </button>
-                          <span class="file-status" [class.complete]="archivosAsegurados[asegurado.id!]?.anverso">
-                            A
-                          </span>
-                        </div>
+  <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+  <td mat-cell *matCellDef="let asegurado">
+    <div class="file-upload-buttons">
+      <div class="file-upload-item">
+        <input type="file" #anversoInput hidden
+               (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+               accept="image/*,.pdf">
+        <button mat-mini-fab color="primary"
+                [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+                (click)="anversoInput.click()">
+          <mat-icon>cloud_upload</mat-icon>
+        </button>
+        <span class="file-status" 
+              [class.complete]="tieneArchivosCompletos(asegurado.idTemporal || asegurado.aseguradoId)">
+          A
+        </span>
+      </div>
 
-                        <div class="file-upload-item">
-                          <input type="file" #reversoInput hidden
-                                 (change)="onFileGestoraSelected($event, asegurado.id!, 'reverso')"
-                                 accept="image/*,.pdf">
-                          <button mat-mini-fab color="primary"
-                                  [matTooltip]="getNombreArchivo(asegurado.id!, 'reverso')"
-                                  (click)="reversoInput.click()">
-                            <mat-icon>cloud_upload</mat-icon>
-                          </button>
-                          <span class="file-status" [class.complete]="archivosAsegurados[asegurado.id!]?.reverso">
-                            R
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  </ng-container>
+      <div class="file-upload-item">
+        <input type="file" #reversoInput hidden
+               (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+               accept="image/*,.pdf">
+        <button mat-mini-fab color="primary"
+                [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+                (click)="reversoInput.click()">
+          <mat-icon>cloud_upload</mat-icon>
+        </button>
+        <span class="file-status" 
+              [class.complete]="tieneArchivosCompletos(asegurado.idTemporal || asegurado.aseguradoId)">
+          R
+        </span>
+      </div>
+    </div>
+  </td>
+</ng-container>
 
-                  <ng-container matColumnDef="acciones">
-                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <button mat-icon-button color="warn"
-                              (click)="eliminarAsegurado(asegurado.id!)"
-                              matTooltip="Eliminar asegurado">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </td>
-                  </ng-container>
+<ng-container matColumnDef="acciones">
+  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+  <td mat-cell *matCellDef="let asegurado">
+    <button mat-icon-button color="warn"
+            (click)="eliminarAsegurado(asegurado.idTemporal || asegurado.aseguradoId)"
+            matTooltip="Eliminar asegurado">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </td>
+</ng-container>
 
                   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
@@ -313,7 +315,7 @@
             </button>
 
             <button mat-button matStepperNext 
-                    [disabled]="!puedeAvanzarPaso2()"
+                    [disabled]="!puedeAvanzarPaso2Estable"
                     color="primary">
               <mat-icon>arrow_forward</mat-icon>
               <span>Siguiente</span>
@@ -413,7 +415,7 @@
             </mat-card-header>
             <mat-card-content>
               <div class="asegurados-summary">
-                @for (asegurado of asegurados; track asegurado.id; let i = $index) {
+                @for (asegurado of asegurados; track asegurado.aseguradoId; let i = $index) {
                   <div class="asegurado-summary-item">
                     <h4>
                       <mat-icon>person</mat-icon>
@@ -442,7 +444,7 @@
                       </div>
                       <div class="summary-item">
                         <strong>Formulario Gestora:</strong>
-                        @if (tieneArchivosCompletos(asegurado.id)) {
+                        @if (tieneArchivosCompletos(asegurado.aseguradoId)) {
                           <span class="success-text">
                             <mat-icon>check_circle</mat-icon> Completo
                           </span>
@@ -489,14 +491,14 @@
 
             <button mat-raised-button color="primary"
                     (click)="finalizarRegistro()"
-                    [disabled]="isLoading || !puedeAvanzarPaso2()">
-              @if (!isLoading) {
+                    [disabled]="isLoading || !puedeAvanzarPaso2Estable">
+              @if (estaCargando) {
                 <mat-icon>check_circle</mat-icon>
               } @else {
                 <mat-spinner diameter="20"></mat-spinner>
               }
               <span>
-                @if (!isLoading) {
+                @if (!estaCargando) {
                   Finalizar Registro
                 } @else {
                   Guardando...
