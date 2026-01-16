@@ -1,15 +1,34 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { PaginationDTO } from '../models/PaginationDTO';
 import { buildQueryParams } from '../shared/functions/buildQueryParams';
+
+export interface ExamenPreocupacionalResponse {
+  id: number;
+  numeroPatronal: string;
+  razonSocial: string;
+  nit: string;
+  fechaSolicitud: string;
+  estado: string;
+  observaciones?: string;
+}
+
+export interface ApiErrorResponse {
+  type?: string;
+  title?: string;
+  status?: number;
+  detail?: string;
+  errors?: { [key: string]: string[] };
+  message?: string;
+}
 
 export interface ExamenPreocupacionalCreateDTO {
   numeroPatronal: string;
   razonSocial: string;
   nit: string;
-  asegurados: AseguradoCreateDTO[];
+  Asegurados: AseguradoCreateDTO[];
   observaciones?: string;
 }
 
@@ -101,24 +120,47 @@ export class ExamenPreocupacionalService {
   /**
    * Crea un nuevo examen preocupacional
    */
-  public createExamen(examen: ExamenPreocupacionalCreateDTO): Observable<any> {
-  // DEBUG: Verificar datos antes de enviar
-  console.log('Enviando examen al backend:', examen);
+  public createExamen(examen: ExamenPreocupacionalCreateDTO): Observable<ExamenPreocupacionalResponse> {
+  // DEBUG
+  console.log('=== ENVIANDO EXAMEN ===');
+  console.log('URL:', this.urlBase);
+  console.log('Datos completos:', JSON.stringify(examen, null, 2));
+  console.log('Cantidad de asegurados:', examen.Asegurados?.length);
   
-  // Formatear fechas de los asegurados
-  const examenFormateado = {
-    ...examen,
-    asegurados: examen.asegurados.map(asegurado => ({
-      ...asegurado,
-      fechaNacimiento: this.formatFecha(asegurado.fechaNacimiento)
-    }))
-  };
-  
-  console.log('Examen formateado:', examenFormateado);
-  
-  return this.http.post(this.urlBase, examenFormateado).pipe(
-    catchError((error) => {
-      console.error('Error en servicio createExamen:', error);
+  if (examen.Asegurados && examen.Asegurados.length > 0) {
+    console.log('Primer asegurado:', examen.Asegurados[0]);
+    console.log('Fecha nacimiento del primer asegurado:', examen.Asegurados[0].fechaNacimiento);
+  }
+
+  return this.http.post<ExamenPreocupacionalResponse>(this.urlBase, examen).pipe(
+    tap((response: ExamenPreocupacionalResponse) => {
+      console.log(' Respuesta exitosa del backend:', response);
+    }),
+    catchError((error: any) => {
+      console.error(' Error en createExamen:');
+      console.error('Status:', error.status);
+      console.error('Status Text:', error.statusText);
+      
+      if (error.error) {
+        console.error('Error body:', error.error);
+        
+        // Si es error de validación (400)
+        if (error.status === 400) {
+          const apiError = error.error as ApiErrorResponse;
+          
+          if (apiError.errors) {
+            console.error('Errores de validación:');
+            Object.keys(apiError.errors).forEach(key => {
+              console.error(`  ${key}:`, apiError.errors![key]);
+            });
+          } else if (apiError.message) {
+            console.error('Mensaje de error:', apiError.message);
+          } else if (apiError.detail) {
+            console.error('Detalle del error:', apiError.detail);
+          }
+        }
+      }
+      
       return throwError(() => error);
     })
   );
@@ -185,58 +227,7 @@ export class ExamenPreocupacionalService {
     return formData;
   }
 
-  /**
-   * Formatea la fecha al formato YYYY-MM-DD
-   */
-  private formatFecha(fecha: string | Date): string {
-  console.log('Formateando fecha:', fecha);
   
-  if (!fecha) {
-    console.warn('Fecha vacía recibida');
-    return '';
-  }
-  
-  if (typeof fecha === 'string') {
-    // Si ya es string, verificar formato
-    if (fecha.includes('T')) {
-      const result = fecha.split('T')[0];
-      console.log('Fecha ya en formato ISO, resultado:', result);
-      return result;
-    }
-     // Verificar si ya está en formato YYYY-MM-DD
-    const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (fechaRegex.test(fecha)) {
-      console.log('Fecha ya en formato YYYY-MM-DD:', fecha);
-      return fecha;
-    }
-     // Intentar parsear otros formatos
-    console.log('Parseando fecha string:', fecha);
-    try {
-      const date = new Date(fecha);
-      if (isNaN(date.getTime())) {
-        console.error('Fecha inválida:', fecha);
-        return '';
-      }
-      const result = date.toISOString().split('T')[0];
-      console.log('Fecha parseada, resultado:', result);
-      return result;
-    } catch (e) {
-      console.error('Error parseando fecha:', fecha, e);
-      return '';
-    }
-  }
-
-  // Si es Date, convertir a formato YYYY-MM-DD
-  if (fecha instanceof Date) {
-    const result = fecha.toISOString().split('T')[0];
-    console.log('Fecha Date convertida, resultado:', result);
-    return result;
-  }
-  
-  console.error('Tipo de fecha no soportado:', typeof fecha, fecha);
-  return '';
-}
-
   /**
    * Obtiene todos los exámenes (sin paginación)
    */

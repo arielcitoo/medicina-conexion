@@ -80,23 +80,23 @@ export class EmpresaService extends BaseApiService {
    * Normaliza los datos de la empresa a un formato consistente
    */
   private normalizarEmpresa(empresaData: any, numeroPatronal: string): Empresa {
-    const estado = empresaData.parametroEstadoEmpresa?.descripcion || empresaData.estado || 'DESCONOCIDO';
-    const razonSocial = empresaData.empresa?.razonSocial || empresaData.razonSocial || 'Sin razón social';
-    const nit = empresaData.empresa?.nit || empresaData.nit || '';
+  const estado = empresaData.parametroEstadoEmpresa?.descripcion || empresaData.estado || 'DESCONOCIDO';
+  const razonSocial = empresaData.empresa?.razonSocial || empresaData.razonSocial || 'Sin razón social';
+  const nit = empresaData.empresa?.nit || empresaData.nit || '';
 
-    return {
-      id: empresaData.id || empresaData.empresaId || Date.now(),
-      numeroPatronal: empresaData.nroPatronal || numeroPatronal,
-      razonSocial: razonSocial,
-      ruc: nit,
-      direccion: empresaData.referenciaDireccion || empresaData.direccion || '',
-      telefono: empresaData.empresa?.telefono || empresaData.telefono || '',
-      estado: estado,
-      email: empresaData.email || '',
-      fechaAfiliacion: new Date(empresaData.fechaAfiliacion || Date.now()),
-      tipoEmpresa: empresaData.tipoEmpresa || ''
-    };
-  }
+  return {
+    id: empresaData.id || empresaData.empresaId || Date.now(),
+    numeroPatronal: empresaData.nroPatronal || numeroPatronal,
+    razonSocial: razonSocial,
+    ruc: nit, // ¡Aquí se guarda como 'ruc' pero es el NIT!
+    direccion: empresaData.referenciaDireccion || empresaData.direccion || '',
+    telefono: empresaData.empresa?.telefono || empresaData.telefono || '',
+    estado: estado,
+    email: empresaData.email || '',
+    fechaAfiliacion: new Date(empresaData.fechaAfiliacion || Date.now()),
+    tipoEmpresa: empresaData.tipoEmpresa || ''
+  };
+}
 /**
    * Crea una empresa vacía pero válida para mantener consistencia de tipos
    */

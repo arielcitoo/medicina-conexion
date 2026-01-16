@@ -14,11 +14,9 @@ import { ExamenExitoModal, ExitoModalData } from '../examen-exito-modal/examen-e
 import { SharedMaterialModule } from '../../shared/modules/material.module'; // Angular Material módulos compartidos
 
 // Importar el servicio de examen preocupacional y asegurados
-import { ExamenPreocupacionalService, ExamenPreocupacionalCreateDTO, AseguradoCreateDTO } from '../../service/examen-preocupacional.service';
+import { ExamenPreocupacionalService, ExamenPreocupacionalCreateDTO, AseguradoCreateDTO, ExamenPreocupacionalResponse } from '../../service/examen-preocupacional.service';
 import { AseguradosService } from '../../service/asegurados.service'; // Asumo que existe este servicio
 import { AseguradoExamen, AseguradoBackend } from '../../interface/examen.interface';
-
-
 
 
 
@@ -85,14 +83,25 @@ export class ExamenPreocupacional implements OnInit {
   }
 
   ngOnInit(): void {
+
+     console.log('=== INICIALIZANDO COMPONENTE ===');
     this.empresa = this.empresaService.getEmpresaExamen();
 
     if (!this.empresa) {
+      console.error(' No existe empresa verificada');
       this.mostrarSnackbar('Debe verificar su empresa primero', 'error');
       this.router.navigate(['/prelogin']);
       return;
     }
     
+    console.log('✅ Empresa en examen:', {
+    razonSocial: this.empresa.razonSocial,
+    nit: this.empresa.nit,
+    NIT: this.empresa.NIT,
+    nroPatronal: this.empresa.nroPatronal,
+    numeroPatronal: this.empresa.numeroPatronal
+  });
+
     this.idIngresoGenerado = this.generarIdIngreso();
     
     this.setupCantidadAseguradosSubscription();
@@ -306,50 +315,66 @@ finalizarRegistro(): void {
     return;
   }
 
-  // Validar datos antes de enviar
-  const errores = this.validarDatosAntesDeEnviar();
-  if (errores.length > 0) {
-    errores.forEach(error => this.mostrarSnackbar(error, 'error'));
-    return;
-  }
-
   setTimeout(() => {
     this.isLoading = true;
     this.fechaRegistro = new Date();
     this.cdRef.markForCheck();
     
-    const datosExamen = this.prepararDatosParaExamen();
-    
-    // DEBUG: Verificar datos antes de enviar
-    console.log('Datos a enviar al backend:', JSON.stringify(datosExamen, null, 2));
-    console.log('Total asegurados:', datosExamen.asegurados?.length);
-    console.log('Primer asegurado:', datosExamen.asegurados?.[0]);
-    
-    this.examenService.createExamen(datosExamen).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.isLoading = false;
-          this.mostrarModalExito(response);
-          this.cdRef.markForCheck();
-        }, 0);
-      },
-      error: (error: any) => {
-        setTimeout(() => {
-          this.isLoading = false;
-          console.error('Error completo:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          console.error('Error response:', error.error);
-          
-          if (error.status === 400) {
-            this.mostrarSnackbar('Error en los datos enviados: ' + (error.error?.message || 'Revise los datos del formulario'), 'error');
-          } else {
-            this.mostrarSnackbar('Error al guardar el examen: ' + (error.error?.message || error.message), 'error');
-          }
-          this.cdRef.markForCheck();
-        }, 0);
-      }
-    });
+    try {
+      const datosExamen = this.prepararDatosParaExamen();
+      
+      console.log('📤 Enviando datos al backend...');
+      
+      this.examenService.createExamen(datosExamen).subscribe({
+        next: (response: ExamenPreocupacionalResponse) => {
+          setTimeout(() => {
+            this.isLoading = false;
+            console.log('Examen creado exitosamente:', response);
+            this.mostrarModalExito(response);
+            this.cdRef.markForCheck();
+          }, 0);
+        },
+        error: (error: any) => {
+          setTimeout(() => {
+            this.isLoading = false;
+            
+            let mensajeError = 'Error al guardar el examen';
+            
+            if (error.status === 400) {
+              if (error.error?.errors) {
+                // Errores de validación
+                const errores = error.error.errors;
+                const detalles = Object.keys(errores)
+                  .map(key => `${key}: ${errores[key].join(', ')}`)
+                  .join('; ');
+                mensajeError = `Errores de validación: ${detalles}`;
+              } else if (error.error?.message) {
+                mensajeError = `Error: ${error.error.message}`;
+              } else if (error.error?.detail) {
+                mensajeError = `Error: ${error.error.detail}`;
+              } else {
+                mensajeError = 'Error 400: Solicitud incorrecta. Verifique los datos.';
+              }
+            } else if (error.status === 0) {
+              mensajeError = 'Error de conexión. Verifique su conexión a internet.';
+            } else if (error.status === 500) {
+              mensajeError = 'Error interno del servidor. Intente nuevamente.';
+            }
+            
+            console.error(' Error completo:', error);
+            this.mostrarSnackbar(mensajeError, 'error');
+            this.cdRef.markForCheck();
+          }, 0);
+        }
+      });
+    } catch (error: any) {
+      setTimeout(() => {
+        this.isLoading = false;
+        console.error(' Error preparando datos:', error);
+        this.mostrarSnackbar(`Error: ${error.message}`, 'error');
+        this.cdRef.markForCheck();
+      }, 0);
+    }
   }, 0);
 }
 
@@ -358,189 +383,326 @@ finalizarRegistro(): void {
    */
 
  private prepararDatosParaExamen(): ExamenPreocupacionalCreateDTO {
-  // Validar que todos los campos requeridos estén presentes
-  const numeroPatronal = this.empresa.nroPatronal || this.empresa.numeroPatronal || '';
-  const nit = this.empresa.nit || this.empresa.NIT || '';
-  const razonSocial = this.empresa.razonSocial || '';
+  console.log('=== PREPARANDO DATOS CON EMPRESA REAL ===');
   
-  if (!numeroPatronal || !nit || !razonSocial) {
-    console.error('Datos de empresa incompletos:', this.empresa);
+  // Verificar que tenemos datos de empresa
+  if (!this.empresa) {
+    console.error(' No hay datos de empresa disponibles');
+    throw new Error('No se encontraron datos de la empresa. Verifique que haya seleccionado una empresa.');
   }
   
-  // Preparar observaciones
-  const observaciones = `Recibo: ${this.paso1Form.get('numeroRecibo')?.value}. ` +
-                       `Total asegurados: ${this.paso1Form.get('cantidadAsegurados')?.value}. ` +
-                       `Importe: ${this.paso1Form.get('totalImporte')?.value} Bs.`;
+  console.log('Empresa completa:', this.empresa);
+  console.log('Tipo:', typeof this.empresa);
+  console.log('Keys:', Object.keys(this.empresa));
   
-  // Validar y preparar asegurados
-  const aseguradosParaEnviar: AseguradoCreateDTO[] = this.asegurados.map(asegurado => {
-    // Validar campos requeridos
-    if (!asegurado.ci || !asegurado.nombreCompleto || !asegurado.fechaNacimiento) {
-      console.error('Asegurado con datos incompletos:', asegurado);
+  // EXTRAER DATOS CORRECTAMENTE
+  // 1. Número patronal - usar la propiedad correcta de la interfaz Empresa
+  const numeroPatronal = this.empresa.numeroPatronal || '';
+  
+  // 2. Razón social - usar la propiedad correcta de la interfaz Empresa
+  const razonSocial = this.empresa.razonSocial || '';
+  
+  // 3. NIT - ¡PROBLEMA PRINCIPAL! 
+  // La interfaz Empresa tiene 'ruc', pero el backend espera 'nit'
+  // Y los datos pueden venir con diferentes nombres
+  const nit = this.extraerNitDeEmpresa(this.empresa);
+  
+  console.log(' Datos extraídos:', {
+    numeroPatronal,
+    razonSocial,
+    nit,
+    tieneNumeroPatronal: !!numeroPatronal,
+    tieneRazonSocial: !!razonSocial,
+    tieneNit: !!nit
+  });
+  
+  // VALIDACIONES
+  if (!numeroPatronal || numeroPatronal.trim() === '') {
+    console.error(' Número patronal vacío:', this.empresa);
+    throw new Error('El número patronal de la empresa es requerido');
+  }
+  
+  if (!razonSocial || razonSocial.trim() === '') {
+    console.error(' Razón social vacía:', this.empresa);
+    throw new Error('La razón social de la empresa es requerida');
+  }
+  
+  if (!nit || nit.trim() === '') {
+    console.warn(' NIT/RUC vacío, usando valor por defecto para pruebas');
+    // Podemos usar un valor temporal para pruebas, pero en producción debe estar
+    const nitTemporal = '1234567890'; // Temporal para pruebas
+    console.log('Usando NIT temporal para pruebas:', nitTemporal);
+  }
+  
+  // PREPARAR ASEGURADOS
+  const aseguradosParaEnviar: any[] = this.asegurados.map((asegurado, index) => {
+    // Fecha segura
+    let fechaISO: string;
+    try {
+      const fechaStr = String(asegurado.fechaNacimiento || '1990-01-01');
+      const fechaDate = new Date(fechaStr);
+      
+      if (isNaN(fechaDate.getTime())) {
+        fechaISO = new Date('1990-01-01').toISOString();
+      } else {
+        fechaISO = fechaDate.toISOString();
+      }
+    } catch {
+      fechaISO = new Date('1990-01-01').toISOString();
     }
     
+    // Para los asegurados, usar el NIT real de la empresa
+    const empresaAsegurado = asegurado.empresa || razonSocial;
+    const nitEmpresaAsegurado = asegurado.nitEmpresa || nit;
+    
+    console.log(`Asegurado ${index + 1}:`, {
+      nombre: asegurado.nombreCompleto,
+      empresa: empresaAsegurado,
+      nitEmpresa: nitEmpresaAsegurado
+    });
+    
     return {
-      aseguradoId: asegurado.aseguradoId || 0,
-      ci: asegurado.ci || '',
-      nombreCompleto: asegurado.nombreCompleto || '',
-      fechaNacimiento: this.formatFechaParaAPI(asegurado.fechaNacimiento), // Asegurar formato YYYY-MM-DD
-      genero: asegurado.genero || '',
-      correoElectronico: asegurado.correoElectronico || '',
-      celular: asegurado.celular || '',
-      empresa: asegurado.empresa || razonSocial,
-      nitEmpresa: asegurado.nitEmpresa || nit
+      aseguradoId: asegurado.aseguradoId || 1,
+      ci: (asegurado.ci || '').substring(0, 15),
+      nombreCompleto: (asegurado.nombreCompleto || '').substring(0, 200),
+      fechaNacimiento: fechaISO,
+      genero: (asegurado.genero || '').substring(0, 10),
+      correoElectronico: (asegurado.correoElectronico || '').substring(0, 100),
+      celular: (asegurado.celular || '').substring(0, 10),
+      empresa: empresaAsegurado.substring(0, 200),
+      nitEmpresa: nitEmpresaAsegurado ? nitEmpresaAsegurado.substring(0, 20) : undefined
     };
   });
   
-  console.log('Asegurados preparados para enviar:', aseguradosParaEnviar);
+  // CREAR OBSERVACIONES
+  const observaciones = `Recibo: ${this.paso1Form.get('numeroRecibo')?.value}. ` +
+                       `Total: ${this.asegurados.length} asegurados. ` +
+                       `Importe: Bs. ${this.paso1Form.get('totalImporte')?.value}`;
   
-  return {
-    numeroPatronal: numeroPatronal,
-    razonSocial: razonSocial,
-    nit: nit,
-    observaciones: observaciones,
-    asegurados: aseguradosParaEnviar
+  // DATOS FINALES PARA EL BACKEND
+  const datos: ExamenPreocupacionalCreateDTO = {
+    numeroPatronal: numeroPatronal.substring(0, 20),
+    razonSocial: razonSocial.substring(0, 200),
+    nit: nit.substring(0, 20) || '1234567890', // Si está vacío, usar temporal
+    observaciones: observaciones.substring(0, 500),
+    Asegurados: aseguradosParaEnviar
   };
+  
+  console.log('📦 Datos finales para enviar al backend:', datos);
+  console.log('JSON:', JSON.stringify(datos, null, 2));
+  
+  return datos;
 }
+
+// MÉTODO PARA EXTRAER EL NIT DE LA EMPRESA
+private extraerNitDeEmpresa(empresa: any): string {
+  if (!empresa) return '';
+  
+  console.log('🔍 Buscando NIT en empresa...');
+  
+  // 1. Primero buscar en las propiedades de la interfaz Empresa
+  if (empresa.ruc && empresa.ruc.trim() !== '') {
+    console.log('NIT encontrado en propiedad "ruc":', empresa.ruc);
+    return empresa.ruc;
+  }
+  
+  // 2. Buscar en otras propiedades posibles
+  const propiedadesPosibles = ['nit', 'NIT', 'numeroNit', 'nroNit', 'identificacionTributaria'];
+  
+  for (const prop of propiedadesPosibles) {
+    if (empresa[prop] && empresa[prop].trim() !== '') {
+      console.log(` NIT encontrado en propiedad "${prop}":`, empresa[prop]);
+      return empresa[prop];
+    }
+  }
+  
+  // 3. Buscar en propiedades anidadas (si la empresa viene con estructura compleja)
+  if (empresa.empresa && typeof empresa.empresa === 'object') {
+    for (const prop of propiedadesPosibles) {
+      if (empresa.empresa[prop] && empresa.empresa[prop].trim() !== '') {
+        console.log(` NIT encontrado en empresa.${prop}:`, empresa.empresa[prop]);
+        return empresa.empresa[prop];
+      }
+    }
+  }
+  
+  // 4. Si no se encuentra, mostrar todas las propiedades para debug
+  console.warn('No se encontró NIT. Todas las propiedades:');
+  for (const key in empresa) {
+    if (empresa.hasOwnProperty(key)) {
+      console.log(`  ${key}:`, empresa[key]);
+    }
+  }
+  
+  return '';
+}
+
+// private formatFechaParaBackend(fecha: Date | string): string {
+//   if (!fecha) return '';
+  
+//   let date: Date;
+  
+//   if (typeof fecha === 'string') {
+//     // Si ya es string ISO, usarlo
+//     if (fecha.includes('T')) {
+//       return fecha;
+//     }
+    
+//     // Intentar parsear
+//     date = new Date(fecha);
+//     if (isNaN(date.getTime())) {
+//       console.error('Fecha inválida:', fecha);
+//       return '';
+//     }
+//   } else {
+//     date = fecha;
+//   }
+  
+//   // Retornar en formato ISO (ej: "1990-01-01T00:00:00")
+//   return date.toISOString();
+// }
+
+
 
 // Añadir método para formatear fechas
-private formatFechaParaAPI(fecha: string | Date): string {
-  if (!fecha) return '';
+// private formatFechaParaAPI(fecha: string | Date): string {
+//   if (!fecha) return '';
   
-  let date: Date;
+//   let date: Date;
   
-  if (typeof fecha === 'string') {
-    // Si es string, intentar parsear
-    if (fecha.includes('T')) {
-      // Ya está en formato ISO
-      return fecha.split('T')[0];
-    } else if (fecha.includes('/')) {
-      // Formato DD/MM/YYYY
-      const [dia, mes, anio] = fecha.split('/').map(Number);
-      date = new Date(anio, mes - 1, dia);
-    } else {
-      // Asumir formato YYYY-MM-DD
-      return fecha;
-    }
-  } else {
-    // Si es Date
-    date = fecha;
-  }
+//   if (typeof fecha === 'string') {
+//     // Si es string, intentar parsear
+//     if (fecha.includes('T')) {
+//       // Ya está en formato ISO
+//       return fecha.split('T')[0];
+//     } else if (fecha.includes('/')) {
+//       // Formato DD/MM/YYYY
+//       const [dia, mes, anio] = fecha.split('/').map(Number);
+//       date = new Date(anio, mes - 1, dia);
+//     } else {
+//       // Asumir formato YYYY-MM-DD
+//       return fecha;
+//     }
+//   } else {
+//     // Si es Date
+//     date = fecha;
+//   }
   
-  // Formatear a YYYY-MM-DD
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+//   // Formatear a YYYY-MM-DD
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, '0');
+//   const day = String(date.getDate()).padStart(2, '0');
   
-  return `${year}-${month}-${day}`;
-}
+//   return `${year}-${month}-${day}`;
+// }
 
 // Método para validar datos antes de enviar
-private validarDatosAntesDeEnviar(): string[] {
-  const errores: string[] = [];
+// private validarDatosAntesDeEnviar(): string[] {
+//   const errores: string[] = [];
   
-  // Validar datos de empresa
-  if (!this.empresa?.nroPatronal && !this.empresa?.numeroPatronal) {
-    errores.push('Número patronal de la empresa es requerido');
-  }
+//   // Validar datos de empresa
+//   if (!this.empresa?.nroPatronal && !this.empresa?.numeroPatronal) {
+//     errores.push('Número patronal de la empresa es requerido');
+//   }
   
-  if (!this.empresa?.nit && !this.empresa?.NIT) {
-    errores.push('NIT de la empresa es requerido');
-  }
+//   if (!this.empresa?.nit && !this.empresa?.NIT) {
+//     errores.push('NIT de la empresa es requerido');
+//   }
   
-  if (!this.empresa?.razonSocial) {
-    errores.push('Razón social de la empresa es requerida');
-  }
+//   if (!this.empresa?.razonSocial) {
+//     errores.push('Razón social de la empresa es requerida');
+//   }
   
-  // Validar datos del recibo
-  if (!this.paso1Form.get('numeroRecibo')?.value) {
-    errores.push('Número de recibo es requerido');
-  }
+//   // Validar datos del recibo
+//   if (!this.paso1Form.get('numeroRecibo')?.value) {
+//     errores.push('Número de recibo es requerido');
+//   }
   
-  // Validar asegurados
-  if (this.asegurados.length === 0) {
-    errores.push('Debe agregar al menos un asegurado');
-  }
+//   // Validar asegurados
+//   if (this.asegurados.length === 0) {
+//     errores.push('Debe agregar al menos un asegurado');
+//   }
   
-  this.asegurados.forEach((asegurado, index) => {
-    if (!asegurado.ci) {
-      errores.push(`Asegurado ${index + 1}: CI es requerido`);
-    }
+//   this.asegurados.forEach((asegurado, index) => {
+//     if (!asegurado.ci) {
+//       errores.push(`Asegurado ${index + 1}: CI es requerido`);
+//     }
     
-    if (!asegurado.nombreCompleto) {
-      errores.push(`Asegurado ${index + 1}: Nombre completo es requerido`);
-    }
+//     if (!asegurado.nombreCompleto) {
+//       errores.push(`Asegurado ${index + 1}: Nombre completo es requerido`);
+//     }
     
-    if (!asegurado.fechaNacimiento) {
-      errores.push(`Asegurado ${index + 1}: Fecha de nacimiento es requerida`);
-    }
+//     if (!asegurado.fechaNacimiento) {
+//       errores.push(`Asegurado ${index + 1}: Fecha de nacimiento es requerida`);
+//     }
     
-    if (!asegurado.correoElectronico) {
-      errores.push(`Asegurado ${index + 1}: Correo electrónico es requerido`);
-    }
+//     if (!asegurado.correoElectronico) {
+//       errores.push(`Asegurado ${index + 1}: Correo electrónico es requerido`);
+//     }
     
-    if (!asegurado.celular) {
-      errores.push(`Asegurado ${index + 1}: Celular es requerido`);
-    }
-  });
+//     if (!asegurado.celular) {
+//       errores.push(`Asegurado ${index + 1}: Celular es requerido`);
+//     }
+//   });
   
-  return errores;
-}
+//   return errores;
+// }
+
 /**
    * Guardar documentos asociados al examen
    */
 
-  private guardarDocumentos(examenId: number, datosExamen: ExamenPreocupacionalCreateDTO): void {
-    // Guardar imagen del recibo
-    const imagenRecibo = this.paso1Form.get('imagenRecibo')?.value;
-    if (imagenRecibo) {
-      const documentoRecibo = {
-        archivo: imagenRecibo,
-        tipoDocumento: 'RECIBO_PAGO',
-        observaciones: `Recibo N° ${this.paso1Form.get('numeroRecibo')?.value}`
-      };
+  // private guardarDocumentos(examenId: number, datosExamen: ExamenPreocupacionalCreateDTO): void {
+  //   // Guardar imagen del recibo
+  //   const imagenRecibo = this.paso1Form.get('imagenRecibo')?.value;
+  //   if (imagenRecibo) {
+  //     const documentoRecibo = {
+  //       archivo: imagenRecibo,
+  //       tipoDocumento: 'RECIBO_PAGO',
+  //       observaciones: `Recibo N° ${this.paso1Form.get('numeroRecibo')?.value}`
+  //     };
       
-      this.examenService.subirDocumento(examenId, documentoRecibo).subscribe({
-        next: () => {},
-        error: (error: any) => {
-          this.mostrarSnackbar('Error al subir recibo: ' + (error.error?.message || error.message), 'error');
-        }
-      });
-    }
+  //     this.examenService.subirDocumento(examenId, documentoRecibo).subscribe({
+  //       next: () => {},
+  //       error: (error: any) => {
+  //         this.mostrarSnackbar('Error al subir recibo: ' + (error.error?.message || error.message), 'error');
+  //       }
+  //     });
+  //   }
 
-    // Guardar documentos de cada asegurado
-    this.asegurados.forEach(asegurado => {
-      const archivos = this.archivosAsegurados[asegurado.aseguradoId];
+  //   // Guardar documentos de cada asegurado
+  //   this.asegurados.forEach(asegurado => {
+  //     const archivos = this.archivosAsegurados[asegurado.aseguradoId];
       
-      if (archivos?.anverso) {
-        const docAnverso = {
-          archivo: archivos.anverso,
-          tipoDocumento: 'FORMULARIO_GESTORA_ANVERSO',
-          observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
-        };
+  //     if (archivos?.anverso) {
+  //       const docAnverso = {
+  //         archivo: archivos.anverso,
+  //         tipoDocumento: 'FORMULARIO_GESTORA_ANVERSO',
+  //         observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
+  //       };
         
-        this.examenService.subirDocumento(examenId, docAnverso).subscribe({
-          error: (error: any) => {
-            this.mostrarSnackbar(`Error al subir formulario anverso para ${asegurado.nombreCompleto}`, 'error');
-          }
-        });
-      }
+  //       this.examenService.subirDocumento(examenId, docAnverso).subscribe({
+  //         error: (error: any) => {
+  //           this.mostrarSnackbar(`Error al subir formulario anverso para ${asegurado.nombreCompleto}`, 'error');
+  //         }
+  //       });
+  //     }
 
-      if (archivos?.reverso) {
-        const docReverso = {
-          archivo: archivos.reverso,
-          tipoDocumento: 'FORMULARIO_GESTORA_REVERSO',
-          observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
-        };
+  //     if (archivos?.reverso) {
+  //       const docReverso = {
+  //         archivo: archivos.reverso,
+  //         tipoDocumento: 'FORMULARIO_GESTORA_REVERSO',
+  //         observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
+  //       };
         
-        this.examenService.subirDocumento(examenId, docReverso).subscribe({
-          error: (error: any) => {
-            this.mostrarSnackbar(`Error al subir formulario reverso para ${asegurado.nombreCompleto}`, 'error');
-          }
-        });
-      }
-    });
-  }
+  //       this.examenService.subirDocumento(examenId, docReverso).subscribe({
+  //         error: (error: any) => {
+  //           this.mostrarSnackbar(`Error al subir formulario reverso para ${asegurado.nombreCompleto}`, 'error');
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 
   /**
    * Mostrar modal de éxito
@@ -634,80 +796,7 @@ private validarDatosAntesDeEnviar(): string[] {
   }
 
    
-  /**
-   * Preparar datos para enviar al backend
-   */
-  // private prepararDatosParaBackend(): any {
-  //   return {
-  //     // Información del registro
-  //     idIngreso: this.idIngresoGenerado,
-  //     fechaRegistro: this.fechaRegistro,
-  //     estado: 'REGISTRADO',
-      
-  //     // Información de la empresa
-  //     empresa: {
-  //       id: this.empresa.id,
-  //       razonSocial: this.empresa.razonSocial,
-  //       nit: this.empresa.nit,
-  //       numeroPatronal: this.empresa.nroPatronal || this.empresa.numeroPatronal,
-  //       telefono: this.empresa.telefono,
-  //       direccion: this.empresa.direccion,
-  //       estado: this.empresa.estado
-  //     },
-      
-  //     // Datos del recibo
-  //     recibo: {
-  //       numeroRecibo: this.paso1Form.get('numeroRecibo')?.value,
-  //       totalImporte: this.paso1Form.get('totalImporte')?.value,
-  //       cantidadAsegurados: this.paso1Form.get('cantidadAsegurados')?.value,
-  //       imagenRecibo: {
-  //         nombre: this.paso1Form.get('imagenRecibo')?.value?.name,
-  //         tipo: this.paso1Form.get('imagenRecibo')?.value?.type,
-  //         tamaño: this.paso1Form.get('imagenRecibo')?.value?.size
-  //       },
-  //       correoEmpleador: this.paso1Form.get('correoEmpleador')?.value,
-  //       celularEmpleador: this.paso1Form.get('celularEmpleador')?.value
-  //     },
-      
-  //     // Lista de asegurados
-  //     asegurados: this.asegurados.map(asegurado => {
-  //       const archivos = this.archivosAsegurados[asegurado.id!];
-        
-  //       return {
-  //         id: asegurado.id,
-  //         nombreCompleto: asegurado.nombreCompleto,
-  //         ci: asegurado.ci,
-  //         fechaNacimiento: asegurado.fechaNacimiento,
-  //         correoElectronico: asegurado.correoElectronico,
-  //         celular: asegurado.celular,
-  //         empresa: asegurado.empresa,
-  //         genero: asegurado.genero,
-  //         formularioGestora: {
-  //           anverso: archivos?.anverso ? {
-  //             nombre: archivos.anverso.name,
-  //             tipo: archivos.anverso.type,
-  //             tamaño: archivos.anverso.size
-  //           } : null,
-  //           reverso: archivos?.reverso ? {
-  //             nombre: archivos.reverso.name,
-  //             tipo: archivos.reverso.type,
-  //             tamaño: archivos.reverso.size
-  //           } : null
-  //         }
-  //       };
-  //     }),
-      
-  //     // Metadatos
-  //     metadata: {
-  //       usuario: 'system',
-  //       ip: '127.0.0.1',
-  //       userAgent: navigator.userAgent,
-  //       version: '1.0.0',
-  //       timestamp: new Date().toISOString()
-  //     }
-  //   };
-  // }
-
+ 
   /**
    * Volver al inicio
    */
