@@ -170,7 +170,7 @@
 
         <!-- PASO 2: Agregar Asegurados -->
         <mat-step [stepControl]="paso2Form" label="Asegurados" [optional]="false">
-          <form [formGroup]="paso2Form">
+          <div>
             <h3 class="step-title">
               <mat-icon>person_add</mat-icon>
               Agregar Asegurados para el Examen
@@ -306,7 +306,7 @@
                 }
               </div>
             }
-          </form>
+          </div>
 
           <div class="step-actions">
             <button mat-button matStepperPrevious color="basic">

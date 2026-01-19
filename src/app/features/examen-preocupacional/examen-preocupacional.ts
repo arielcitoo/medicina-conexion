@@ -78,7 +78,7 @@ export class ExamenPreocupacional implements OnInit {
     });
 
     this.paso2Form = this.fb.group({
-      aseguradosArray: this.fb.array([])
+      //aseguradosArray: this.fb.array([])
     });
   }
 
@@ -324,6 +324,7 @@ finalizarRegistro(): void {
       const datosExamen = this.prepararDatosParaExamen();
       
       console.log('📤 Enviando datos al backend...');
+      console.log('Número patronal a enviar:', datosExamen.numeroPatronal);
       
       this.examenService.createExamen(datosExamen).subscribe({
         next: (response: ExamenPreocupacionalResponse) => {
@@ -341,7 +342,25 @@ finalizarRegistro(): void {
             let mensajeError = 'Error al guardar el examen';
             
             if (error.status === 400) {
-              if (error.error?.errors) {
+              if (error.error?.detail) {
+                mensajeError = `Error: ${error.error.detail}`;
+                
+                // Si el error es por examen existente, sugerir opciones
+                if (error.error.detail.includes('ya existe un examen pendiente')) {
+                  // Extraer el número patronal del mensaje
+                  const match = error.error.detail.match(/número patronal:\s*([^\s]+)/);
+                  const numeroPatronal = match ? match[1] : datosExamen.numeroPatronal;
+                  
+                  mensajeError = `
+                    Ya existe un examen pendiente para el número patronal: ${numeroPatronal}
+                    
+                    Opciones:
+                    1. Verifique si ya completó este examen
+                    2. Contacte al administrador si necesita crear otro
+                    3. Use un número de recibo diferente
+                  `;
+                }
+              } else if (error.error?.errors) {
                 // Errores de validación
                 const errores = error.error.errors;
                 const detalles = Object.keys(errores)
@@ -350,10 +369,6 @@ finalizarRegistro(): void {
                 mensajeError = `Errores de validación: ${detalles}`;
               } else if (error.error?.message) {
                 mensajeError = `Error: ${error.error.message}`;
-              } else if (error.error?.detail) {
-                mensajeError = `Error: ${error.error.detail}`;
-              } else {
-                mensajeError = 'Error 400: Solicitud incorrecta. Verifique los datos.';
               }
             } else if (error.status === 0) {
               mensajeError = 'Error de conexión. Verifique su conexión a internet.';
@@ -383,17 +398,11 @@ finalizarRegistro(): void {
    */
 
  private prepararDatosParaExamen(): ExamenPreocupacionalCreateDTO {
-  console.log('=== PREPARANDO DATOS CON EMPRESA REAL ===');
   
   // Verificar que tenemos datos de empresa
   if (!this.empresa) {
-    console.error(' No hay datos de empresa disponibles');
-    throw new Error('No se encontraron datos de la empresa. Verifique que haya seleccionado una empresa.');
+     throw new Error('No se encontraron datos de la empresa. Verifique que haya seleccionado una empresa.');
   }
-  
-  console.log('Empresa completa:', this.empresa);
-  console.log('Tipo:', typeof this.empresa);
-  console.log('Keys:', Object.keys(this.empresa));
   
   // EXTRAER DATOS CORRECTAMENTE
   // 1. Número patronal - usar la propiedad correcta de la interfaz Empresa
@@ -487,18 +496,14 @@ finalizarRegistro(): void {
     observaciones: observaciones.substring(0, 500),
     Asegurados: aseguradosParaEnviar
   };
-  
-  console.log('📦 Datos finales para enviar al backend:', datos);
-  console.log('JSON:', JSON.stringify(datos, null, 2));
-  
+ 
+ 
   return datos;
 }
 
 // MÉTODO PARA EXTRAER EL NIT DE LA EMPRESA
 private extraerNitDeEmpresa(empresa: any): string {
   if (!empresa) return '';
-  
-  console.log('🔍 Buscando NIT en empresa...');
   
   // 1. Primero buscar en las propiedades de la interfaz Empresa
   if (empresa.ruc && empresa.ruc.trim() !== '') {
@@ -536,173 +541,6 @@ private extraerNitDeEmpresa(empresa: any): string {
   
   return '';
 }
-
-// private formatFechaParaBackend(fecha: Date | string): string {
-//   if (!fecha) return '';
-  
-//   let date: Date;
-  
-//   if (typeof fecha === 'string') {
-//     // Si ya es string ISO, usarlo
-//     if (fecha.includes('T')) {
-//       return fecha;
-//     }
-    
-//     // Intentar parsear
-//     date = new Date(fecha);
-//     if (isNaN(date.getTime())) {
-//       console.error('Fecha inválida:', fecha);
-//       return '';
-//     }
-//   } else {
-//     date = fecha;
-//   }
-  
-//   // Retornar en formato ISO (ej: "1990-01-01T00:00:00")
-//   return date.toISOString();
-// }
-
-
-
-// Añadir método para formatear fechas
-// private formatFechaParaAPI(fecha: string | Date): string {
-//   if (!fecha) return '';
-  
-//   let date: Date;
-  
-//   if (typeof fecha === 'string') {
-//     // Si es string, intentar parsear
-//     if (fecha.includes('T')) {
-//       // Ya está en formato ISO
-//       return fecha.split('T')[0];
-//     } else if (fecha.includes('/')) {
-//       // Formato DD/MM/YYYY
-//       const [dia, mes, anio] = fecha.split('/').map(Number);
-//       date = new Date(anio, mes - 1, dia);
-//     } else {
-//       // Asumir formato YYYY-MM-DD
-//       return fecha;
-//     }
-//   } else {
-//     // Si es Date
-//     date = fecha;
-//   }
-  
-//   // Formatear a YYYY-MM-DD
-//   const year = date.getFullYear();
-//   const month = String(date.getMonth() + 1).padStart(2, '0');
-//   const day = String(date.getDate()).padStart(2, '0');
-  
-//   return `${year}-${month}-${day}`;
-// }
-
-// Método para validar datos antes de enviar
-// private validarDatosAntesDeEnviar(): string[] {
-//   const errores: string[] = [];
-  
-//   // Validar datos de empresa
-//   if (!this.empresa?.nroPatronal && !this.empresa?.numeroPatronal) {
-//     errores.push('Número patronal de la empresa es requerido');
-//   }
-  
-//   if (!this.empresa?.nit && !this.empresa?.NIT) {
-//     errores.push('NIT de la empresa es requerido');
-//   }
-  
-//   if (!this.empresa?.razonSocial) {
-//     errores.push('Razón social de la empresa es requerida');
-//   }
-  
-//   // Validar datos del recibo
-//   if (!this.paso1Form.get('numeroRecibo')?.value) {
-//     errores.push('Número de recibo es requerido');
-//   }
-  
-//   // Validar asegurados
-//   if (this.asegurados.length === 0) {
-//     errores.push('Debe agregar al menos un asegurado');
-//   }
-  
-//   this.asegurados.forEach((asegurado, index) => {
-//     if (!asegurado.ci) {
-//       errores.push(`Asegurado ${index + 1}: CI es requerido`);
-//     }
-    
-//     if (!asegurado.nombreCompleto) {
-//       errores.push(`Asegurado ${index + 1}: Nombre completo es requerido`);
-//     }
-    
-//     if (!asegurado.fechaNacimiento) {
-//       errores.push(`Asegurado ${index + 1}: Fecha de nacimiento es requerida`);
-//     }
-    
-//     if (!asegurado.correoElectronico) {
-//       errores.push(`Asegurado ${index + 1}: Correo electrónico es requerido`);
-//     }
-    
-//     if (!asegurado.celular) {
-//       errores.push(`Asegurado ${index + 1}: Celular es requerido`);
-//     }
-//   });
-  
-//   return errores;
-// }
-
-/**
-   * Guardar documentos asociados al examen
-   */
-
-  // private guardarDocumentos(examenId: number, datosExamen: ExamenPreocupacionalCreateDTO): void {
-  //   // Guardar imagen del recibo
-  //   const imagenRecibo = this.paso1Form.get('imagenRecibo')?.value;
-  //   if (imagenRecibo) {
-  //     const documentoRecibo = {
-  //       archivo: imagenRecibo,
-  //       tipoDocumento: 'RECIBO_PAGO',
-  //       observaciones: `Recibo N° ${this.paso1Form.get('numeroRecibo')?.value}`
-  //     };
-      
-  //     this.examenService.subirDocumento(examenId, documentoRecibo).subscribe({
-  //       next: () => {},
-  //       error: (error: any) => {
-  //         this.mostrarSnackbar('Error al subir recibo: ' + (error.error?.message || error.message), 'error');
-  //       }
-  //     });
-  //   }
-
-  //   // Guardar documentos de cada asegurado
-  //   this.asegurados.forEach(asegurado => {
-  //     const archivos = this.archivosAsegurados[asegurado.aseguradoId];
-      
-  //     if (archivos?.anverso) {
-  //       const docAnverso = {
-  //         archivo: archivos.anverso,
-  //         tipoDocumento: 'FORMULARIO_GESTORA_ANVERSO',
-  //         observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
-  //       };
-        
-  //       this.examenService.subirDocumento(examenId, docAnverso).subscribe({
-  //         error: (error: any) => {
-  //           this.mostrarSnackbar(`Error al subir formulario anverso para ${asegurado.nombreCompleto}`, 'error');
-  //         }
-  //       });
-  //     }
-
-  //     if (archivos?.reverso) {
-  //       const docReverso = {
-  //         archivo: archivos.reverso,
-  //         tipoDocumento: 'FORMULARIO_GESTORA_REVERSO',
-  //         observaciones: `Asegurado: ${asegurado.nombreCompleto} - CI: ${asegurado.ci}`
-  //       };
-        
-  //       this.examenService.subirDocumento(examenId, docReverso).subscribe({
-  //         error: (error: any) => {
-  //           this.mostrarSnackbar(`Error al subir formulario reverso para ${asegurado.nombreCompleto}`, 'error');
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
 
   /**
    * Mostrar modal de éxito
@@ -801,7 +639,7 @@ private extraerNitDeEmpresa(empresa: any): string {
    * Volver al inicio
    */
   volverAlInicio(): void {
-    this.router.navigate(['/prelogin']);
+    this.router.navigate(['/login']);
   }
 
   /**
@@ -987,7 +825,7 @@ private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
     archivos: this.archivosAsegurados
   });
 
-   this.actualizarFormArrayAsegurados();
+   //this.actualizarFormArrayAsegurados();
   this.mostrarSnackbar(`Asegurado "${aseguradoDTO.nombreCompleto}" agregado`, 'success');
   this.cdRef.detectChanges();
 }
@@ -1004,7 +842,7 @@ private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
     a.aseguradoId !== aseguradoId && a.idTemporal !== aseguradoId
   );
   delete this.archivosAsegurados[idParaEliminar];
-  this.actualizarFormArrayAsegurados();
+ // this.actualizarFormArrayAsegurados();
   this.mostrarSnackbar('Asegurado eliminado');
   this.cdRef.detectChanges();
 }
@@ -1061,32 +899,10 @@ private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
   return archivo?.name || 'Sin archivo';
 }
 
-  /**
-   * Actualizar formulario reactivo con asegurados
+ /**
+   * Mostrar snackbar con mensaje
    */
-   private actualizarFormArrayAsegurados(): void {
-    const formArray = this.paso2Form.get('aseguradosArray') as FormArray;
-    formArray.clear();
 
-    this.asegurados.forEach((asegurado) => {
-      const grupo = this.fb.group({
-        id: [asegurado.aseguradoId], // Usar aseguradoId
-        nombreCompleto: [asegurado.nombreCompleto, Validators.required],
-        ci: [asegurado.ci, Validators.required],
-        correo: [asegurado.correoElectronico, [Validators.required, Validators.email]],
-        celular: [asegurado.celular, [Validators.required, Validators.pattern('^[0-9]{8}$')]]
-      });
-
-      formArray.push(grupo);
-    });
-
-    this.paso2Form.updateValueAndValidity();
-  }
-
-
-  /**
-   * Mostrar notificaciones
-   */
   private mostrarSnackbar(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info'): void {
     this.snackBar.open(mensaje, 'Cerrar', {
       duration: 3000,
