@@ -226,22 +226,21 @@
                       </span>
                     </td>
                   </ng-container>
-
-                  <ng-container matColumnDef="archivos">
-  <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
-  <td mat-cell *matCellDef="let asegurado">
-    <div class="file-upload-buttons">
-      <div class="file-upload-item">
-        <input type="file" #anversoInput hidden
+  <ng-container matColumnDef="archivos">
+    <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+    <td mat-cell *matCellDef="let asegurado">
+      <div class="file-upload-buttons">
+        <div class="file-upload-item">
+          <input type="file" #anversoInput hidden
                (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
                accept="image/*,.pdf">
-        <button mat-mini-fab color="primary"
+          <button mat-mini-fab color="primary"
                 [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
                 (click)="anversoInput.click()">
-          <mat-icon>cloud_upload</mat-icon>
-        </button>
+            <mat-icon>cloud_upload</mat-icon>
+          </button>
         <span class="file-status" 
-              [class.complete]="tieneArchivosCompletos(asegurado.idTemporal || asegurado.aseguradoId)">
+               [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.anverso">
           A
         </span>
       </div>
@@ -256,7 +255,7 @@
           <mat-icon>cloud_upload</mat-icon>
         </button>
         <span class="file-status" 
-              [class.complete]="tieneArchivosCompletos(asegurado.idTemporal || asegurado.aseguradoId)">
+              [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.reverso">
           R
         </span>
       </div>
@@ -492,13 +491,13 @@
             <button mat-raised-button color="primary"
                     (click)="finalizarRegistro()"
                     [disabled]="isLoading || !puedeAvanzarPaso2Estable">
-              @if (estaCargando) {
+              @if (!estaProcesando) {
                 <mat-icon>check_circle</mat-icon>
               } @else {
                 <mat-spinner diameter="20"></mat-spinner>
               }
               <span>
-                @if (!estaCargando) {
+                @if (!estaProcesando) {
                   Finalizar Registro
                 } @else {
                   Guardando...

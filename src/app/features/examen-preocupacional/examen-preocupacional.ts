@@ -687,7 +687,7 @@ private extraerNitDeEmpresa(empresa: any): string {
    * Mostrar snackbar con mensaje
    */
 
-get estaCargando(): boolean {
+get estaProcesando(): boolean {
   return this.isLoading;
 }
 
