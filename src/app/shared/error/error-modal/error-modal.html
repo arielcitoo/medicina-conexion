@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>
+      <mat-icon color="warn">error</mat-icon>
+      Error en el Registro
+    </h2>
+    <mat-dialog-content>
+      <p>{{ data.mensaje }}</p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="onCerrar()">Cerrar</button>
+      <button mat-raised-button color="primary" (click)="onReintentar()">
+        Reintentar
+      </button>
+    </mat-dialog-actions>

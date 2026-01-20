@@ -17,6 +17,7 @@ import { SharedMaterialModule } from '../../shared/modules/material.module'; // 
 import { ExamenPreocupacionalService, ExamenPreocupacionalCreateDTO, AseguradoCreateDTO, ExamenPreocupacionalResponse } from '../../service/examen-preocupacional.service';
 import { AseguradosService } from '../../service/asegurados.service'; // Asumo que existe este servicio
 import { AseguradoExamen, AseguradoBackend } from '../../interface/examen.interface';
+import { ErrorModal } from '../../shared/error/error-modal/error-modal';
 
 
 
@@ -343,22 +344,19 @@ finalizarRegistro(): void {
             
             if (error.status === 400) {
               if (error.error?.detail) {
-                mensajeError = `Error: ${error.error.detail}`;
+                mensajeError = error.error.detail;
                 
-                // Si el error es por examen existente, sugerir opciones
-                if (error.error.detail.includes('ya existe un examen pendiente')) {
-                  // Extraer el número patronal del mensaje
+                // Verificar si es error de usuario duplicado
+                if (error.error.detail.toLowerCase().includes('usuario') && 
+                    (error.error.detail.toLowerCase().includes('ya existe') || 
+                     error.error.detail.toLowerCase().includes('registrado'))) {
+                  mensajeError = 'El usuario ya está registrado en el sistema.';
+                }
+                // Verificar si es error de examen duplicado
+                else if (error.error.detail.includes('ya existe un examen pendiente')) {
                   const match = error.error.detail.match(/número patronal:\s*([^\s]+)/);
                   const numeroPatronal = match ? match[1] : datosExamen.numeroPatronal;
-                  
-                  mensajeError = `
-                    Ya existe un examen pendiente para el número patronal: ${numeroPatronal}
-                    
-                    Opciones:
-                    1. Verifique si ya completó este examen
-                    2. Contacte al administrador si necesita crear otro
-                    3. Use un número de recibo diferente
-                  `;
+                  mensajeError = `Ya existe un examen pendiente para el número patronal: ${numeroPatronal}.`;
                 }
               } else if (error.error?.errors) {
                 // Errores de validación
@@ -370,14 +368,19 @@ finalizarRegistro(): void {
               } else if (error.error?.message) {
                 mensajeError = `Error: ${error.error.message}`;
               }
+            } else if (error.status === 409) { // 409 Conflict - común para duplicados
+              mensajeError = 'El usuario/asegurado ya está registrado en el sistema.';
             } else if (error.status === 0) {
               mensajeError = 'Error de conexión. Verifique su conexión a internet.';
             } else if (error.status === 500) {
               mensajeError = 'Error interno del servidor. Intente nuevamente.';
             }
             
-            console.error(' Error completo:', error);
-            this.mostrarSnackbar(mensajeError, 'error');
+            console.error('❌ Error completo:', error);
+            
+            // Mostrar mensaje de error en modal o snackbar
+            this.mostrarErrorModal(mensajeError);
+            
             this.cdRef.markForCheck();
           }, 0);
         }
@@ -385,12 +388,27 @@ finalizarRegistro(): void {
     } catch (error: any) {
       setTimeout(() => {
         this.isLoading = false;
-        console.error(' Error preparando datos:', error);
+        console.error('❌ Error preparando datos:', error);
         this.mostrarSnackbar(`Error: ${error.message}`, 'error');
         this.cdRef.markForCheck();
       }, 0);
     }
   }, 0);
+}
+/**
+ * Mostrar modal de error personalizado
+ */
+private mostrarErrorModal(mensaje: string): void {
+  const dialogRef = this.dialog.open(ErrorModal, {
+    width: '500px',
+    data: { mensaje }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result === 'reintentar') {
+      this.finalizarRegistro();
+    }
+  });
 }
 
 /**
@@ -546,93 +564,180 @@ private extraerNitDeEmpresa(empresa: any): string {
    * Mostrar modal de éxito
    */
   private mostrarModalExito(examenRespuesta: any): void {
-    const modalData: ExitoModalData = {
-      idIngreso: examenRespuesta.id || this.idIngresoGenerado,
-      fechaRegistro: new Date(),
-      numeroRecibo: this.paso1Form.get('numeroRecibo')?.value,
-      totalAsegurados: this.asegurados.length,
-      importeTotal: parseFloat(this.paso1Form.get('totalImporte')?.value) || 0,
-      empresa: {
-        razonSocial: this.empresa.razonSocial,
-        nit: this.empresa.nit || this.empresa.NIT || '',
-        numeroPatronal: this.empresa.nroPatronal || this.empresa.numeroPatronal || ''
-      }
-    };
+  const modalData: ExitoModalData = {
+    idIngreso: examenRespuesta.id || this.idIngresoGenerado,
+    fechaRegistro: new Date(),
+    numeroRecibo: this.paso1Form.get('numeroRecibo')?.value,
+    totalAsegurados: this.asegurados.length,
+    importeTotal: parseFloat(this.paso1Form.get('totalImporte')?.value) || 0,
+    empresa: {
+      razonSocial: this.empresa.razonSocial,
+      nit: this.empresa.nit || this.empresa.NIT || '',
+      numeroPatronal: this.empresa.nroPatronal || this.empresa.numeroPatronal || ''
+    }
+  };
 
-    const dialogRef = this.dialog.open(ExamenExitoModal, {
-      width: '700px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      disableClose: true,
-      data: modalData
-    });
+  const dialogRef = this.dialog.open(ExamenExitoModal, {
+    width: '700px',
+    maxWidth: '95vw',
+    maxHeight: '90vh',
+    disableClose: true, // Evitar que el usuario cierre haciendo clic fuera
+    autoFocus: false,   // Evitar problemas de focus
+    data: modalData
+  });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.action === 'descargar') {
+  dialogRef.afterClosed().subscribe(result => {
+    // Solo manejar acciones si el resultado no es undefined
+    if (result) {
+      if (result.action === 'descargar') {
         this.descargarComprobantePDF(examenRespuesta);
-      } else if (result?.action === 'salir') {
-        this.volverAlInicio();
+      } else if (result.action === 'salir') {
+        // Ya se maneja dentro de la modal
+        console.log('Usuario salió del sistema');
       }
-    });
+    }
+    
+    // Limpiar formulario después de cerrar
+    this.limpiarFormulario();
+  });
+}
+/**
+ * Limpiar formulario después de éxito
+ */
+private limpiarFormulario(): void {
+  // Resetear formularios
+  this.paso1Form.reset();
+  this.paso2Form.reset();
+  
+  // Limpiar arrays
+  this.asegurados = [];
+  this.archivosAsegurados = {};
+  
+  // Limpiar preview
+  this.imagenReciboPreview = null;
+  
+  // Regresar al primer paso
+  if (this.stepper) {
+    this.stepper.selectedIndex = 0;
   }
-
+  
+  this.cdRef.detectChanges();
+}
   /**
    * Descargar comprobante PDF
    */
  private descargarComprobantePDF(examen: any): void {
-    this.mostrarSnackbar('Generando PDF...', 'info');
-    
-    // Aquí deberías llamar a un servicio para generar el PDF real
-    const contenido = `
-      COMPROBANTE DE REGISTRO - EXAMEN PREOCUPACIONAL
-      ================================================
+  this.mostrarSnackbar('Generando PDF...', 'info');
+  
+  // Crear contenido HTML para el PDF
+  const contenidoHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Comprobante Examen Preocupacional</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .section { margin: 20px 0; }
+        .label { font-weight: bold; color: #555; }
+        .value { margin-left: 10px; }
+        .empresa-info { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #3498db; color: white; padding: 10px; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .footer { margin-top: 40px; text-align: center; color: #7f8c8d; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <h1>COMPROBANTE DE REGISTRO - EXAMEN PREOCUPACIONAL</h1>
       
-      ID de Registro: ${examen.id || this.idIngresoGenerado}
-      Fecha de Registro: ${this.formatearFecha(new Date())}
+      <div class="section">
+        <p><span class="label">ID de Registro:</span> <span class="value">${examen.id || this.idIngresoGenerado}</span></p>
+        <p><span class="label">Fecha de Registro:</span> <span class="value">${this.formatearFecha(new Date())}</span></p>
+      </div>
       
-      DATOS DE LA EMPRESA
-      -------------------
-      Razón Social: ${this.empresa?.razonSocial}
-      NIT: ${this.empresa?.nit || this.empresa?.NIT || ''}
-      Número Patronal: ${this.empresa?.nroPatronal || this.empresa?.numeroPatronal || ''}
+      <div class="section empresa-info">
+        <h2>DATOS DE LA EMPRESA</h2>
+        <p><span class="label">Razón Social:</span> <span class="value">${this.empresa?.razonSocial || 'N/A'}</span></p>
+        <p><span class="label">NIT:</span> <span class="value">${this.empresa?.nit || this.empresa?.NIT || 'N/A'}</span></p>
+        <p><span class="label">Número Patronal:</span> <span class="value">${this.empresa?.nroPatronal || this.empresa?.numeroPatronal || 'N/A'}</span></p>
+      </div>
       
-      DATOS DEL RECIBO
-      ----------------
-      Número de Recibo: ${this.paso1Form.get('numeroRecibo')?.value}
-      Total Importe: Bs. ${this.formatNumber(this.paso1Form.get('totalImporte')?.value)}
-      Cantidad de Asegurados: ${this.asegurados.length}
-      
-      ${ this.paso1Form.get('cantidadAsegurados')?.value > 1 
-          ? `Correo Empleador: ${this.paso1Form.get('correoEmpleador')?.value}
-      Celular Empleador: ${this.paso1Form.get('celularEmpleador')?.value}`
+      <div class="section">
+        <h2>DATOS DEL RECIBO</h2>
+        <p><span class="label">Número de Recibo:</span> <span class="value">${this.paso1Form.get('numeroRecibo')?.value}</span></p>
+        <p><span class="label">Total Importe:</span> <span class="value">Bs. ${this.formatNumber(this.paso1Form.get('totalImporte')?.value)}</span></p>
+        <p><span class="label">Cantidad de Asegurados:</span> <span class="value">${this.asegurados.length}</span></p>
+        
+        ${this.paso1Form.get('cantidadAsegurados')?.value > 1 
+          ? `<p><span class="label">Correo Empleador:</span> <span class="value">${this.paso1Form.get('correoEmpleador')?.value}</span></p>
+             <p><span class="label">Celular Empleador:</span> <span class="value">${this.paso1Form.get('celularEmpleador')?.value}</span></p>`
           : ''
-      }
+        }
+      </div>
       
-      ASEGURADOS REGISTRADOS
-      ----------------------
-      ${this.asegurados.map((asegurado, i) => `
-      ${i + 1}. ${asegurado.nombreCompleto}
-         CI/NIT: ${asegurado.ci}
-         Correo: ${asegurado.correoElectronico}
-         Celular: ${asegurado.celular}
-      `).join('\n')}
+      <div class="section">
+        <h2>ASEGURADOS REGISTRADOS (${this.asegurados.length})</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre Completo</th>
+              <th>CI/NIT</th>
+              <th>Correo</th>
+              <th>Celular</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${this.asegurados.map((asegurado, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${asegurado.nombreCompleto || 'N/A'}</td>
+                <td>${asegurado.ci || 'N/A'}</td>
+                <td>${asegurado.correoElectronico || 'N/A'}</td>
+                <td>${asegurado.celular || 'N/A'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
       
-      ---------------------------------
-      Sistema CNS - Caja Nacional de Salud
-      ${new Date().toLocaleDateString()}
-    `;
+      <div class="footer">
+        <p>Sistema CNS - Caja Nacional de Salud</p>
+        <p>${new Date().toLocaleDateString('es-ES')} - Documento generado electrónicamente</p>
+      </div>
+    </body>
+    </html>
+  `;
 
-    const blob = new Blob([contenido], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
+  // Crear Blob con tipo correcto
+  const blob = new Blob([contenidoHTML], { type: 'text/html' });
+  
+  // Opción 1: Abrir en nueva ventana para imprimir como PDF
+  const url = window.URL.createObjectURL(blob);
+  const newWindow = window.open(url, '_blank');
+  
+  if (newWindow) {
+    newWindow.onload = () => {
+      newWindow.print(); // Esto permite al usuario guardar como PDF
+    };
+  } else {
+    // Opción 2: Descargar como HTML si no se puede abrir ventana
     const a = document.createElement('a');
     a.href = url;
-    a.download = `comprobante-examen-${examen.id || this.idIngresoGenerado}.pdf`;
+    a.download = `comprobante-examen-${examen.id || this.idIngresoGenerado}.html`;
     a.click();
-    window.URL.revokeObjectURL(url);
-    
-    this.mostrarSnackbar('PDF descargado correctamente', 'success');
   }
-
+  
+  // Limpiar URL después de un tiempo
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+  }, 1000);
+  
+  this.mostrarSnackbar('Comprobante generado. Se abrirá para imprimir/guardar como PDF.', 'success');
+}
    
  
   /**
