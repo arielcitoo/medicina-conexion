@@ -27,7 +27,7 @@
                 <input matInput formControlName="numeroRecibo" placeholder="Ej: 019393">
                 <mat-icon matSuffix>tag</mat-icon>
                 @if (paso1Form.get('numeroRecibo')?.hasError('required')) {
-                  <mat-error>El número de recibo es requerido</mat-error>
+                <mat-error>El número de recibo es requerido</mat-error>
                 }
               </mat-form-field>
 
@@ -37,7 +37,7 @@
                 <span matPrefix> Bs. &nbsp;</span>
                 <mat-icon matSuffix>attach_money</mat-icon>
                 @if (paso1Form.get('totalImporte')?.hasError('required')) {
-                  <mat-error>El importe es requerido</mat-error>
+                <mat-error>El importe es requerido</mat-error>
                 }
               </mat-form-field>
             </div>
@@ -45,52 +45,51 @@
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field required-field">
                 <mat-label>Cantidad de Asegurados</mat-label>
-                <input matInput type="number" formControlName="cantidadAsegurados"
-                       [min]="1" placeholder="Ej: 5">
+                <input matInput type="number" formControlName="cantidadAsegurados" [min]="1" placeholder="Ej: 5">
                 <mat-icon matSuffix>people</mat-icon>
                 @if (paso1Form.get('cantidadAsegurados')?.hasError('required')) {
-                  <mat-error>La cantidad es requerida</mat-error>
+                <mat-error>La cantidad es requerida</mat-error>
                 }
                 @if (asegurados.length > 0) {
-                  <mat-hint>{{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }} agregados</mat-hint>
+                <mat-hint>{{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}
+                  agregados</mat-hint>
                 }
               </mat-form-field>
             </div>
 
             <!-- Información condicional -->
             @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
-              <div class="info-box">
-                <mat-icon>info</mat-icon>
-                <p><strong>Importante:</strong> Como hay más de un asegurado, se requiere el correo y celular del empleador para recibir notificaciones.</p>
-              </div>
+            <div class="info-box">
+              <mat-icon>info</mat-icon>
+              <p><strong>Importante:</strong> Como hay más de un asegurado, se requiere el correo y celular del
+                empleador para recibir notificaciones.</p>
+            </div>
 
-              <!-- Campos de contacto del empleador (solo visibles cuando cantidad > 1) -->
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="form-field required-field">
-                  <mat-label>Correo Electrónico del Empleador</mat-label>
-                  <input matInput type="email" formControlName="correoEmpleador"
-                         placeholder="empleador@empresa.com">
-                  <mat-icon matSuffix>email</mat-icon>
-                  @if (getCorreoErrorMessage()) {
-                    <mat-error>{{ getCorreoErrorMessage() }}</mat-error>
-                  }
-                </mat-form-field>
-                
-                <mat-form-field appearance="outline" class="form-field required-field">
-                  <mat-label>Celular del Empleador</mat-label>
-                  <input matInput formControlName="celularEmpleador"
-                         placeholder="72882569">
-                  <mat-icon matSuffix>phone</mat-icon>
-                  @if (getCelularErrorMessage()) {
-                    <mat-error>{{ getCelularErrorMessage() }}</mat-error>
-                  }
-                </mat-form-field>
-              </div>
+            <!-- Campos de contacto del empleador (solo visibles cuando cantidad > 1) -->
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field required-field">
+                <mat-label>Correo Electrónico del Empleador</mat-label>
+                <input matInput type="email" formControlName="correoEmpleador" placeholder="empleador@empresa.com">
+                <mat-icon matSuffix>email</mat-icon>
+                @if (getCorreoErrorMessage()) {
+                <mat-error>{{ getCorreoErrorMessage() }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field required-field">
+                <mat-label>Celular del Empleador</mat-label>
+                <input matInput formControlName="celularEmpleador" placeholder="72882569">
+                <mat-icon matSuffix>phone</mat-icon>
+                @if (getCelularErrorMessage()) {
+                <mat-error>{{ getCelularErrorMessage() }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
             } @else if (paso1Form.get('cantidadAsegurados')?.value === 1) {
-              <div class="info-box">
-                <mat-icon>info</mat-icon>
-                <p>Para un solo asegurado, los datos de contacto del empleador no son requeridos.</p>
-              </div>
+            <div class="info-box">
+              <mat-icon>info</mat-icon>
+              <p>Para un solo asegurado, los datos de contacto del empleador no son requeridos.</p>
+            </div>
             }
 
             <!-- Subir Imagen Recibo -->
@@ -101,67 +100,61 @@
               </h4>
 
               <div class="file-upload-container">
-                <input type="file" #fileInputRecibo hidden
-                       (change)="onFileReciboSelected($event)"
-                       accept="image/*,.pdf">
+                <input type="file" #fileInputRecibo hidden (change)="onFileReciboSelected($event)"
+                  accept="image/*,.pdf">
 
-                <button mat-raised-button color="primary"
-                        (click)="fileInputRecibo.click()">
+                <button mat-raised-button color="primary" (click)="fileInputRecibo.click()">
                   <mat-icon>upload</mat-icon>
                   <span>Seleccionar Archivo</span>
                 </button>
 
                 @if (paso1Form.get('imagenRecibo')?.value) {
-                  <div class="file-info">
-                    <span class="file-name">
-                      {{ paso1Form.get('imagenRecibo')?.value?.name }}
-                    </span>
-                    <button mat-icon-button color="warn"
-                            (click)="eliminarImagenRecibo()"
-                            matTooltip="Eliminar archivo">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
+                <div class="file-info">
+                  <span class="file-name">
+                    {{ paso1Form.get('imagenRecibo')?.value?.name }}
+                  </span>
+                  <button mat-icon-button color="warn" (click)="eliminarImagenRecibo()" matTooltip="Eliminar archivo">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
                 }
               </div>
 
               <!-- Preview de la imagen -->
               @if (imagenReciboPreview) {
-                <div class="image-preview-container">
-                  <p class="preview-title">
-                    <mat-icon>visibility</mat-icon>
-                    Vista previa:
-                  </p>
-                  <div class="image-preview">
-                    <img [src]="imagenReciboPreview" alt="Preview del recibo">
-                    <button mat-icon-button color="warn" class="delete-file-btn"
-                            (click)="eliminarImagenRecibo()">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </div>
+              <div class="image-preview-container">
+                <p class="preview-title">
+                  <mat-icon>visibility</mat-icon>
+                  Vista previa:
+                </p>
+                <div class="image-preview">
+                  <img [src]="imagenReciboPreview" alt="Preview del recibo">
+                  <button mat-icon-button color="warn" class="delete-file-btn" (click)="eliminarImagenRecibo()">
+                    <mat-icon>close</mat-icon>
+                  </button>
                 </div>
+              </div>
               }
 
               <!-- Validación de imagen -->
               @if (paso1Form.get('imagenRecibo')?.invalid && paso1Form.get('imagenRecibo')?.touched) {
-                <div class="file-error">
-                  @if (paso1Form.get('imagenRecibo')?.hasError('required')) {
-                    <span>La imagen del recibo es obligatoria</span>
-                  }
-                  @if (paso1Form.get('imagenRecibo')?.hasError('maxSize')) {
-                    <span>El archivo no debe superar los 5MB</span>
-                  }
-                  @if (paso1Form.get('imagenRecibo')?.hasError('fileType')) {
-                    <span>Solo se permiten imágenes o PDF</span>
-                  }
-                </div>
+              <div class="file-error">
+                @if (paso1Form.get('imagenRecibo')?.hasError('required')) {
+                <span>La imagen del recibo es obligatoria</span>
+                }
+                @if (paso1Form.get('imagenRecibo')?.hasError('maxSize')) {
+                <span>El archivo no debe superar los 5MB</span>
+                }
+                @if (paso1Form.get('imagenRecibo')?.hasError('fileType')) {
+                <span>Solo se permiten imágenes o PDF</span>
+                }
+              </div>
               }
             </div>
           </form>
 
           <div class="step-actions">
-            <button mat-button matStepperNext [disabled]="!puedeAvanzarPaso1()"
-                    color="primary">
+            <button mat-button matStepperNext [disabled]="!puedeAvanzarPaso1()" color="primary">
               <mat-icon>arrow_forward</mat-icon>
               <span>Siguiente</span>
             </button>
@@ -186,124 +179,124 @@
 
             <div class="add-button-container">
               <button mat-raised-button color="primary" (click)="abrirModalAsegurado()"
-                      [disabled]="asegurados.length >= paso1Form.get('cantidadAsegurados')?.value">
+                [disabled]="asegurados.length >= paso1Form.get('cantidadAsegurados')?.value">
                 <mat-icon>add</mat-icon>
                 <span>Agregar Asegurado</span>
               </button>
             </div>
 
             @if (asegurados.length > 0) {
-              <div class="table-container mat-elevation-z2">
-                <table mat-table [dataSource]="asegurados" class="asegurados-table">
-                  <ng-container matColumnDef="nombre">
-                    <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      {{ asegurado.nombreCompleto }}
-                    </td>
-                  </ng-container>
+            <div class="table-container mat-elevation-z2">
+              <table mat-table [dataSource]="asegurados" class="asegurados-table">
+                <ng-container matColumnDef="nombre">
+                  <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    {{ asegurado.nombreCompleto }}
+                  </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="ci">
-                    <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      {{ asegurado.ci }}
-                    </td>
-                  </ng-container>
+                <ng-container matColumnDef="ci">
+                  <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    {{ asegurado.ci }}
+                  </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="correo">
-                    <th mat-header-cell *matHeaderCellDef>Correo</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <span [class.missing]="!asegurado.correoElectronico">
-                        {{ asegurado.correoElectronico || 'No asignado' }}
-                      </span>
-                    </td>
-                  </ng-container>
+                <ng-container matColumnDef="correo">
+                  <th mat-header-cell *matHeaderCellDef>Correo</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    <span [class.missing]="!asegurado.correoElectronico">
+                      {{ asegurado.correoElectronico || 'No asignado' }}
+                    </span>
+                  </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="celular">
-                    <th mat-header-cell *matHeaderCellDef>Celular</th>
-                    <td mat-cell *matCellDef="let asegurado">
-                      <span [class.missing]="!asegurado.celular">
-                        {{ asegurado.celular || 'No asignado' }}
-                      </span>
-                    </td>
-                  </ng-container>
-  <ng-container matColumnDef="archivos">
-    <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
-    <td mat-cell *matCellDef="let asegurado">
-      <div class="file-upload-buttons">
-        <div class="file-upload-item">
-          <input type="file" #anversoInput hidden
-               (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
-               accept="image/*,.pdf">
-          <button mat-mini-fab color="primary"
-                [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
-                (click)="anversoInput.click()">
-            <mat-icon>cloud_upload</mat-icon>
-          </button>
-        <span class="file-status" 
-               [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.anverso">
-          A
-        </span>
-      </div>
+                <ng-container matColumnDef="celular">
+                  <th mat-header-cell *matHeaderCellDef>Celular</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    <span [class.missing]="!asegurado.celular">
+                      {{ asegurado.celular || 'No asignado' }}
+                    </span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="archivos">
+                  <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    <div class="file-upload-buttons">
+                      <div class="file-upload-item">
+                        <input type="file" #anversoInput hidden
+                          (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+                          accept="image/*,.pdf">
+                        <button mat-mini-fab color="primary"
+                          [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+                          (click)="anversoInput.click()">
+                          <mat-icon>cloud_upload</mat-icon>
+                        </button>
+                        <span class="file-status"
+                          [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.anverso">
+                          A
+                        </span>
+                      </div>
 
-      <div class="file-upload-item">
-        <input type="file" #reversoInput hidden
-               (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
-               accept="image/*,.pdf">
-        <button mat-mini-fab color="primary"
-                [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
-                (click)="reversoInput.click()">
-          <mat-icon>cloud_upload</mat-icon>
-        </button>
-        <span class="file-status" 
-              [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.reverso">
-          R
-        </span>
-      </div>
-    </div>
-  </td>
-</ng-container>
+                      <div class="file-upload-item">
+                        <input type="file" #reversoInput hidden
+                          (change)="onFileGestoraSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+                          accept="image/*,.pdf">
+                        <button mat-mini-fab color="primary"
+                          [matTooltip]="getNombreArchivo(asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+                          (click)="reversoInput.click()">
+                          <mat-icon>cloud_upload</mat-icon>
+                        </button>
+                        <span class="file-status"
+                          [class.complete]="archivosAsegurados[asegurado.idTemporal || asegurado.aseguradoId]?.reverso">
+                          R
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
 
-<ng-container matColumnDef="acciones">
-  <th mat-header-cell *matHeaderCellDef>Acciones</th>
-  <td mat-cell *matCellDef="let asegurado">
-    <button mat-icon-button color="warn"
-            (click)="eliminarAsegurado(asegurado.idTemporal || asegurado.aseguradoId)"
-            matTooltip="Eliminar asegurado">
-      <mat-icon>delete</mat-icon>
-    </button>
-  </td>
-</ng-container>
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td mat-cell *matCellDef="let asegurado">
+                    <button mat-icon-button color="warn"
+                      (click)="eliminarAsegurado(asegurado.idTemporal || asegurado.aseguradoId)"
+                      matTooltip="Eliminar asegurado">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
 
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                </table>
-              </div>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            </div>
             }
 
             @if (asegurados.length === 0) {
-              <div class="empty-state">
-                <mat-icon>group</mat-icon>
-                <p>No hay asegurados agregados. Use el botón "Agregar Asegurado" para comenzar.</p>
-              </div>
+            <div class="empty-state">
+              <mat-icon>group</mat-icon>
+              <p>No hay asegurados agregados. Use el botón "Agregar Asegurado" para comenzar.</p>
+            </div>
             }
 
             @if (asegurados.length > 0) {
-              <div class="files-status" [class.complete]="puedeAvanzarPaso2()">
-                @if (puedeAvanzarPaso2()) {
-                  <mat-icon>check_circle</mat-icon>
-                  <span class="success-text">Todos los requisitos están completos. Puede avanzar al siguiente paso.</span>
-                } @else {
-                  <mat-icon class="error-icon">error</mat-icon>
-                  <div class="error-details">
-                    <span class="error-text">Faltan requisitos para avanzar:</span>
-                    <ul>
-                      <li>Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}</li>
-                      <li>Con correo/celular: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}</li>
-                      <li>Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length }}</li>
-                    </ul>
-                  </div>
-                }
+            <div class="files-status" [class.complete]="puedeAvanzarPaso2()">
+              @if (puedeAvanzarPaso2()) {
+              <mat-icon>check_circle</mat-icon>
+              <span class="success-text">Todos los requisitos están completos. Puede avanzar al siguiente paso.</span>
+              } @else {
+              <mat-icon class="error-icon">error</mat-icon>
+              <div class="error-details">
+                <span class="error-text">Faltan requisitos para avanzar:</span>
+                <ul>
+                  <li>Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value }}</li>
+                  <li>Con correo/celular: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}</li>
+                  <li>Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length }}</li>
+                </ul>
               </div>
+              }
+            </div>
             }
           </div>
 
@@ -313,9 +306,7 @@
               <span>Anterior</span>
             </button>
 
-            <button mat-button matStepperNext 
-                    [disabled]="!puedeAvanzarPaso2Estable"
-                    color="primary">
+            <button mat-button matStepperNext [disabled]="!puedeAvanzarPaso2Estable" color="primary">
               <mat-icon>arrow_forward</mat-icon>
               <span>Siguiente</span>
             </button>
@@ -380,25 +371,25 @@
                   <span>{{ paso1Form.get('cantidadAsegurados')?.value }}</span>
                 </div>
                 @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
-                  <div class="summary-item">
-                    <strong>Correo Empleador:</strong>
-                    <span>{{ paso1Form.get('correoEmpleador')?.value }}</span>
-                  </div>
-                  <div class="summary-item">
-                    <strong>Celular Empleador:</strong>
-                    <span>{{ paso1Form.get('celularEmpleador')?.value }}</span>
-                  </div>
+                <div class="summary-item">
+                  <strong>Correo Empleador:</strong>
+                  <span>{{ paso1Form.get('correoEmpleador')?.value }}</span>
+                </div>
+                <div class="summary-item">
+                  <strong>Celular Empleador:</strong>
+                  <span>{{ paso1Form.get('celularEmpleador')?.value }}</span>
+                </div>
                 }
                 <div class="summary-item">
                   <strong>Recibo Cargado:</strong>
                   @if (paso1Form.get('imagenRecibo')?.value) {
-                    <span class="success-text">
-                      <mat-icon>check_circle</mat-icon> Sí
-                    </span>
+                  <span class="success-text">
+                    <mat-icon>check_circle</mat-icon> Sí
+                  </span>
                   } @else {
-                    <span class="error-text">
-                      <mat-icon>error</mat-icon> No
-                    </span>
+                  <span class="error-text">
+                    <mat-icon>error</mat-icon> No
+                  </span>
                   }
                 </div>
               </div>
@@ -415,46 +406,46 @@
             <mat-card-content>
               <div class="asegurados-summary">
                 @for (asegurado of asegurados; track asegurado.aseguradoId; let i = $index) {
-                  <div class="asegurado-summary-item">
-                    <h4>
-                      <mat-icon>person</mat-icon>
-                      Asegurado {{ i + 1 }}: {{ asegurado.nombreCompleto }}
-                    </h4>
-                    <div class="summary-grid">
-                      <div class="summary-item">
-                        <strong>CI/NIT:</strong>
-                        <span>{{ asegurado.ci }}</span>
-                      </div>
-                      <div class="summary-item">
-                        <strong>Correo:</strong>
-                        @if (asegurado.correoElectronico) {
-                          <span class="success-text">{{ asegurado.correoElectronico }}</span>
-                        } @else {
-                          <span class="error-text">No asignado</span>
-                        }
-                      </div>
-                      <div class="summary-item">
-                        <strong>Celular:</strong>
-                        @if (asegurado.celular) {
-                          <span class="success-text">{{ asegurado.celular }}</span>
-                        } @else {
-                          <span class="error-text">No asignado</span>
-                        }
-                      </div>
-                      <div class="summary-item">
-                        <strong>Formulario Gestora:</strong>
-                        @if (tieneArchivosCompletos(asegurado.aseguradoId)) {
-                          <span class="success-text">
-                            <mat-icon>check_circle</mat-icon> Completo
-                          </span>
-                        } @else {
-                          <span class="error-text">
-                            <mat-icon>error</mat-icon> Incompleto
-                          </span>
-                        }
-                      </div>
+                <div class="asegurado-summary-item">
+                  <h4>
+                    <mat-icon>person</mat-icon>
+                    Asegurado {{ i + 1 }}: {{ asegurado.nombreCompleto }}
+                  </h4>
+                  <div class="summary-grid">
+                    <div class="summary-item">
+                      <strong>CI/NIT:</strong>
+                      <span>{{ asegurado.ci }}</span>
+                    </div>
+                    <div class="summary-item">
+                      <strong>Correo:</strong>
+                      @if (asegurado.correoElectronico) {
+                      <span class="success-text">{{ asegurado.correoElectronico }}</span>
+                      } @else {
+                      <span class="error-text">No asignado</span>
+                      }
+                    </div>
+                    <div class="summary-item">
+                      <strong>Celular:</strong>
+                      @if (asegurado.celular) {
+                      <span class="success-text">{{ asegurado.celular }}</span>
+                      } @else {
+                      <span class="error-text">No asignado</span>
+                      }
+                    </div>
+                    <div class="summary-item">
+                      <strong>Formulario Gestora:</strong>
+                      @if (tieneArchivosCompletos(asegurado.aseguradoId)) {
+                      <span class="success-text">
+                        <mat-icon>check_circle</mat-icon> Completo
+                      </span>
+                      } @else {
+                      <span class="error-text">
+                        <mat-icon>error</mat-icon> Incompleto
+                      </span>
+                      }
                     </div>
                   </div>
+                </div>
                 }
               </div>
             </mat-card-content>
@@ -466,16 +457,17 @@
           </div>
 
           <div class="status-indicator">
-            <div class="status-item" [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
+            <div class="status-item"
+              [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
               <span class="status-number">{{ asegurados.length }}</span>
               <span class="status-label">Asegurados</span>
             </div>
-            
+
             <div class="status-item" [class.complete]="contarAseguradosCompletos() === asegurados.length">
               <span class="status-number">{{ contarAseguradosCompletos() }}</span>
               <span class="status-label">Con contacto</span>
             </div>
-            
+
             <div class="status-item" [class.complete]="contarAseguradosConArchivos() === asegurados.length">
               <span class="status-number">{{ contarAseguradosConArchivos() }}</span>
               <span class="status-label">Con archivos</span>
@@ -488,19 +480,18 @@
               <span>Anterior</span>
             </button>
 
-            <button mat-raised-button color="primary"
-                    (click)="finalizarRegistro()"
-                    [disabled]="isLoading || !puedeAvanzarPaso2Estable">
+            <button mat-raised-button color="primary" (click)="finalizarRegistro()"
+              [disabled]="isLoading || !puedeAvanzarPaso2Estable">
               @if (!estaProcesando) {
-                <mat-icon>check_circle</mat-icon>
+              <mat-icon>check_circle</mat-icon>
               } @else {
-                <mat-spinner diameter="20"></mat-spinner>
+              <mat-spinner diameter="20"></mat-spinner>
               }
               <span>
                 @if (!estaProcesando) {
-                  Finalizar Registro
+                Finalizar Registro
                 } @else {
-                  Guardando...
+                Guardando...
                 }
               </span>
             </button>

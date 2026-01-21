@@ -1,56 +1,83 @@
- <div class="exito-modal">
-      <div class="modal-header">
-        <mat-icon class="success-icon">check_circle</mat-icon>
-        <h1 class="modal-title">¡Registro Exitoso!</h1>
-      </div>
-      
-      <div class="modal-content">
-        <p class="success-message">El examen preocupacional ha sido registrado correctamente en el sistema.</p>
-        
-        <mat-card class="details-card">
-          <mat-card-content>
-            <div class="details-grid">
-              <div class="detail-item">
-                <strong>ID de Registro:</strong>
-                <span class="id-highlight">{{ data.idIngreso }}</span>
-              </div>
-              <div class="detail-item">
-                <strong>Fecha de Registro:</strong>
-                <span>{{ formatDate(data.fechaRegistro) }}</span>
-              </div>
-              <div class="detail-item">
-                <strong>Número de Recibo:</strong>
-                <span>{{ data.numeroRecibo }}</span>
-              </div>
-              <div class="detail-item">
-                <strong>Total Asegurados:</strong>
-                <span>{{ data.totalAsegurados }}</span>
-              </div>
-              <div class="detail-item">
-                <strong>Importe Total:</strong>
-                <span>Bs. {{ formatNumber(data.importeTotal) }}</span>
-              </div>
-              <div class="detail-item">
-                <strong>Empresa:</strong>
-                <span>{{ data.empresa.razonSocial }}</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        
-        <p class="instructions">
-          Se ha generado un registro único. Puede descargar el comprobante en PDF o salir del sistema.
-        </p>
-      </div>
-      
-      <div class="modal-actions">
-        <button mat-raised-button color="primary" (click)="descargarPDF()">
-          <mat-icon>download</mat-icon>
-          Descargar PDF
-        </button>
-        <button mat-stroked-button (click)="salir()">
-          <mat-icon>exit_to_app</mat-icon>
-          Salir
-        </button>
+<div class="exito-modal">
+  <div class="modal-header">
+    <mat-icon class="success-icon">check_circle</mat-icon>
+    <h1 class="modal-title">¡Registro Exitoso!</h1>
+  </div>
+
+  <div class="modal-content">
+    <p class="success-message">El examen preocupacional ha sido registrado correctamente en el sistema.</p>
+    <mat-card class="details-card">
+      <mat-card-content>
+        <div class="details-grid">
+          <div class="detail-item">
+            <strong>ID de Registro:</strong>
+            <span class="id-highlight">{{ data.idIngreso }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Fecha de Registro:</strong>
+            <span>{{ formatDate(data.fechaRegistro) }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Número de Recibo:</strong>
+            <span>{{ data.numeroRecibo }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Total Asegurados:</strong>
+            <span>{{ data.totalAsegurados }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Importe Total:</strong>
+            <span>Bs. {{ formatNumber(data.importeTotal) }}</span>
+          </div>
+          <div class="detail-item">
+            <strong>Empresa:</strong>
+            <span>{{ data.empresa.razonSocial }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <p class="instructions">Se ha generado un registro único. Puede descargar el comprobante en PDF o salir del sistema.
+    </p>
+  </div>
+
+  <div class="modal-actions">
+    <button mat-raised-button color="primary" (click)="descargarPDF()">
+      <mat-icon>download</mat-icon>
+      Descargar PDF
+    </button>
+
+    <button mat-stroked-button (click)="salir()">
+      <mat-icon>exit_to_app</mat-icon>
+      Salir
+    </button>
+  </div>
+
+  <div class="proximos-pasos">
+    <h3> Próximos pasos</h3>
+
+    <div class="paso">
+      <span class="numero">1</span>
+      <div>
+        <strong>Revisión de documentos</strong>
+        <p>Nuestro equipo verificará su información (24-48 horas)</p>
       </div>
     </div>
+
+    <div class="paso">
+      <span class="numero">2</span>
+      <div>
+        <strong>Notificación vía email</strong>
+        <p>Recibirá un enlace para seleccionar horarios si es aprobado</p>
+      </div>
+    </div>
+
+    <div class="paso">
+      <span class="numero">3</span>
+      <div>
+        <strong>Selección de horario</strong>
+        <p>Podrá elegir entre fechas y horarios disponibles</p>
+      </div>
+    </div>
+  </div>
+  
+</div>

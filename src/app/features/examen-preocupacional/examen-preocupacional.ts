@@ -1,6 +1,6 @@
 import { ModalAsegurado } from '../modal-asegurado/modal-asegurado';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray,  } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatStepper, MatStep } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,14 +26,14 @@ import { ErrorModal } from '../../shared/error/error-modal/error-modal';
   imports: [
     SharedMaterialModule,
     MatStep
-],
+  ],
   standalone: true,
   templateUrl: './examen-preocupacional.html',
   styleUrl: './examen-preocupacional.css',
 })
 export class ExamenPreocupacional implements OnInit {
   empresa: any = null;
-  
+
   @ViewChild('stepper') stepper!: MatStepper;
 
   private fb = inject(FormBuilder);
@@ -49,13 +49,13 @@ export class ExamenPreocupacional implements OnInit {
 
   asegurados: AseguradoExamen[] = []; // 
   archivosAsegurados: { [key: number]: { anverso: File | null, reverso: File | null } } = {};
-  
+
   isLoading = false;
   imagenReciboPreview: string | null = null;
-  
+
   idIngresoGenerado: string = '';
   fechaRegistro: Date | null = null;
-  
+
   private cantidadAseguradosSubject = new Subject<number>();
 
   readonly displayedColumns: string[] = [
@@ -85,7 +85,7 @@ export class ExamenPreocupacional implements OnInit {
 
   ngOnInit(): void {
 
-     console.log('=== INICIALIZANDO COMPONENTE ===');
+    console.log('=== INICIALIZANDO COMPONENTE ===');
     this.empresa = this.empresaService.getEmpresaExamen();
 
     if (!this.empresa) {
@@ -94,19 +94,19 @@ export class ExamenPreocupacional implements OnInit {
       this.router.navigate(['/prelogin']);
       return;
     }
-    
+
     console.log('✅ Empresa en examen:', {
-    razonSocial: this.empresa.razonSocial,
-    nit: this.empresa.nit,
-    NIT: this.empresa.NIT,
-    nroPatronal: this.empresa.nroPatronal,
-    numeroPatronal: this.empresa.numeroPatronal
-  });
+      razonSocial: this.empresa.razonSocial,
+      nit: this.empresa.nit,
+      NIT: this.empresa.NIT,
+      nroPatronal: this.empresa.nroPatronal,
+      numeroPatronal: this.empresa.numeroPatronal
+    });
 
     this.idIngresoGenerado = this.generarIdIngreso();
-    
+
     this.setupCantidadAseguradosSubscription();
-    
+
     this.paso1Form.get('cantidadAsegurados')?.valueChanges.subscribe(valor => {
       this.cantidadAseguradosSubject.next(valor);
       const aseguradosActuales = this.asegurados;
@@ -122,7 +122,7 @@ export class ExamenPreocupacional implements OnInit {
   /**
    * Generar ID de ingreso único
    */
-    private generarIdIngreso(): string {
+  private generarIdIngreso(): string {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 10000);
     const empresaId = this.empresa?.id?.toString().substr(0, 4) || '0000';
@@ -135,13 +135,13 @@ export class ExamenPreocupacional implements OnInit {
    */
   formatearFecha(fecha: Date | null): string {
     if (!fecha) return '';
-    
+
     const dia = fecha.getDate().toString().padStart(2, '0');
     const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const año = fecha.getFullYear();
     const horas = fecha.getHours().toString().padStart(2, '0');
     const minutos = fecha.getMinutes().toString().padStart(2, '0');
-    
+
     return `${dia}/${mes}/${año} ${horas}:${minutos}`;
   }
 
@@ -157,7 +157,7 @@ export class ExamenPreocupacional implements OnInit {
   /**
    * Configurar suscripción para cambios en cantidad de asegurados
    */
- private setupCantidadAseguradosSubscription(): void {
+  private setupCantidadAseguradosSubscription(): void {
     this.cantidadAseguradosSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -179,7 +179,7 @@ export class ExamenPreocupacional implements OnInit {
     } else {
       correoControl?.setValidators([Validators.email]);
       celularControl?.setValidators([Validators.pattern('^[0-9]{8}$')]);
-      
+
       if (correoControl?.value) {
         correoControl.setValue('');
       }
@@ -197,48 +197,48 @@ export class ExamenPreocupacional implements OnInit {
    * Verificar si puede avanzar al paso 2
    */
   puedeAvanzarPaso2(): boolean {
-  const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value || 0;
-  const cantidadActual = this.asegurados.length;
+    const cantidadPermitida = this.paso1Form.get('cantidadAsegurados')?.value || 0;
+    const cantidadActual = this.asegurados.length;
 
-  console.log('Validando paso 2:', {
-    cantidadPermitida,
-    cantidadActual,
-    asegurados: this.asegurados,
-    archivos: this.archivosAsegurados
-  });
-
-  if (cantidadActual !== cantidadPermitida) {
-    console.log('Fallo: cantidad no coincide');
-    return false;
-  }
-
-  for (let i = 0; i < this.asegurados.length; i++) {
-    const asegurado = this.asegurados[i];
-    const idAsegurado = asegurado.idTemporal || asegurado.aseguradoId;
-
-    console.log('Validando asegurado:', {
-      nombre: asegurado.nombreCompleto,
-      idAsegurado,
-      tieneCorreo: !!asegurado.correoElectronico?.trim(),
-      tieneCelular: !!asegurado.celular,
-      archivos: this.archivosAsegurados[idAsegurado]
+    console.log('Validando paso 2:', {
+      cantidadPermitida,
+      cantidadActual,
+      asegurados: this.asegurados,
+      archivos: this.archivosAsegurados
     });
 
-    if (!asegurado.correoElectronico?.trim() || !asegurado.celular) {
-      console.log('Fallo: falta correo o celular');
+    if (cantidadActual !== cantidadPermitida) {
+      console.log('Fallo: cantidad no coincide');
       return false;
     }
 
-    const archivos = this.archivosAsegurados[idAsegurado];
-    if (!archivos?.anverso || !archivos?.reverso) {
-      console.log('Fallo: archivos incompletos para asegurado', idAsegurado);
-      return false;
+    for (let i = 0; i < this.asegurados.length; i++) {
+      const asegurado = this.asegurados[i];
+      const idAsegurado = asegurado.idTemporal || asegurado.aseguradoId;
+
+      console.log('Validando asegurado:', {
+        nombre: asegurado.nombreCompleto,
+        idAsegurado,
+        tieneCorreo: !!asegurado.correoElectronico?.trim(),
+        tieneCelular: !!asegurado.celular,
+        archivos: this.archivosAsegurados[idAsegurado]
+      });
+
+      if (!asegurado.correoElectronico?.trim() || !asegurado.celular) {
+        console.log('Fallo: falta correo o celular');
+        return false;
+      }
+
+      const archivos = this.archivosAsegurados[idAsegurado];
+      if (!archivos?.anverso || !archivos?.reverso) {
+        console.log('Fallo: archivos incompletos para asegurado', idAsegurado);
+        return false;
+      }
     }
+
+    console.log('Paso 2 válido');
+    return true;
   }
-
-  console.log('Paso 2 válido');
-  return true;
-}
   /**
    * Verificar si puede avanzar al paso 1
    */
@@ -253,23 +253,23 @@ export class ExamenPreocupacional implements OnInit {
       return control ? !!control.value : false;
     };
 
-    if (!esValido('numeroRecibo') || !esValido('totalImporte') || 
-        !esValido('cantidadAsegurados') || !esValido('imagenRecibo')) {
+    if (!esValido('numeroRecibo') || !esValido('totalImporte') ||
+      !esValido('cantidadAsegurados') || !esValido('imagenRecibo')) {
       return false;
     }
 
     const cantidad = this.paso1Form.get('cantidadAsegurados')?.value || 0;
-    
+
     if (cantidad > 1) {
       return esValido('correoEmpleador') && esValido('celularEmpleador');
     }
-    
+
     const correoValido = !tieneValor('correoEmpleador') || esValido('correoEmpleador');
     const celularValido = !tieneValor('celularEmpleador') || esValido('celularEmpleador');
-    
+
     return correoValido && celularValido;
   }
- 
+
 
   /**
    * Obtener mensaje de validación para correo
@@ -277,15 +277,15 @@ export class ExamenPreocupacional implements OnInit {
   getCorreoErrorMessage(): string {
     const control = this.paso1Form.get('correoEmpleador');
     const cantidad = this.paso1Form.get('cantidadAsegurados')?.value;
-    
+
     if (control?.hasError('required') && cantidad > 1) {
       return 'El correo es obligatorio cuando hay más de un asegurado';
     }
-    
+
     if (control?.hasError('email')) {
       return 'Ingrese un correo válido';
     }
-    
+
     return '';
   }
 
@@ -295,342 +295,342 @@ export class ExamenPreocupacional implements OnInit {
   getCelularErrorMessage(): string {
     const control = this.paso1Form.get('celularEmpleador');
     const cantidad = this.paso1Form.get('cantidadAsegurados')?.value;
-    
+
     if (control?.hasError('required') && cantidad > 1) {
       return 'El celular es obligatorio cuando hay más de un asegurado';
     }
-    
+
     if (control?.hasError('pattern')) {
       return 'Ingrese 8 dígitos';
     }
-    
+
     return '';
   }
 
   /**
    * Paso 3: Finalizar y guardar
    */
-finalizarRegistro(): void {
-  if (!this.puedeAvanzarPaso2()) {
-    this.mostrarSnackbar('Complete todos los datos requeridos');
-    return;
-  }
+  finalizarRegistro(): void {
+    if (!this.puedeAvanzarPaso2()) {
+      this.mostrarSnackbar('Complete todos los datos requeridos');
+      return;
+    }
 
-  setTimeout(() => {
-    this.isLoading = true;
-    this.fechaRegistro = new Date();
-    this.cdRef.markForCheck();
-    
-    try {
-      const datosExamen = this.prepararDatosParaExamen();
-      
-      console.log('📤 Enviando datos al backend...');
-      console.log('Número patronal a enviar:', datosExamen.numeroPatronal);
-      
-      this.examenService.createExamen(datosExamen).subscribe({
-        next: (response: ExamenPreocupacionalResponse) => {
-          setTimeout(() => {
-            this.isLoading = false;
-            console.log('Examen creado exitosamente:', response);
-            this.mostrarModalExito(response);
-            this.cdRef.markForCheck();
-          }, 0);
-        },
-        error: (error: any) => {
-          setTimeout(() => {
-            this.isLoading = false;
-            
-            let mensajeError = 'Error al guardar el examen';
-            
-            if (error.status === 400) {
-              if (error.error?.detail) {
-                mensajeError = error.error.detail;
-                
-                // Verificar si es error de usuario duplicado
-                if (error.error.detail.toLowerCase().includes('usuario') && 
-                    (error.error.detail.toLowerCase().includes('ya existe') || 
-                     error.error.detail.toLowerCase().includes('registrado'))) {
-                  mensajeError = 'El usuario ya está registrado en el sistema.';
+    setTimeout(() => {
+      this.isLoading = true;
+      this.fechaRegistro = new Date();
+      this.cdRef.markForCheck();
+
+      try {
+        const datosExamen = this.prepararDatosParaExamen();
+
+        console.log('📤 Enviando datos al backend...');
+        console.log('Número patronal a enviar:', datosExamen.numeroPatronal);
+
+        this.examenService.createExamen(datosExamen).subscribe({
+          next: (response: ExamenPreocupacionalResponse) => {
+            setTimeout(() => {
+              this.isLoading = false;
+              console.log('Examen creado exitosamente:', response);
+              this.mostrarModalExito(response);
+              this.cdRef.markForCheck();
+            }, 0);
+          },
+          error: (error: any) => {
+            setTimeout(() => {
+              this.isLoading = false;
+
+              let mensajeError = 'Error al guardar el examen';
+
+              if (error.status === 400) {
+                if (error.error?.detail) {
+                  mensajeError = error.error.detail;
+
+                  // Verificar si es error de usuario duplicado
+                  if (error.error.detail.toLowerCase().includes('usuario') &&
+                    (error.error.detail.toLowerCase().includes('ya existe') ||
+                      error.error.detail.toLowerCase().includes('registrado'))) {
+                    mensajeError = 'El usuario ya está registrado en el sistema.';
+                  }
+                  // Verificar si es error de examen duplicado
+                  else if (error.error.detail.includes('ya existe un examen pendiente')) {
+                    const match = error.error.detail.match(/número patronal:\s*([^\s]+)/);
+                    const numeroPatronal = match ? match[1] : datosExamen.numeroPatronal;
+                    mensajeError = `Ya existe un examen pendiente para el número patronal: ${numeroPatronal}.`;
+                  }
+                } else if (error.error?.errors) {
+                  // Errores de validación
+                  const errores = error.error.errors;
+                  const detalles = Object.keys(errores)
+                    .map(key => `${key}: ${errores[key].join(', ')}`)
+                    .join('; ');
+                  mensajeError = `Errores de validación: ${detalles}`;
+                } else if (error.error?.message) {
+                  mensajeError = `Error: ${error.error.message}`;
                 }
-                // Verificar si es error de examen duplicado
-                else if (error.error.detail.includes('ya existe un examen pendiente')) {
-                  const match = error.error.detail.match(/número patronal:\s*([^\s]+)/);
-                  const numeroPatronal = match ? match[1] : datosExamen.numeroPatronal;
-                  mensajeError = `Ya existe un examen pendiente para el número patronal: ${numeroPatronal}.`;
-                }
-              } else if (error.error?.errors) {
-                // Errores de validación
-                const errores = error.error.errors;
-                const detalles = Object.keys(errores)
-                  .map(key => `${key}: ${errores[key].join(', ')}`)
-                  .join('; ');
-                mensajeError = `Errores de validación: ${detalles}`;
-              } else if (error.error?.message) {
-                mensajeError = `Error: ${error.error.message}`;
+              } else if (error.status === 409) { // 409 Conflict - común para duplicados
+                mensajeError = 'El usuario/asegurado ya está registrado en el sistema.';
+              } else if (error.status === 0) {
+                mensajeError = 'Error de conexión. Verifique su conexión a internet.';
+              } else if (error.status === 500) {
+                mensajeError = 'Error interno del servidor. Intente nuevamente.';
               }
-            } else if (error.status === 409) { // 409 Conflict - común para duplicados
-              mensajeError = 'El usuario/asegurado ya está registrado en el sistema.';
-            } else if (error.status === 0) {
-              mensajeError = 'Error de conexión. Verifique su conexión a internet.';
-            } else if (error.status === 500) {
-              mensajeError = 'Error interno del servidor. Intente nuevamente.';
-            }
-            
-            console.error('❌ Error completo:', error);
-            
-            // Mostrar mensaje de error en modal o snackbar
-            this.mostrarErrorModal(mensajeError);
-            
-            this.cdRef.markForCheck();
-          }, 0);
-        }
-      });
-    } catch (error: any) {
-      setTimeout(() => {
-        this.isLoading = false;
-        console.error('❌ Error preparando datos:', error);
-        this.mostrarSnackbar(`Error: ${error.message}`, 'error');
-        this.cdRef.markForCheck();
-      }, 0);
-    }
-  }, 0);
-}
-/**
- * Mostrar modal de error personalizado
- */
-private mostrarErrorModal(mensaje: string): void {
-  const dialogRef = this.dialog.open(ErrorModal, {
-    width: '500px',
-    data: { mensaje }
-  });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result === 'reintentar') {
-      this.finalizarRegistro();
-    }
-  });
-}
+              console.error('❌ Error completo:', error);
 
-/**
-   * Guardar documentos de asegurados
+              // Mostrar mensaje de error en modal o snackbar
+              this.mostrarErrorModal(mensajeError);
+
+              this.cdRef.markForCheck();
+            }, 0);
+          }
+        });
+      } catch (error: any) {
+        setTimeout(() => {
+          this.isLoading = false;
+          console.error('❌ Error preparando datos:', error);
+          this.mostrarSnackbar(`Error: ${error.message}`, 'error');
+          this.cdRef.markForCheck();
+        }, 0);
+      }
+    }, 0);
+  }
+  /**
+   * Mostrar modal de error personalizado
    */
-
- private prepararDatosParaExamen(): ExamenPreocupacionalCreateDTO {
-  
-  // Verificar que tenemos datos de empresa
-  if (!this.empresa) {
-     throw new Error('No se encontraron datos de la empresa. Verifique que haya seleccionado una empresa.');
-  }
-  
-  // EXTRAER DATOS CORRECTAMENTE
-  // 1. Número patronal - usar la propiedad correcta de la interfaz Empresa
-  const numeroPatronal = this.empresa.numeroPatronal || '';
-  
-  // 2. Razón social - usar la propiedad correcta de la interfaz Empresa
-  const razonSocial = this.empresa.razonSocial || '';
-  
-  // 3. NIT - ¡PROBLEMA PRINCIPAL! 
-  // La interfaz Empresa tiene 'ruc', pero el backend espera 'nit'
-  // Y los datos pueden venir con diferentes nombres
-  const nit = this.extraerNitDeEmpresa(this.empresa);
-  
-  console.log(' Datos extraídos:', {
-    numeroPatronal,
-    razonSocial,
-    nit,
-    tieneNumeroPatronal: !!numeroPatronal,
-    tieneRazonSocial: !!razonSocial,
-    tieneNit: !!nit
-  });
-  
-  // VALIDACIONES
-  if (!numeroPatronal || numeroPatronal.trim() === '') {
-    console.error(' Número patronal vacío:', this.empresa);
-    throw new Error('El número patronal de la empresa es requerido');
-  }
-  
-  if (!razonSocial || razonSocial.trim() === '') {
-    console.error(' Razón social vacía:', this.empresa);
-    throw new Error('La razón social de la empresa es requerida');
-  }
-  
-  if (!nit || nit.trim() === '') {
-    console.warn(' NIT/RUC vacío, usando valor por defecto para pruebas');
-    // Podemos usar un valor temporal para pruebas, pero en producción debe estar
-    const nitTemporal = '1234567890'; // Temporal para pruebas
-    console.log('Usando NIT temporal para pruebas:', nitTemporal);
-  }
-  
-  // PREPARAR ASEGURADOS
-  const aseguradosParaEnviar: any[] = this.asegurados.map((asegurado, index) => {
-    // Fecha segura
-    let fechaISO: string;
-    try {
-      const fechaStr = String(asegurado.fechaNacimiento || '1990-01-01');
-      const fechaDate = new Date(fechaStr);
-      
-      if (isNaN(fechaDate.getTime())) {
-        fechaISO = new Date('1990-01-01').toISOString();
-      } else {
-        fechaISO = fechaDate.toISOString();
-      }
-    } catch {
-      fechaISO = new Date('1990-01-01').toISOString();
-    }
-    
-    // Para los asegurados, usar el NIT real de la empresa
-    const empresaAsegurado = asegurado.empresa || razonSocial;
-    const nitEmpresaAsegurado = asegurado.nitEmpresa || nit;
-    
-    console.log(`Asegurado ${index + 1}:`, {
-      nombre: asegurado.nombreCompleto,
-      empresa: empresaAsegurado,
-      nitEmpresa: nitEmpresaAsegurado
+  private mostrarErrorModal(mensaje: string): void {
+    const dialogRef = this.dialog.open(ErrorModal, {
+      width: '500px',
+      data: { mensaje }
     });
-    
-    return {
-      aseguradoId: asegurado.aseguradoId || 1,
-      ci: (asegurado.ci || '').substring(0, 15),
-      nombreCompleto: (asegurado.nombreCompleto || '').substring(0, 200),
-      fechaNacimiento: fechaISO,
-      genero: (asegurado.genero || '').substring(0, 10),
-      correoElectronico: (asegurado.correoElectronico || '').substring(0, 100),
-      celular: (asegurado.celular || '').substring(0, 10),
-      empresa: empresaAsegurado.substring(0, 200),
-      nitEmpresa: nitEmpresaAsegurado ? nitEmpresaAsegurado.substring(0, 20) : undefined
-    };
-  });
-  
-  // CREAR OBSERVACIONES
-  const observaciones = `Recibo: ${this.paso1Form.get('numeroRecibo')?.value}. ` +
-                       `Total: ${this.asegurados.length} asegurados. ` +
-                       `Importe: Bs. ${this.paso1Form.get('totalImporte')?.value}`;
-  
-  // DATOS FINALES PARA EL BACKEND
-  const datos: ExamenPreocupacionalCreateDTO = {
-    numeroPatronal: numeroPatronal.substring(0, 20),
-    razonSocial: razonSocial.substring(0, 200),
-    nit: nit.substring(0, 20) || '1234567890', // Si está vacío, usar temporal
-    observaciones: observaciones.substring(0, 500),
-    Asegurados: aseguradosParaEnviar
-  };
- 
- 
-  return datos;
-}
 
-// MÉTODO PARA EXTRAER EL NIT DE LA EMPRESA
-private extraerNitDeEmpresa(empresa: any): string {
-  if (!empresa) return '';
-  
-  // 1. Primero buscar en las propiedades de la interfaz Empresa
-  if (empresa.ruc && empresa.ruc.trim() !== '') {
-    console.log('NIT encontrado en propiedad "ruc":', empresa.ruc);
-    return empresa.ruc;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'reintentar') {
+        this.finalizarRegistro();
+      }
+    });
   }
-  
-  // 2. Buscar en otras propiedades posibles
-  const propiedadesPosibles = ['nit', 'NIT', 'numeroNit', 'nroNit', 'identificacionTributaria'];
-  
-  for (const prop of propiedadesPosibles) {
-    if (empresa[prop] && empresa[prop].trim() !== '') {
-      console.log(` NIT encontrado en propiedad "${prop}":`, empresa[prop]);
-      return empresa[prop];
+
+  /**
+     * Guardar documentos de asegurados
+     */
+
+  private prepararDatosParaExamen(): ExamenPreocupacionalCreateDTO {
+
+    // Verificar que tenemos datos de empresa
+    if (!this.empresa) {
+      throw new Error('No se encontraron datos de la empresa. Verifique que haya seleccionado una empresa.');
     }
+
+    // EXTRAER DATOS CORRECTAMENTE
+    // 1. Número patronal - usar la propiedad correcta de la interfaz Empresa
+    const numeroPatronal = this.empresa.numeroPatronal || '';
+
+    // 2. Razón social - usar la propiedad correcta de la interfaz Empresa
+    const razonSocial = this.empresa.razonSocial || '';
+
+    // 3. NIT - ¡PROBLEMA PRINCIPAL! 
+    // La interfaz Empresa tiene 'ruc', pero el backend espera 'nit'
+    // Y los datos pueden venir con diferentes nombres
+    const nit = this.extraerNitDeEmpresa(this.empresa);
+
+    console.log(' Datos extraídos:', {
+      numeroPatronal,
+      razonSocial,
+      nit,
+      tieneNumeroPatronal: !!numeroPatronal,
+      tieneRazonSocial: !!razonSocial,
+      tieneNit: !!nit
+    });
+
+    // VALIDACIONES
+    if (!numeroPatronal || numeroPatronal.trim() === '') {
+      console.error(' Número patronal vacío:', this.empresa);
+      throw new Error('El número patronal de la empresa es requerido');
+    }
+
+    if (!razonSocial || razonSocial.trim() === '') {
+      console.error(' Razón social vacía:', this.empresa);
+      throw new Error('La razón social de la empresa es requerida');
+    }
+
+    if (!nit || nit.trim() === '') {
+      console.warn(' NIT/RUC vacío, usando valor por defecto para pruebas');
+      // Podemos usar un valor temporal para pruebas, pero en producción debe estar
+      const nitTemporal = '1234567890'; // Temporal para pruebas
+      console.log('Usando NIT temporal para pruebas:', nitTemporal);
+    }
+
+    // PREPARAR ASEGURADOS
+    const aseguradosParaEnviar: any[] = this.asegurados.map((asegurado, index) => {
+      // Fecha segura
+      let fechaISO: string;
+      try {
+        const fechaStr = String(asegurado.fechaNacimiento || '1990-01-01');
+        const fechaDate = new Date(fechaStr);
+
+        if (isNaN(fechaDate.getTime())) {
+          fechaISO = new Date('1990-01-01').toISOString();
+        } else {
+          fechaISO = fechaDate.toISOString();
+        }
+      } catch {
+        fechaISO = new Date('1990-01-01').toISOString();
+      }
+
+      // Para los asegurados, usar el NIT real de la empresa
+      const empresaAsegurado = asegurado.empresa || razonSocial;
+      const nitEmpresaAsegurado = asegurado.nitEmpresa || nit;
+
+      console.log(`Asegurado ${index + 1}:`, {
+        nombre: asegurado.nombreCompleto,
+        empresa: empresaAsegurado,
+        nitEmpresa: nitEmpresaAsegurado
+      });
+
+      return {
+        aseguradoId: asegurado.aseguradoId || 1,
+        ci: (asegurado.ci || '').substring(0, 15),
+        nombreCompleto: (asegurado.nombreCompleto || '').substring(0, 200),
+        fechaNacimiento: fechaISO,
+        genero: (asegurado.genero || '').substring(0, 10),
+        correoElectronico: (asegurado.correoElectronico || '').substring(0, 100),
+        celular: (asegurado.celular || '').substring(0, 10),
+        empresa: empresaAsegurado.substring(0, 200),
+        nitEmpresa: nitEmpresaAsegurado ? nitEmpresaAsegurado.substring(0, 20) : undefined
+      };
+    });
+
+    // CREAR OBSERVACIONES
+    const observaciones = `Recibo: ${this.paso1Form.get('numeroRecibo')?.value}. ` +
+      `Total: ${this.asegurados.length} asegurados. ` +
+      `Importe: Bs. ${this.paso1Form.get('totalImporte')?.value}`;
+
+    // DATOS FINALES PARA EL BACKEND
+    const datos: ExamenPreocupacionalCreateDTO = {
+      numeroPatronal: numeroPatronal.substring(0, 20),
+      razonSocial: razonSocial.substring(0, 200),
+      nit: nit.substring(0, 20) || '1234567890', // Si está vacío, usar temporal
+      observaciones: observaciones.substring(0, 500),
+      Asegurados: aseguradosParaEnviar
+    };
+
+
+    return datos;
   }
-  
-  // 3. Buscar en propiedades anidadas (si la empresa viene con estructura compleja)
-  if (empresa.empresa && typeof empresa.empresa === 'object') {
+
+  // MÉTODO PARA EXTRAER EL NIT DE LA EMPRESA
+  private extraerNitDeEmpresa(empresa: any): string {
+    if (!empresa) return '';
+
+    // 1. Primero buscar en las propiedades de la interfaz Empresa
+    if (empresa.ruc && empresa.ruc.trim() !== '') {
+      console.log('NIT encontrado en propiedad "ruc":', empresa.ruc);
+      return empresa.ruc;
+    }
+
+    // 2. Buscar en otras propiedades posibles
+    const propiedadesPosibles = ['nit', 'NIT', 'numeroNit', 'nroNit', 'identificacionTributaria'];
+
     for (const prop of propiedadesPosibles) {
-      if (empresa.empresa[prop] && empresa.empresa[prop].trim() !== '') {
-        console.log(` NIT encontrado en empresa.${prop}:`, empresa.empresa[prop]);
-        return empresa.empresa[prop];
+      if (empresa[prop] && empresa[prop].trim() !== '') {
+        console.log(` NIT encontrado en propiedad "${prop}":`, empresa[prop]);
+        return empresa[prop];
       }
     }
-  }
-  
-  // 4. Si no se encuentra, mostrar todas las propiedades para debug
-  console.warn('No se encontró NIT. Todas las propiedades:');
-  for (const key in empresa) {
-    if (empresa.hasOwnProperty(key)) {
-      console.log(`  ${key}:`, empresa[key]);
+
+    // 3. Buscar en propiedades anidadas (si la empresa viene con estructura compleja)
+    if (empresa.empresa && typeof empresa.empresa === 'object') {
+      for (const prop of propiedadesPosibles) {
+        if (empresa.empresa[prop] && empresa.empresa[prop].trim() !== '') {
+          console.log(` NIT encontrado en empresa.${prop}:`, empresa.empresa[prop]);
+          return empresa.empresa[prop];
+        }
+      }
     }
+
+    // 4. Si no se encuentra, mostrar todas las propiedades para debug
+    console.warn('No se encontró NIT. Todas las propiedades:');
+    for (const key in empresa) {
+      if (empresa.hasOwnProperty(key)) {
+        console.log(`  ${key}:`, empresa[key]);
+      }
+    }
+
+    return '';
   }
-  
-  return '';
-}
 
   /**
    * Mostrar modal de éxito
    */
   private mostrarModalExito(examenRespuesta: any): void {
-  const modalData: ExitoModalData = {
-    idIngreso: examenRespuesta.id || this.idIngresoGenerado,
-    fechaRegistro: new Date(),
-    numeroRecibo: this.paso1Form.get('numeroRecibo')?.value,
-    totalAsegurados: this.asegurados.length,
-    importeTotal: parseFloat(this.paso1Form.get('totalImporte')?.value) || 0,
-    empresa: {
-      razonSocial: this.empresa.razonSocial,
-      nit: this.empresa.nit || this.empresa.NIT || '',
-      numeroPatronal: this.empresa.nroPatronal || this.empresa.numeroPatronal || ''
-    }
-  };
-
-  const dialogRef = this.dialog.open(ExamenExitoModal, {
-    width: '700px',
-    maxWidth: '95vw',
-    maxHeight: '90vh',
-    disableClose: true, // Evitar que el usuario cierre haciendo clic fuera
-    autoFocus: false,   // Evitar problemas de focus
-    data: modalData
-  });
-
-  dialogRef.afterClosed().subscribe(result => {
-    // Solo manejar acciones si el resultado no es undefined
-    if (result) {
-      if (result.action === 'descargar') {
-        this.descargarComprobantePDF(examenRespuesta);
-      } else if (result.action === 'salir') {
-        // Ya se maneja dentro de la modal
-        console.log('Usuario salió del sistema');
+    const modalData: ExitoModalData = {
+      idIngreso: examenRespuesta.id || this.idIngresoGenerado,
+      fechaRegistro: new Date(),
+      numeroRecibo: this.paso1Form.get('numeroRecibo')?.value,
+      totalAsegurados: this.asegurados.length,
+      importeTotal: parseFloat(this.paso1Form.get('totalImporte')?.value) || 0,
+      empresa: {
+        razonSocial: this.empresa.razonSocial,
+        nit: this.empresa.nit || this.empresa.NIT || '',
+        numeroPatronal: this.empresa.nroPatronal || this.empresa.numeroPatronal || ''
       }
-    }
-    
-    // Limpiar formulario después de cerrar
-    this.limpiarFormulario();
-  });
-}
-/**
- * Limpiar formulario después de éxito
- */
-private limpiarFormulario(): void {
-  // Resetear formularios
-  this.paso1Form.reset();
-  this.paso2Form.reset();
-  
-  // Limpiar arrays
-  this.asegurados = [];
-  this.archivosAsegurados = {};
-  
-  // Limpiar preview
-  this.imagenReciboPreview = null;
-  
-  // Regresar al primer paso
-  if (this.stepper) {
-    this.stepper.selectedIndex = 0;
+    };
+
+    const dialogRef = this.dialog.open(ExamenExitoModal, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: true, // Evitar que el usuario cierre haciendo clic fuera
+      autoFocus: false,   // Evitar problemas de focus
+      data: modalData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Solo manejar acciones si el resultado no es undefined
+      if (result) {
+        if (result.action === 'descargar') {
+          this.descargarComprobantePDF(examenRespuesta);
+        } else if (result.action === 'salir') {
+          // Ya se maneja dentro de la modal
+          console.log('Usuario salió del sistema');
+        }
+      }
+
+      // Limpiar formulario después de cerrar
+      this.limpiarFormulario();
+    });
   }
-  
-  this.cdRef.detectChanges();
-}
+  /**
+   * Limpiar formulario después de éxito
+   */
+  private limpiarFormulario(): void {
+    // Resetear formularios
+    this.paso1Form.reset();
+    this.paso2Form.reset();
+
+    // Limpiar arrays
+    this.asegurados = [];
+    this.archivosAsegurados = {};
+
+    // Limpiar preview
+    this.imagenReciboPreview = null;
+
+    // Regresar al primer paso
+    if (this.stepper) {
+      this.stepper.selectedIndex = 0;
+    }
+
+    this.cdRef.detectChanges();
+  }
   /**
    * Descargar comprobante PDF
    */
- private descargarComprobantePDF(examen: any): void {
-  this.mostrarSnackbar('Generando PDF...', 'info');
-  
-  // Crear contenido HTML para el PDF
-  const contenidoHTML = `
+  private descargarComprobantePDF(examen: any): void {
+    this.mostrarSnackbar('Generando PDF...', 'info');
+
+    // Crear contenido HTML para el PDF
+    const contenidoHTML = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -671,11 +671,11 @@ private limpiarFormulario(): void {
         <p><span class="label">Total Importe:</span> <span class="value">Bs. ${this.formatNumber(this.paso1Form.get('totalImporte')?.value)}</span></p>
         <p><span class="label">Cantidad de Asegurados:</span> <span class="value">${this.asegurados.length}</span></p>
         
-        ${this.paso1Form.get('cantidadAsegurados')?.value > 1 
-          ? `<p><span class="label">Correo Empleador:</span> <span class="value">${this.paso1Form.get('correoEmpleador')?.value}</span></p>
+        ${this.paso1Form.get('cantidadAsegurados')?.value > 1
+        ? `<p><span class="label">Correo Empleador:</span> <span class="value">${this.paso1Form.get('correoEmpleador')?.value}</span></p>
              <p><span class="label">Celular Empleador:</span> <span class="value">${this.paso1Form.get('celularEmpleador')?.value}</span></p>`
-          : ''
-        }
+        : ''
+      }
       </div>
       
       <div class="section">
@@ -712,34 +712,34 @@ private limpiarFormulario(): void {
     </html>
   `;
 
-  // Crear Blob con tipo correcto
-  const blob = new Blob([contenidoHTML], { type: 'text/html' });
-  
-  // Opción 1: Abrir en nueva ventana para imprimir como PDF
-  const url = window.URL.createObjectURL(blob);
-  const newWindow = window.open(url, '_blank');
-  
-  if (newWindow) {
-    newWindow.onload = () => {
-      newWindow.print(); // Esto permite al usuario guardar como PDF
-    };
-  } else {
-    // Opción 2: Descargar como HTML si no se puede abrir ventana
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `comprobante-examen-${examen.id || this.idIngresoGenerado}.html`;
-    a.click();
+    // Crear Blob con tipo correcto
+    const blob = new Blob([contenidoHTML], { type: 'text/html' });
+
+    // Opción 1: Abrir en nueva ventana para imprimir como PDF
+    const url = window.URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+
+    if (newWindow) {
+      newWindow.onload = () => {
+        newWindow.print(); // Esto permite al usuario guardar como PDF
+      };
+    } else {
+      // Opción 2: Descargar como HTML si no se puede abrir ventana
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `comprobante-examen-${examen.id || this.idIngresoGenerado}.html`;
+      a.click();
+    }
+
+    // Limpiar URL después de un tiempo
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
+
+    this.mostrarSnackbar('Comprobante generado. Se abrirá para imprimir/guardar como PDF.', 'success');
   }
-  
-  // Limpiar URL después de un tiempo
-  setTimeout(() => {
-    window.URL.revokeObjectURL(url);
-  }, 1000);
-  
-  this.mostrarSnackbar('Comprobante generado. Se abrirá para imprimir/guardar como PDF.', 'success');
-}
-   
- 
+
+
   /**
    * Volver al inicio
    */
@@ -788,21 +788,21 @@ private limpiarFormulario(): void {
     }
   }
 
-/**
-   * Mostrar snackbar con mensaje
-   */
+  /**
+     * Mostrar snackbar con mensaje
+     */
 
-get estaProcesando(): boolean {
-  return this.isLoading;
-}
+  get estaProcesando(): boolean {
+    return this.isLoading;
+  }
 
-/**
-   * Verificar si puede avanzar al paso 2 (getter)
-   */
+  /**
+     * Verificar si puede avanzar al paso 2 (getter)
+     */
 
-get puedeAvanzarPaso2Estable(): boolean {
-  return this.puedeAvanzarPaso2();
-}
+  get puedeAvanzarPaso2Estable(): boolean {
+    return this.puedeAvanzarPaso2();
+  }
   /**
    * Eliminar imagen del recibo
    */
@@ -818,41 +818,41 @@ get puedeAvanzarPaso2Estable(): boolean {
    * Manejar archivos del formulario gestora
    */
   onFileGestoraSelected(event: any, aseguradoId: number, tipo: 'anverso' | 'reverso'): void {
-  const file = event.target.files[0];
-  if (file) {
-    if (!file.type.match('image/*') && !file.type.match('application/pdf')) {
-      this.mostrarSnackbar('Solo se permiten imágenes o PDF');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      this.mostrarSnackbar('El archivo no debe superar los 5MB');
-      return;
-    }
-
-    // Añadir console.log para depurar
-    console.log('Subiendo archivo:', {
-      aseguradoId,
-      tipo,
-      fileName: file.name,
-      asegurados: this.asegurados,
-      archivosActuales: this.archivosAsegurados
-    });
-
-    this.archivosAsegurados = {
-      ...this.archivosAsegurados,
-      [aseguradoId]: {
-        ...this.archivosAsegurados[aseguradoId],
-        [tipo]: file
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.match('image/*') && !file.type.match('application/pdf')) {
+        this.mostrarSnackbar('Solo se permiten imágenes o PDF');
+        return;
       }
-    };
 
-    console.log('Archivos después de subir:', this.archivosAsegurados);
-    
-    this.mostrarSnackbar(`Archivo ${tipo} cargado correctamente`);
-    this.cdRef.detectChanges();
+      if (file.size > 5 * 1024 * 1024) {
+        this.mostrarSnackbar('El archivo no debe superar los 5MB');
+        return;
+      }
+
+      // Añadir console.log para depurar
+      console.log('Subiendo archivo:', {
+        aseguradoId,
+        tipo,
+        fileName: file.name,
+        asegurados: this.asegurados,
+        archivosActuales: this.archivosAsegurados
+      });
+
+      this.archivosAsegurados = {
+        ...this.archivosAsegurados,
+        [aseguradoId]: {
+          ...this.archivosAsegurados[aseguradoId],
+          [tipo]: file
+        }
+      };
+
+      console.log('Archivos después de subir:', this.archivosAsegurados);
+
+      this.mostrarSnackbar(`Archivo ${tipo} cargado correctamente`);
+      this.cdRef.detectChanges();
+    }
   }
-}
 
   /**
    * Abrir modal para agregar asegurado
@@ -893,64 +893,64 @@ get puedeAvanzarPaso2Estable(): boolean {
   /**
    * Agregar asegurado inmediatamente
    */
-private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
-  const existe = this.asegurados.some(a => a.ci === aseguradoDTO.ci);
-  if (existe) {
-    this.mostrarSnackbar(`El asegurado con CI ${aseguradoDTO.ci} ya está en la lista`, 'error');
-    return;
-  }
+  private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
+    const existe = this.asegurados.some(a => a.ci === aseguradoDTO.ci);
+    if (existe) {
+      this.mostrarSnackbar(`El asegurado con CI ${aseguradoDTO.ci} ya está en la lista`, 'error');
+      return;
+    }
 
-   // Si aseguradoId es 0 o no válido, crear un ID temporal
-  const idParaArchivos = aseguradoDTO.aseguradoId && aseguradoDTO.aseguradoId > 0 
-    ? aseguradoDTO.aseguradoId 
-    : Date.now() + Math.floor(Math.random() * 10000);
+    // Si aseguradoId es 0 o no válido, crear un ID temporal
+    const idParaArchivos = aseguradoDTO.aseguradoId && aseguradoDTO.aseguradoId > 0
+      ? aseguradoDTO.aseguradoId
+      : Date.now() + Math.floor(Math.random() * 10000);
 
 
     // Convertir AseguradoCreateDTO a AseguradoExamen
-      const aseguradoExamen: AseguradoExamen = {
-    ...aseguradoDTO,
-    idTemporal: idParaArchivos, // Usar el mismo ID para archivos
-    aseguradoId: idParaArchivos // Asegurar que aseguradoId no sea 0
-  };
+    const aseguradoExamen: AseguradoExamen = {
+      ...aseguradoDTO,
+      idTemporal: idParaArchivos, // Usar el mismo ID para archivos
+      aseguradoId: idParaArchivos // Asegurar que aseguradoId no sea 0
+    };
 
 
-     this.asegurados = [...this.asegurados, aseguradoExamen];
+    this.asegurados = [...this.asegurados, aseguradoExamen];
 
-  this.archivosAsegurados = {
-    ...this.archivosAsegurados,
-    [idParaArchivos]: {
-      anverso: null,
-      reverso: null
-    }
-  };
+    this.archivosAsegurados = {
+      ...this.archivosAsegurados,
+      [idParaArchivos]: {
+        anverso: null,
+        reverso: null
+      }
+    };
 
-   console.log('Asegurado agregado:', {
-    idParaArchivos,
-    asegurado: aseguradoExamen,
-    archivos: this.archivosAsegurados
-  });
+    console.log('Asegurado agregado:', {
+      idParaArchivos,
+      asegurado: aseguradoExamen,
+      archivos: this.archivosAsegurados
+    });
 
-   //this.actualizarFormArrayAsegurados();
-  this.mostrarSnackbar(`Asegurado "${aseguradoDTO.nombreCompleto}" agregado`, 'success');
-  this.cdRef.detectChanges();
-}
+    //this.actualizarFormArrayAsegurados();
+    this.mostrarSnackbar(`Asegurado "${aseguradoDTO.nombreCompleto}" agregado`, 'success');
+    this.cdRef.detectChanges();
+  }
 
   /**
    * Eliminar asegurado de la lista
    */
   eliminarAsegurado(aseguradoId: number): void {
-  const idParaEliminar = this.asegurados.find(a => 
-    a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
-  )?.idTemporal || aseguradoId;
-  
-  this.asegurados = this.asegurados.filter(a => 
-    a.aseguradoId !== aseguradoId && a.idTemporal !== aseguradoId
-  );
-  delete this.archivosAsegurados[idParaEliminar];
- // this.actualizarFormArrayAsegurados();
-  this.mostrarSnackbar('Asegurado eliminado');
-  this.cdRef.detectChanges();
-}
+    const idParaEliminar = this.asegurados.find(a =>
+      a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
+    )?.idTemporal || aseguradoId;
+
+    this.asegurados = this.asegurados.filter(a =>
+      a.aseguradoId !== aseguradoId && a.idTemporal !== aseguradoId
+    );
+    delete this.archivosAsegurados[idParaEliminar];
+    // this.actualizarFormArrayAsegurados();
+    this.mostrarSnackbar('Asegurado eliminado');
+    this.cdRef.detectChanges();
+  }
 
   /**
    * Contar asegurados con contacto completo
@@ -965,48 +965,48 @@ private agregarAseguradoInmediatamente(aseguradoDTO: AseguradoCreateDTO): void {
    * Contar asegurados con archivos completos
    */
   contarAseguradosConArchivos(): number {
-  return this.asegurados.filter(asegurado => {
-    const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
-    const archivos = this.archivosAsegurados[idParaArchivos];
-    return !!archivos?.anverso && !!archivos?.reverso;
-  }).length;
-}
+    return this.asegurados.filter(asegurado => {
+      const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
+      const archivos = this.archivosAsegurados[idParaArchivos];
+      return !!archivos?.anverso && !!archivos?.reverso;
+    }).length;
+  }
 
   /**
    * Verificar si un asegurado tiene archivos
    */
   tieneArchivosCompletos(aseguradoId: number): boolean {
-  const asegurado = this.asegurados.find(a => 
-    a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
-  );
-  
-  if (!asegurado) return false;
-  
-  const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
-  const archivos = this.archivosAsegurados[idParaArchivos];
-  return !!archivos?.anverso && !!archivos?.reverso;
-}
+    const asegurado = this.asegurados.find(a =>
+      a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
+    );
+
+    if (!asegurado) return false;
+
+    const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
+    const archivos = this.archivosAsegurados[idParaArchivos];
+    return !!archivos?.anverso && !!archivos?.reverso;
+  }
   /**
    * Obtener nombre del archivo
    */
   getNombreArchivo(aseguradoId: number, tipo: 'anverso' | 'reverso'): string {
-  const asegurado = this.asegurados.find(a => 
-    a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
-  );
-  
-  if (!asegurado) return 'Sin archivo';
+    const asegurado = this.asegurados.find(a =>
+      a.aseguradoId === aseguradoId || a.idTemporal === aseguradoId
+    );
 
-  const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
-  const archivos = this.archivosAsegurados[idParaArchivos];
-  if (!archivos) return 'Sin archivo';
+    if (!asegurado) return 'Sin archivo';
 
-  const archivo = tipo === 'anverso' ? archivos.anverso : archivos.reverso;
-  return archivo?.name || 'Sin archivo';
-}
+    const idParaArchivos = asegurado.idTemporal || asegurado.aseguradoId;
+    const archivos = this.archivosAsegurados[idParaArchivos];
+    if (!archivos) return 'Sin archivo';
 
- /**
-   * Mostrar snackbar con mensaje
-   */
+    const archivo = tipo === 'anverso' ? archivos.anverso : archivos.reverso;
+    return archivo?.name || 'Sin archivo';
+  }
+
+  /**
+    * Mostrar snackbar con mensaje
+    */
 
   private mostrarSnackbar(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info'): void {
     this.snackBar.open(mensaje, 'Cerrar', {

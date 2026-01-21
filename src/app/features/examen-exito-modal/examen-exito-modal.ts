@@ -1,4 +1,4 @@
-import { Component, Inject,ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +40,7 @@ export interface ExitoModalResult {
   templateUrl: './examen-exito-modal.html',
   styleUrl: './examen-exito-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush // Mejor rendimiento
-  
+
 })
 export class ExamenExitoModal {
   private dialogRef = inject(MatDialogRef<ExamenExitoModal, ExitoModalResult>);
@@ -57,11 +57,7 @@ export class ExamenExitoModal {
     hour12: false
   };
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: ExitoModalData) {}
-
-
-
-
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ExitoModalData) { }
 
   /**
    * Formatea una fecha de manera consistente
@@ -75,7 +71,6 @@ export class ExamenExitoModal {
       .replace(',', '') // Remover coma del formato
       .replace(/\//g, '/'); // Asegurar separadores consistentes
   }
-
 
   /**
    * Formatea un número como moneda
@@ -106,16 +101,16 @@ export class ExamenExitoModal {
    * Descarga el PDF del comprobante
    */
   descargarPDF(): void {
-  console.log('Generando comprobante para:', this.data.idIngreso);
-  
-  // Crear contenido HTML
-  const contenidoHTML = this.crearContenidoComprobante();
-  
-  // Crear ventana para imprimir
-  const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
-  
-  if (ventanaImpresion) {
-    ventanaImpresion.document.write(`
+    console.log('Generando comprobante para:', this.data.idIngreso);
+
+    // Crear contenido HTML
+    const contenidoHTML = this.crearContenidoComprobante();
+
+    // Crear ventana para imprimir
+    const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+
+    if (ventanaImpresion) {
+      ventanaImpresion.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
@@ -158,23 +153,23 @@ export class ExamenExitoModal {
       </body>
       </html>
     `);
-    
-    ventanaImpresion.document.close();
-    
-    // NO cerrar la modal original
-    // this.dialogRef.close({ action: 'descargar' });
-    
-  } else {
-    // Si no se pudo abrir ventana, mostrar mensaje
-    alert('Por favor, permite ventanas emergentes para ver el comprobante');
-  }
-}
 
-/**
- * Crear contenido del comprobante
- */
-private crearContenidoComprobante(): string {
-  return `
+      ventanaImpresion.document.close();
+
+      // NO cerrar la modal original
+      // this.dialogRef.close({ action: 'descargar' });
+
+    } else {
+      // Si no se pudo abrir ventana, mostrar mensaje
+      alert('Por favor, permite ventanas emergentes para ver el comprobante');
+    }
+  }
+
+  /**
+   * Crear contenido del comprobante
+   */
+  private crearContenidoComprobante(): string {
+    return `
     <div class="header">
       <h1>COMPROBANTE DE REGISTRO</h1>
       <h2>Examen Preocupacional</h2>
@@ -205,15 +200,15 @@ private crearContenidoComprobante(): string {
       <p>Documento generado electrónicamente</p>
     </div>
   `;
-}
+  }
 
-   /**
-   * Sale del modal, cierra sesión y redirige a login
-   */
- salir(): void {
+  /**
+  * Sale del modal, cierra sesión y redirige a login
+  */
+  salir(): void {
     // Cerrar la modal primero
     this.dialogRef.close({ action: 'salir' });
-    
+
     // Usar setTimeout para asegurar que la modal se cierre antes de navegar
     setTimeout(() => {
       // Usar NgZone.run para ejecutar en el contexto correcto de Angular
@@ -231,16 +226,16 @@ private crearContenidoComprobante(): string {
     try {
       // 1. Limpiar datos de sesión
       this.limpiarDatosSesion();
-      
+
       // 2. Redirigir a login
       this.router.navigate(['/login'], {
         replaceUrl: true, // Reemplaza la URL en el historial
         queryParams: { logout: 'true' } // Opcional: parámetro para mostrar mensaje
       });
-      
+
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      
+
       // En caso de error, intentar redirigir de todas formas
       try {
         this.router.navigate(['/login']);
@@ -259,19 +254,19 @@ private crearContenidoComprobante(): string {
       // Limpiar localStorage
       const itemsParaMantener = ['configuracion', 'preferencias']; // Ajusta según necesites
       const localStorageKeys = Object.keys(localStorage);
-      
+
       localStorageKeys.forEach(key => {
         if (!itemsParaMantener.includes(key)) {
           localStorage.removeItem(key);
         }
       });
-      
+
       // Limpiar sessionStorage
       sessionStorage.clear();
-      
+
       // Limpiar cookies relacionadas con autenticación
       this.limpiarCookies();
-      
+
       console.log('Sesión cerrada correctamente');
     } catch (error) {
       console.warn('Error parcial al limpiar sesión:', error);
@@ -284,11 +279,11 @@ private crearContenidoComprobante(): string {
   private limpiarCookies(): void {
     try {
       const cookies = document.cookie.split(';');
-      
+
       cookies.forEach(cookie => {
         const eqPos = cookie.indexOf('=');
         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-        
+
         // Eliminar cookies relacionadas con auth/session
         if (name.includes('token') || name.includes('session') || name.includes('auth')) {
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
@@ -308,13 +303,13 @@ private crearContenidoComprobante(): string {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
       localStorage.removeItem('empresa');
-      
+
       // Limpiar sessionStorage
       sessionStorage.clear();
-      
+
       // También podrías llamar a un servicio de auth para logout
       // Ejemplo: this.authService.logout();
-      
+
       console.log('Sesión cerrada correctamente');
     } catch (error) {
       console.warn('Error al limpiar sesión:', error);
@@ -340,5 +335,24 @@ private crearContenidoComprobante(): string {
    */
   get subtituloModal(): string {
     return `${this.data.empresa.razonSocial} (NIT: ${this.data.empresa.nit})`;
+  }
+
+  // En el modal de éxito, modificar el mensaje:
+  private mostrarModalExito(response: any): void {
+    const modalData = {
+      // ... datos existentes
+      mensajeAdicional: `
+      ✅ Su registro ha sido recibido exitosamente.
+      
+      📋 **Próximos pasos:**
+      1. Nuestro equipo revisará su documentación (1-2 días hábiles)
+      2. Recibirá un email con el resultado de la revisión
+      3. Si es aprobado, podrá seleccionar horarios disponibles
+      4. Confirmación final de su cita
+      
+      ✉️ Revise su bandeja de entrada y spam
+    `
+    };
+    // ... abrir modal
   }
 }
