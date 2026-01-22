@@ -1,9 +1,9 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { PaginationDTO } from '../models/PaginationDTO';
-import { buildQueryParams } from '../shared/functions/buildQueryParams';
+import { environment } from '../../../environments/environment';
+import { PaginationDTO } from '../../models/PaginationDTO';
+import { buildQueryParams } from '../../shared/utils/buildQueryParams';
 
 export interface ExamenPreocupacionalResponse {
   id: number;

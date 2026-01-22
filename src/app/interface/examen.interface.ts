@@ -1,4 +1,4 @@
-import { AseguradoCreateDTO } from "../service/examen-preocupacional.service";
+import { AseguradoCreateDTO } from "../core/service/examen-preocupacional.service";
 
 // Interfaz para asegurados que vienen del backend
 export interface AseguradoBackend {

@@ -1,8 +1,8 @@
 
 import { RouterModule } from '@angular/router';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { SesionService } from '../../../service/sesion.service';
-import { EmpresaService } from '../../../service/empresa.service';
+import { SesionService } from '../../../core/service/sesion.service';
+import { EmpresaService } from '../../../core/service/empresa.service';
 import { Subscription } from 'rxjs';
 import { MatIcon } from "@angular/material/icon";
 import { SharedMaterialModule } from '../../modules/material.module'; //Angular Material módulos compartidos

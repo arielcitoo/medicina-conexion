@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { routes } from './app.routes';
-import { AseguradosService } from './service/asegurados.service';
+import { AseguradosService } from './core/service/asegurados.service';
 import { BrowserModule } from '@angular/platform-browser';
 import { SharedMaterialModule } from './shared/modules/material.module';//angular Material módulos compartidos
 //import { ExamenPreocupacionalService } from './service/examen-preocupacional.service';

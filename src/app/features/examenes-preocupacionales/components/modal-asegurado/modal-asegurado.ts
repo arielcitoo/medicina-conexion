@@ -2,15 +2,15 @@
 import { Component, Inject, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { AseguradoExamen, AseguradoBackend } from '../../interface/examen.interface'; // Cambiar import
-import { AseguradosService } from '../../service/asegurados.service';
+import { AseguradoExamen, AseguradoBackend } from '../../../../interface/examen.interface'; // Cambiar import
+import { AseguradosService } from '../../../../core/service/asegurados.service';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
-import { SharedMaterialModule } from '../../shared/modules/material.module';
-import { BusquedaAseguradoResponse } from '../../interface/asegurado.interface';
-import { AseguradoCreateDTO } from '../../service/examen-preocupacional.service'; // Añadir este import
+import { SharedMaterialModule } from '../../../../shared/modules/material.module';
+import { BusquedaAseguradoResponse } from '../../../../interface/asegurado.interface';
+import { AseguradoCreateDTO } from '../../../../core/service/examen-preocupacional.service'; // Añadir este import
 
 
 

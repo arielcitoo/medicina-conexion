@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SesionService } from '../../service/sesion.service';
-import { EmpresaService } from '../../service/empresa.service';
+import { SesionService } from '../../../../core/service/sesion.service';
+import { EmpresaService } from '../../../../core/service/empresa.service';
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatHint, MatError, MatFormField, MatLabel } from "@angular/material/form-field";
-import { SharedMaterialModule } from '../../shared/modules/material.module'; // angular Material módulos compartidos
+import { SharedMaterialModule } from '../../../../shared/modules/material.module'; // angular Material módulos compartidos
 
 
 

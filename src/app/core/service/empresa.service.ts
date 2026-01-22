@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { BaseApiService } from '../service/base-api.service';
-import { Empresa, VerificacionEmpresaResponse } from '../interface/empresa.interface';
-import { API_CONFIG, STORAGE_KEYS, ERROR_MESSAGES } from '../shared/config/api.config';
+import { BaseApiService } from './base-api.service';
+import { Empresa, VerificacionEmpresaResponse } from '../../interface/empresa.interface';
+import { API_CONFIG, STORAGE_KEYS, ERROR_MESSAGES } from '../../shared/config/api.config';
 
 @Injectable({
   providedIn: 'root'

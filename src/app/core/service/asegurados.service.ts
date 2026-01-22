@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { BaseApiService } from '../service/base-api.service';
-import { Asegurado, BusquedaAseguradoResponse } from '../interface/asegurado.interface';
-import { API_CONFIG } from '../shared/config/api.config';
+import { BaseApiService } from './base-api.service';
+import { Asegurado, BusquedaAseguradoResponse } from '../../interface/asegurado.interface';
+import { API_CONFIG } from '../../shared/config/api.config';
 
 
 @Injectable({

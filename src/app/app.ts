@@ -1,10 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Header} from './shared/components/header/header';
 import { filter } from 'rxjs';
-import { SesionService } from './service/sesion.service';
-import { EmpresaService } from './service/empresa.service';
+import { SesionService } from './core/service/sesion.service';
+import { EmpresaService } from './core/service/empresa.service';
 
 @Component({
   selector: 'app-root',
@@ -15,28 +15,18 @@ import { EmpresaService } from './service/empresa.service';
 })
 export class App implements OnInit {
 
-  currentYear = new Date().getFullYear();
-  debugMode = true;
-  tieneSesion = false;
-  tieneEmpresa = false;
+   private readonly router = inject(Router);
+  private readonly sesionService = inject(SesionService);
+  private readonly empresaService = inject(EmpresaService);
 
-  
-
-   protected readonly title = signal('medicina-del-trabajo');
-   constructor(private router: Router,
-     private sesionService: SesionService,
-    private empresaService: EmpresaService) {}
-
-ngOnInit(): void {
-    console.log(' App inicializado');
-    
-    // Verificar estado inicial
-    this.tieneSesion = !!this.sesionService.getIdAcceso();
-    this.tieneEmpresa = !!this.empresaService.getEmpresaExamen();
-    
-    console.log(' Estado inicial AppComponent:', {
-      tieneSesion: this.tieneSesion,
-      tieneEmpresa: this.tieneEmpresa
+  ngOnInit(): void {
+    // Track navigation for analytics
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      // Analytics tracking would go here
     });
+
+    console.log('App inicializado');
   }
 }

@@ -1,6 +1,5 @@
+// shared/modules/material.module.ts
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 // Material Components
 import { MatButtonModule } from '@angular/material/button';
@@ -20,51 +19,43 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatListModule } from '@angular/material/list';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTabsModule } from '@angular/material/tabs';
+
+const MATERIAL_MODULES = [
+  MatButtonModule,
+  MatCardModule,
+  MatCheckboxModule,
+  MatDatepickerModule,
+  MatDialogModule,
+  MatDividerModule,
+  MatFormFieldModule,
+  MatIconModule,
+  MatInputModule,
+  MatMenuModule,
+  MatNativeDateModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatSnackBarModule,
+  MatStepperModule,
+  MatTableModule,
+  MatTooltipModule,
+  MatBadgeModule,
+  MatChipsModule,
+  MatExpansionModule,
+  MatListModule,
+  MatPaginatorModule,
+  MatSortModule,
+  MatTabsModule
+];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatCheckboxModule,
-    MatDatepickerModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatMenuModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatStepperModule,
-    MatTableModule,
-    MatTooltipModule
-  ],
-  exports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatCheckboxModule,
-    MatDatepickerModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatMenuModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatStepperModule,
-    MatTableModule,
-    MatTooltipModule
-  ]
+  imports: MATERIAL_MODULES,
+  exports: MATERIAL_MODULES
 })
 export class SharedMaterialModule {}

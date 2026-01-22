@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { BusquedaAseguradoResponse } from '../interface/asegurado.interface'; // Importar el API service existente
-import { AseguradoExamen  } from '../interface/examen.interface';
-import { AseguradosService } from './asegurados.service';
+import { BusquedaAseguradoResponse } from '../../../interface/asegurado.interface';
+import { AseguradoExamen } from '../../../interface/examen.interface';
+import { AseguradosService } from '../../../core/service/asegurados.service';
 
 
 @Injectable({

@@ -5,19 +5,19 @@ import { Router } from '@angular/router';
 import { MatStepper, MatStep } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ExamenService } from '../../service/examen.service';
-import { EmpresaService } from '../../service/empresa.service';
+import { ExamenService } from '../../services/examen.service';
+import { EmpresaService } from '../../../../core/service/empresa.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ExamenExitoModal, ExitoModalData } from '../examen-exito-modal/examen-exito-modal';
-import { SharedMaterialModule } from '../../shared/modules/material.module'; // Angular Material módulos compartidos
+import { SharedMaterialModule } from '../../../../shared/modules/material.module'; // Angular Material módulos compartidos
 
 // Importar el servicio de examen preocupacional y asegurados
-import { ExamenPreocupacionalService, ExamenPreocupacionalCreateDTO, AseguradoCreateDTO, ExamenPreocupacionalResponse } from '../../service/examen-preocupacional.service';
-import { AseguradosService } from '../../service/asegurados.service'; // Asumo que existe este servicio
-import { AseguradoExamen, AseguradoBackend } from '../../interface/examen.interface';
-import { ErrorModal } from '../../shared/error/error-modal/error-modal';
+import { ExamenPreocupacionalService, ExamenPreocupacionalCreateDTO, AseguradoCreateDTO, ExamenPreocupacionalResponse } from '../../../../core/service/examen-preocupacional.service';
+import { AseguradosService } from '../../../../core/service/asegurados.service'; // Asumo que existe este servicio
+import { AseguradoExamen, AseguradoBackend } from '../../../../interface/examen.interface';
+import { ErrorModal } from '../../../../shared/components/error-modal/error-modal';
 
 
 

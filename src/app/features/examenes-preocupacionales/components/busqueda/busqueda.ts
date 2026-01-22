@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AseguradosService } from '../../service/asegurados.service';
-import { Asegurado } from '../../interface/asegurado.interface';
+import { AseguradosService } from '../../../../core/service/asegurados.service';
+import { Asegurado } from '../../../../interface/asegurado.interface';
 
 @Component({
   selector: 'app-busqueda',
