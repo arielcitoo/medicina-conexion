@@ -1,1 +1,191 @@
-<p>paso2-asegurados works!</p>
+<div class="paso2-container">
+
+    <!-- Título y estadísticas -->
+    <div class="paso-header">
+        <div class="header-content">
+            <h3 class="paso-title">
+                <mat-icon>person_add</mat-icon>
+                Agregar Asegurados
+            </h3>
+            <div class="header-stats">
+                <span class="stat-item">
+                    <span class="stat-number">{{ asegurados.length }}</span>
+                    <span class="stat-label">agregados</span>
+                </span>
+                <span class="stat-item">
+                    <span class="stat-number">{{ cantidadPermitida }}</span>
+                    <span class="stat-label">requeridos</span>
+                </span>
+            </div>
+        </div>
+
+        <p class="paso-description">
+            Agregue los asegurados que realizarán el examen preocupacional
+        </p>
+    </div>
+
+    <!-- Botón para agregar -->
+    <div class="add-button-container">
+        <button mat-raised-button color="primary" (click)="openAddAseguradoModal()"
+            [disabled]="asegurados.length >= cantidadPermitida" class="add-button">
+            <mat-icon>add</mat-icon>
+            Agregar Asegurado
+            @if (cantidadPermitida > 0) {
+            <span class="counter">({{ asegurados.length }}/{{ cantidadPermitida }})</span>
+            }
+        </button>
+    </div>
+
+    <!-- Tabla de asegurados -->
+    @if (asegurados.length > 0) {
+    <div class="table-container mat-elevation-z2">
+        <table mat-table [dataSource]="asegurados" class="asegurados-table">
+
+            <!-- Columna: Nombre -->
+            <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                <td mat-cell *matCellDef="let asegurado" class="nombre-cell">
+                    <div class="nombre-content">
+                        <mat-icon class="person-icon">person</mat-icon>
+                        <span class="nombre-text">{{ asegurado.nombreCompleto }}</span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Columna: CI -->
+            <ng-container matColumnDef="ci">
+                <th mat-header-cell *matHeaderCellDef>CI/NIT</th>
+                <td mat-cell *matCellDef="let asegurado" class="ci-cell">
+                    <span class="ci-text">{{ asegurado.ci }}</span>
+                </td>
+            </ng-container>
+
+            <!-- Columna: Correo -->
+            <ng-container matColumnDef="correo">
+                <th mat-header-cell *matHeaderCellDef>Correo</th>
+                <td mat-cell *matCellDef="let asegurado">
+                    <div class="contact-cell">
+                        <mat-icon class="contact-icon" [class.missing]="!asegurado.correoElectronico">
+                            email
+                        </mat-icon>
+                        <span [class.missing]="!asegurado.correoElectronico">
+                            {{ asegurado.correoElectronico || 'No asignado' }}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Columna: Celular -->
+            <ng-container matColumnDef="celular">
+                <th mat-header-cell *matHeaderCellDef>Celular</th>
+                <td mat-cell *matCellDef="let asegurado">
+                    <div class="contact-cell">
+                        <mat-icon class="contact-icon" [class.missing]="!asegurado.celular">
+                            phone
+                        </mat-icon>
+                        <span [class.missing]="!asegurado.celular">
+                            {{ asegurado.celular || 'No asignado' }}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Columna: Archivos -->
+            <ng-container matColumnDef="archivos">
+                <th mat-header-cell *matHeaderCellDef>Formulario Gestora</th>
+                <td mat-cell *matCellDef="let asegurado" class="archivos-cell">
+                    <div class="archivos-container">
+                        <!-- Anverso -->
+                        <div class="archivo-item">
+                            <input type="file" #anversoInput hidden
+                                (change)="onFileSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+                                accept="image/*,.pdf">
+                            <button mat-mini-fab color="primary" size="small"
+                                [matTooltip]="getFileName(asegurado.idTemporal || asegurado.aseguradoId, 'anverso')"
+                                (click)="anversoInput.click()" class="archivo-button">
+                                <mat-icon>cloud_upload</mat-icon>
+                            </button>
+                            <div class="archivo-status">
+                                <span class="archivo-label">A</span>
+                                <span class="archivo-indicator"
+                                    [class.complete]="getFileName(asegurado.idTemporal || asegurado.aseguradoId, 'anverso') !== 'Sin archivo'">
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Reverso -->
+                        <div class="archivo-item">
+                            <input type="file" #reversoInput hidden
+                                (change)="onFileSelected($event, asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+                                accept="image/*,.pdf">
+                            <button mat-mini-fab color="primary" size="small"
+                                [matTooltip]="getFileName(asegurado.idTemporal || asegurado.aseguradoId, 'reverso')"
+                                (click)="reversoInput.click()" class="archivo-button">
+                                <mat-icon>cloud_upload</mat-icon>
+                            </button>
+                            <div class="archivo-status">
+                                <span class="archivo-label">R</span>
+                                <span class="archivo-indicator"
+                                    [class.complete]="getFileName(asegurado.idTemporal || asegurado.aseguradoId, 'reverso') !== 'Sin archivo'">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Columna: Acciones -->
+            <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let asegurado" class="acciones-cell">
+                    <button mat-icon-button color="warn"
+                        (click)="eliminarAsegurado.emit(asegurado.idTemporal || asegurado.aseguradoId)"
+                        matTooltip="Eliminar asegurado" class="delete-button">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <!-- Header y rows -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+    }
+
+    <!-- Estado vacío -->
+    @if (asegurados.length === 0) {
+    <div class="empty-state">
+        <mat-icon class="empty-icon">group</mat-icon>
+        <h4 class="empty-title">No hay asegurados agregados</h4>
+        <p class="empty-description">
+            Use el botón "Agregar Asegurado" para comenzar
+        </p>
+    </div>
+    }
+
+    <!-- Resumen de estado -->
+    <!-- @if (asegurados.length > 0) {
+    <div class="status-summary">
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="summary-number">{{ asegurados.length }}</span>
+                <span class="summary-label">Total</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number">{{ contarCompletos() }}</span>
+                <span class="summary-label">Con contacto</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number">{{ contarConArchivos() }}</span>
+                <span class="summary-label">Con archivos</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number">{{ cantidadPermitida }}</span>
+                <span class="summary-label">Requeridos</span>
+            </div>
+        </div>
+    </div>
+    } -->
+
+</div>

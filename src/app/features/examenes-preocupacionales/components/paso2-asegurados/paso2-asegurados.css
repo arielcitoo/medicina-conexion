@@ -1,0 +1,463 @@
+/* features/examen-preocupacional/components/paso2-asegurados/paso2-asegurados.component.css */
+
+.paso2-container {
+  padding: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Header */
+.paso-header {
+  margin-bottom: 30px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.paso-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #3f51b5;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.paso-title mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.header-stats {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 8px 16px;
+  border-radius: 8px;
+  min-width: 80px;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: bold;
+  color: #3f51b5;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.paso-description {
+  color: #666;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Botón agregar */
+.add-button-container {
+  margin: 25px 0;
+  text-align: center;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 28px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.add-button:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(63, 81, 181, 0.2);
+}
+
+.add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.counter {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+/* Tabla */
+.table-container {
+  margin: 30px 0;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: white;
+}
+
+.asegurados-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+/* Estilos de columnas */
+.nombre-cell {
+  min-width: 200px;
+}
+
+.nombre-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.person-icon {
+  color: #3f51b5;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.nombre-text {
+  font-weight: 500;
+  color: #333;
+}
+
+.ci-cell {
+  min-width: 120px;
+}
+
+.ci-text {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #666;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.contact-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.contact-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.contact-icon.missing {
+  color: #f44336;
+}
+
+.missing {
+  color: #f44336;
+  font-style: italic;
+}
+
+/* Columna de archivos */
+.archivos-cell {
+  min-width: 180px;
+}
+
+.archivos-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.archivo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.archivo-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.archivo-button:hover {
+  transform: scale(1.1);
+}
+
+.archivo-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.archivo-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.archivo-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f44336;
+  transition: background 0.3s ease;
+}
+
+.archivo-indicator.complete {
+  background: #4caf50;
+}
+
+/* Columna de acciones */
+.acciones-cell {
+  min-width: 80px;
+}
+
+.delete-button {
+  color: #f44336;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background: #ffebee;
+  transform: scale(1.1);
+}
+
+/* Estado vacío */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  margin: 30px 0;
+  background: #fafafa;
+  animation: fadeIn 0.5s ease;
+}
+
+.empty-icon {
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+  color: #ccc;
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.empty-title {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.empty-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Resumen de estado */
+.status-summary {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  border: 1px solid #dee2e6;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.summary-item {
+  text-align: center;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.summary-item:hover {
+  border-color: #3f51b5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-number {
+  display: block;
+  font-size: 28px;
+  font-weight: bold;
+  color: #3f51b5;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.summary-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.add-button:not([disabled]):hover {
+  animation: pulse 2s infinite;
+}
+
+/* Tooltip personalizado */
+::ng-deep .mat-mdc-tooltip {
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .stat-item {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .paso2-container {
+    padding: 15px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .archivos-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .contact-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .empty-state {
+    padding: 40px 15px;
+  }
+  
+  .empty-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .paso-title {
+    font-size: 1.1rem;
+  }
+  
+  .paso-title mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-item {
+    min-width: 60px;
+    padding: 6px 12px;
+  }
+  
+  .stat-number {
+    font-size: 18px;
+  }
+  
+  .summary-number {
+    font-size: 24px;
+  }
+}
+
+/* Estados de hover en filas */
+::ng-deep .mat-mdc-row {
+  transition: background-color 0.2s ease;
+}
+
+::ng-deep .mat-mdc-row:hover {
+  background-color: #f5f5f5;
+}
+
+/* Estilos para filas con datos incompletos */
+::ng-deep .mat-mdc-row.incomplete {
+  background-color: #fff3e0;
+}
+
+::ng-deep .mat-mdc-row.incomplete:hover {
+  background-color: #ffe0b2;
+}

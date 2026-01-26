@@ -1,5 +1,27 @@
 import { AseguradoCreateDTO } from "../core/service/examen-preocupacional.service";
 
+
+export interface ExamenRequest {
+  numeroPatronal: string;
+  razonSocial: string;
+  nit: string;
+  observaciones?: string;
+  Asegurados: AseguradoCreateDTO[];
+}
+
+/**
+ * Respuesta del API al crear un examen
+ */
+export interface ExamenResponse {
+  id: number;
+  numeroPatronal: string;
+  razonSocial: string;
+  nit: string;
+  fechaSolicitud: string;
+  estado: string;
+  observaciones?: string;
+}
+
 // Interfaz para asegurados que vienen del backend
 export interface AseguradoBackend {
   id: number; // ID en la tabla asegurados

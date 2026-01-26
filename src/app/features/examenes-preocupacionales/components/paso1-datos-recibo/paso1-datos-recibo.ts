@@ -1,16 +1,18 @@
 // features/examen-preocupacional/components/paso1-datos-recibo/paso1-datos-recibo.component.ts
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 import { FormGroup } from '@angular/forms';
 import { SharedMaterialModule } from '../../../../shared/modules/material.module';
 
 @Component({
   selector: 'app-paso1-datos-recibo',
   standalone: true,
-  imports: [SharedMaterialModule],
+  imports: [CommonModule,SharedMaterialModule,ReactiveFormsModule],
   templateUrl: './paso1-datos-recibo.html',
   styleUrls: ['./paso1-datos-recibo.css']
 })
-export class Paso1DatosReciboComponent {
+export class Paso1DatosRecibo{
   @Input() form!: FormGroup;
   @Output() fileSelected = new EventEmitter<File>();
   @Output() fileRemoved = new EventEmitter<void>();

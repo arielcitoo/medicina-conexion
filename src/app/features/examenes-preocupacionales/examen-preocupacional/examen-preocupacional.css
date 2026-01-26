@@ -1,0 +1,264 @@
+/* features/examenes-preocupacionales/examen-preocupacional/examen-preocupacional.css */
+.examen-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Ajuste para el Header */
+app-header {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.examen-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.empresa-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #e8f5e9;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.empresa-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empresa-nombre {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.empresa-detalle {
+  font-size: 14px;
+  color: #666;
+}
+
+.id-ingreso {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #2196f3;
+  background: #e3f2fd;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+/* Stepper */
+::ng-deep .mat-step-header {
+  background: #f8f9fa !important;
+}
+
+/* Recibo info */
+.recibo-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.recibo-info h4 {
+  color: #3f51b5;
+  margin: 0 0 15px 0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recibo-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item .label {
+  color: #555;
+  font-weight: 500;
+}
+
+.detail-item .value {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Validation status */
+.validation-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  background: #ffebee;
+  border: 1px solid #f44336;
+}
+
+.validation-status.valid {
+  background: #e8f5e9;
+  border: 1px solid #4caf50;
+}
+
+.validation-status mat-icon {
+  color: #f44336;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.validation-status.valid mat-icon {
+  color: #4caf50;
+}
+
+.status-details {
+  flex: 1;
+}
+
+.status-text {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.valid-text {
+  color: #2e7d32;
+}
+
+.error-text {
+  color: #c62828;
+}
+
+.requirements-list {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.requirements-list li {
+  margin-bottom: 5px;
+}
+
+/* Step actions */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.step-actions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.step-actions button:hover:not([disabled]) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.step-actions button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.next-button {
+  background: #3f51b5;
+  color: white !important;
+}
+
+.next-button:hover:not([disabled]) {
+  background: #303f9f;
+}
+
+/* Footer */
+.examen-footer {
+  padding: 16px 24px;
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-content mat-icon {
+  color: #666;
+}
+
+.footer-text p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.footer-subtext {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .examen-container {
+    padding: 10px;
+  }
+  
+  .empresa-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .recibo-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .step-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .step-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .validation-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

@@ -1,0 +1,135 @@
+<!-- features/examenes-preocupacionales/examen-preocupacional/examen-preocupacional.html -->
+<div class="examen-container">
+
+    <!-- Header Component -->
+    <app-header></app-header>
+
+    <mat-card class="examen-card">
+
+        <!-- Header interno del card -->
+        <mat-card-header>
+            <mat-card-title class="examen-title">
+                Registro de Examen Preocupacional
+            </mat-card-title>
+            <mat-card-subtitle class="examen-subtitle">
+                Complete los datos en los siguientes pasos
+            </mat-card-subtitle>
+        </mat-card-header>
+
+
+        <mat-card-content>
+            <!-- Stepper -->
+            <mat-stepper #stepper linear>
+
+                <!-- PASO 1: Datos del Recibo -->
+                <mat-step [stepControl]="paso1Form" label="Datos del Recibo">
+
+                    <!-- Componente hijo para Paso 1 -->
+                    <app-paso1-datos-recibo [form]="paso1Form" (fileSelected)="onFileReciboSelected($event)"
+                        (fileRemoved)="paso1Form.get('imagenRecibo')?.setValue(null)">
+                    </app-paso1-datos-recibo>
+
+                    <!-- Acciones del paso -->
+                    <div class="step-actions">
+                        <button mat-button matStepperNext [disabled]="!paso1Form.valid" color="primary"
+                            class="next-button">
+                            Siguiente
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                    </div>
+
+                </mat-step>
+
+                <!-- PASO 2: Asegurados -->
+                <mat-step [stepControl]="paso2Form" label="Asegurados">
+
+
+                    <!-- Componente hijo para Paso 2 -->
+                    <app-paso2-asegurados [asegurados]="asegurados" [archivosAsegurados]="archivosAsegurados"
+                        [cantidadPermitida]="paso1Form.get('cantidadAsegurados')?.value || 0"
+                        (agregarAsegurado)="onAseguradoAdded($event)" (eliminarAsegurado)="onAseguradoDeleted($event)"
+                        (fileSelected)="onFileAseguradoSelected($event)">
+                    </app-paso2-asegurados>
+
+                    <!-- Estado de validación -->
+                    <div class="validation-status" [class.valid]="canProceedToStep2()">
+                        <mat-icon>{{ canProceedToStep2() ? 'check_circle' : 'error_outline' }}</mat-icon>
+                        <div class="status-details">
+                            @if (canProceedToStep2()) {
+                            <span class="status-text valid-text">✓ Todos los requisitos están completos</span>
+                            } @else {
+                            <span class="status-text error-text">Requisitos pendientes:</span>
+                            <ul class="requirements-list">
+                                <li>
+                                    Asegurados: {{ asegurados.length }} de {{ paso1Form.get('cantidadAsegurados')?.value
+                                    }}
+                                </li>
+                                <li>
+                                    Con contacto completo: {{ contarAseguradosCompletos() }} de {{ asegurados.length }}
+                                </li>
+                                <li>
+                                    Con archivos completos: {{ contarAseguradosConArchivos() }} de {{ asegurados.length
+                                    }}
+                                </li>
+                            </ul>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Acciones del paso -->
+                    <div class="step-actions">
+                        <button mat-button matStepperPrevious color="basic">
+                            <mat-icon>arrow_back</mat-icon>
+                            Anterior
+                        </button>
+
+                        <button mat-button matStepperNext [disabled]="!canProceedToStep2()" color="primary"
+                            class="next-button">
+                            Siguiente
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                    </div>
+
+                </mat-step>
+
+                <!-- PASO 3: Resumen y Finalizar -->
+                <mat-step label="Resumen y Finalizar">
+
+                    <!-- Componente hijo para Paso 3 -->
+                    <app-paso3-finalizar 
+                        [empresa]="empresa" 
+                        [paso1Form]="paso1Form" 
+                        [asegurados]="asegurados"
+                        [archivosAsegurados]="archivosAsegurados" 
+                        [idIngresoGenerado]="idIngresoGenerado"
+                        [isLoading]="isLoading" [canProceedToStep2]="canProceedToStep2()"
+                        (finalizarRegistro)="finalizarRegistro()"
+                        (abrirModalExito)="onReiniciarRegistro()">
+                    </app-paso3-finalizar>
+                    
+                    <!-- Acciones del paso -->
+                    <div class="step-actions">
+                        <button mat-button matStepperPrevious color="basic">
+                            <mat-icon>arrow_back</mat-icon>
+                            Anterior
+                        </button>
+                    </div>
+
+                </mat-step>
+
+            </mat-stepper>
+        </mat-card-content>
+
+        <!-- Footer informativo -->
+        <mat-card-footer class="examen-footer">
+            <div class="footer-content">
+                <mat-icon>info</mat-icon>
+                <div class="footer-text">
+                    <p>Si necesita ayuda, contacte al área de informática del CNS.</p>
+                    <p class="footer-subtext">Sistema CNS - Versión 1.0.0</p>
+                </div>
+            </div>
+        </mat-card-footer>
+
+    </mat-card>
+</div>

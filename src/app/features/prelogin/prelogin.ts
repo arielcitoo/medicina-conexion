@@ -1,5 +1,5 @@
 
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EmpresaService } from '../../core/service/empresa.service';
 import { Component, OnInit, OnDestroy, inject,ChangeDetectorRef} from '@angular/core';
@@ -11,7 +11,7 @@ import { SharedMaterialModule } from '../../shared/modules/material.module'; //A
 @Component({
   selector: 'app-prelogin',
   standalone: true,
-  imports: [ SharedMaterialModule ],
+  imports: [ SharedMaterialModule,ReactiveFormsModule ],
   templateUrl: './prelogin.html',
   styleUrl: './prelogin.css',
 })

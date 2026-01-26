@@ -1,0 +1,188 @@
+<!-- features/examenes-preocupacionales/components/paso3-finalizar/paso3-finalizar.html -->
+<div class="paso3-container">
+  
+  <!-- Título del paso -->
+  <div class="paso-header">
+    <h3 class="paso-title">
+      <mat-icon>checklist</mat-icon>
+      Resumen y Finalización
+    </h3>
+    <p class="paso-description">
+      Verifique toda la información antes de finalizar el registro
+    </p>
+  </div>
+
+  <!-- Resumen del examen -->
+  <div class="resumen-section">
+    
+    <!-- Tarjeta de empresa -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title class="summary-title">
+          <mat-icon>business</mat-icon>
+          Datos de la Empresa
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong>Razón Social:</strong>
+            <span>{{ empresa?.razonSocial || 'No disponible' }}</span>
+          </div>
+          <div class="summary-item">
+            <strong>NIT:</strong>
+            <span>{{ empresa?.nit || empresa?.NIT || 'No disponible' }}</span>
+          </div>
+          <div class="summary-item">
+            <strong>Número Patronal:</strong>
+            <span>{{ empresa?.nroPatronal || empresa?.numeroPatronal || 'No disponible' }}</span>
+          </div>
+          <div class="summary-item">
+            <strong>ID de Registro:</strong>
+            <span class="id-highlight">{{ idIngresoGenerado }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tarjeta de recibo -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title class="summary-title">
+          <mat-icon>receipt</mat-icon>
+          Datos del Recibo
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <strong>Número de Recibo:</strong>
+            <span>{{ paso1Form.get('numeroRecibo')?.value }}</span>
+          </div>
+          <div class="summary-item">
+            <strong>Total Importe:</strong>
+            <span>Bs. {{ paso1Form.get('totalImporte')?.value | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-item">
+            <strong>Cantidad de Asegurados:</strong>
+            <span>{{ paso1Form.get('cantidadAsegurados')?.value }}</span>
+          </div>
+          @if (paso1Form.get('cantidadAsegurados')?.value > 1) {
+            <div class="summary-item">
+              <strong>Correo Empleador:</strong>
+              <span>{{ paso1Form.get('correoEmpleador')?.value }}</span>
+            </div>
+            <div class="summary-item">
+              <strong>Celular Empleador:</strong>
+              <span>{{ paso1Form.get('celularEmpleador')?.value }}</span>
+            </div>
+          }
+          <div class="summary-item">
+            <strong>Recibo Cargado:</strong>
+            @if (paso1Form.get('imagenRecibo')?.value) {
+              <span class="status-success">
+                <mat-icon>check_circle</mat-icon> Sí
+              </span>
+            } @else {
+              <span class="status-error">
+                <mat-icon>error</mat-icon> No
+              </span>
+            }
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tarjeta de asegurados -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title class="summary-title">
+          <mat-icon>people</mat-icon>
+          Asegurados Registrados ({{ asegurados.length }})
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="asegurados-summary">
+          @for (asegurado of asegurados; track asegurado.aseguradoId; let i = $index) {
+            <div class="asegurado-summary-item">
+              <div class="asegurado-header">
+                <mat-icon>person</mat-icon>
+                <span class="asegurado-nombre">{{ asegurado.nombreCompleto }}</span>
+              </div>
+              <div class="asegurado-details">
+                <div class="detail-row">
+                  <span class="detail-label">CI/NIT:</span>
+                  <span class="detail-value">{{ asegurado.ci }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Correo:</span>
+                  <span [class]="asegurado.correoElectronico ? 'detail-value' : 'detail-missing'">
+                    {{ asegurado.correoElectronico || 'No asignado' }}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Celular:</span>
+                  <span [class]="asegurado.celular ? 'detail-value' : 'detail-missing'">
+                    {{ asegurado.celular || 'No asignado' }}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Formularios:</span>
+                  @if (tieneArchivosCompletos(asegurado.aseguradoId)) {
+                    <span class="status-success">
+                      <mat-icon>check_circle</mat-icon> Completos
+                    </span>
+                  } @else {
+                    <span class="status-error">
+                      <mat-icon>error</mat-icon> Incompletos
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Indicadores de estado -->
+  <div class="status-indicators">
+    <div class="status-indicator" [class.complete]="asegurados.length === paso1Form.get('cantidadAsegurados')?.value">
+      <span class="indicator-number">{{ asegurados.length }}</span>
+      <span class="indicator-label">Asegurados</span>
+    </div>
+    <div class="status-indicator" [class.complete]="contarAseguradosCompletos() === asegurados.length">
+      <span class="indicator-number">{{ contarAseguradosCompletos() }}</span>
+      <span class="indicator-label">Con contacto</span>
+    </div>
+    <div class="status-indicator" [class.complete]="contarAseguradosConArchivos() === asegurados.length">
+      <span class="indicator-number">{{ contarAseguradosConArchivos() }}</span>
+      <span class="indicator-label">Con archivos</span>
+    </div>
+  </div>
+
+  <!-- Advertencia final -->
+  <div class="final-warning">
+    <mat-icon>warning</mat-icon>
+    <p>Verifique que toda la información sea correcta antes de finalizar el registro.</p>
+  </div>
+
+  <!-- Acciones finales -->
+  <div class="step-actions">
+    <button mat-raised-button 
+            color="primary"
+            [disabled]="isLoading || !canProceedToStep2"
+            (click)="onFinalizar()"
+            class="finalizar-button">
+      @if (isLoading) {
+        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        <span>Guardando...</span>
+      } @else {
+        <mat-icon>check_circle</mat-icon>
+        <span>Finalizar Registro</span>
+      }
+    </button>
+  </div>
+
+</div>

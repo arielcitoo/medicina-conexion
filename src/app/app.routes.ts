@@ -1,33 +1,38 @@
 // app-routing.module.ts
-import { NgModule } from '@angular/core';
-import { RouterModule,Routes } from '@angular/router';
-import { Home } from './features/home/home'; // Asegúrate de tener este componente
-import { Busqueda } from './features/examenes-preocupacionales/components/busqueda/busqueda';
-import { Prelogin } from './features/prelogin/prelogin';
-import { ExamenPreocupacional } from './features/examenes-preocupacionales/components/examen-preocupacional/examen-preocupacional';
+
+import { Routes } from '@angular/router';
 import { AuthGuard } from './interceptors/auth.guard';
-import { Login } from './features/examenes-preocupacionales/components/login/login';
 
 export const routes: Routes = [
 
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-
-  { path: 'login', component: Login }, 
-  { path: 'prelogin', component: Prelogin },
-  { path: 'home', component: Home },
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'busqueda', component: Busqueda },
-  
-  { 
-    path: 'examen-preocupacional', 
-    component: ExamenPreocupacional,
-    canActivate: [AuthGuard]  // <-- PROTEGER CON GUARD
+  { path: '',
+    redirectTo: '/login', 
+    pathMatch: 'full' 
   },
-   { path: '**', redirectTo: '/prelogin' }
-];
 
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }
+  { 
+    path: 'login', 
+    loadComponent: () => import('./features/examenes-preocupacionales/components/login/login').then(m => m.Login)
+  },
+
+  { 
+    path: 'prelogin', 
+    loadComponent: () => import('./features/prelogin/prelogin').then(m => m.Prelogin)
+  },
+
+  { 
+    path: 'busqueda', 
+    loadComponent: () => import('./features/examenes-preocupacionales/components/busqueda/busqueda').then(m => m.Busqueda)
+  },
+
+ { 
+    path: 'examen-preocupacional', 
+    loadComponent: () => import('./features/examenes-preocupacionales/examen-preocupacional/examen-preocupacional').then(m => m.ExamenPreocupacional),
+    canActivate: [AuthGuard]
+  },
+{ 
+    path: '**', 
+    redirectTo: 'prelogin'
+} 
+ ];
+

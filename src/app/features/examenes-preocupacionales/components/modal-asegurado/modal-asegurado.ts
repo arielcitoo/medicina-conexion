@@ -1,6 +1,6 @@
 
 import { Component, Inject, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { AseguradoExamen, AseguradoBackend } from '../../../../interface/examen.interface'; // Cambiar import
 import { AseguradosService } from '../../../../core/service/asegurados.service';
@@ -29,7 +29,7 @@ export const MY_DATE_FORMATS = {
 
 @Component({
   selector: 'app-modal-asegurado',
-  imports: [SharedMaterialModule],
+  imports: [SharedMaterialModule,ReactiveFormsModule],
 
   standalone: true,
   templateUrl: './modal-asegurado.html',

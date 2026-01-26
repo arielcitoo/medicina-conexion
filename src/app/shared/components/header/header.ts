@@ -1,6 +1,6 @@
 
 import { RouterModule } from '@angular/router';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { SesionService } from '../../../core/service/sesion.service';
 import { EmpresaService } from '../../../core/service/empresa.service';
 import { Subscription } from 'rxjs';
@@ -10,6 +10,7 @@ import { SharedMaterialModule } from '../../modules/material.module'; //Angular 
 
 @Component({
   selector: 'app-header',
+  standalone: true,
   imports: [
     SharedMaterialModule,
     RouterModule, 
@@ -32,11 +33,9 @@ export class Header implements OnInit, OnDestroy {
   private authSubscription: Subscription | null = null;
   private copiadoTimeout: any = null;
 
-  constructor(
-    private sesionService: SesionService,
-    private empresaService: EmpresaService,
-    private cdRef: ChangeDetectorRef
-  ) {}
+  private sesionService = inject(SesionService);
+  private empresaService = inject(EmpresaService);
+  private cdRef = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     console.log('SessionHeader inicializado');
@@ -52,6 +51,8 @@ export class Header implements OnInit, OnDestroy {
       empresa: this.empresa?.razonSocial || 'No hay empresa'
     });
     
+    
+    
     // Suscribirse a cambios en la sesión
     this.sesionSubscription = this.sesionService.getSesionActual()
       .subscribe(sesion => {
@@ -66,7 +67,7 @@ export class Header implements OnInit, OnDestroy {
       });
     
     // Suscribirse a cambios en la empresa
-    this.authSubscription = this.empresaService.empresaChanged$
+   this.authSubscription = this.empresaService.empresaChanged$
       .subscribe(empresa => {
         console.log('Cambio en empresa detectado:', empresa?.razonSocial);
         this.empresa = empresa;

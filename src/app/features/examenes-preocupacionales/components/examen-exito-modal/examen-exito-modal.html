@@ -1,83 +1,108 @@
+<!-- features/examenes-preocupacionales/components/examen-exito-modal/examen-exito-modal.html -->
 <div class="exito-modal">
+  
+  <!-- Cabecera con botón de cerrar -->
   <div class="modal-header">
+    <!-- Botón de cerrar en esquina superior derecha -->
+    <button mat-icon-button class="close-button" (click)="cerrar()">
+      <mat-icon>close</mat-icon>
+    </button>
+    
     <mat-icon class="success-icon">check_circle</mat-icon>
     <h1 class="modal-title">¡Registro Exitoso!</h1>
   </div>
 
-  <div class="modal-content">
-    <p class="success-message">El examen preocupacional ha sido registrado correctamente en el sistema.</p>
-    <mat-card class="details-card">
-      <mat-card-content>
-        <div class="details-grid">
-          <div class="detail-item">
-            <strong>ID de Registro:</strong>
-            <span class="id-highlight">{{ data.idIngreso }}</span>
+  <!-- Contenido con scroll -->
+  <div class="modal-content-wrapper">
+    <div class="modal-content">
+      <p class="success-message">
+        El examen preocupacional ha sido registrado correctamente en el sistema CNS. 
+        Se ha generado un registro único con la siguiente información:
+      </p>
+      
+      <mat-card class="details-card">
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item">
+              <strong>ID de Registro:</strong>
+              <span class="id-highlight">{{ data.idIngreso }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Fecha de Registro:</strong>
+              <span>{{ formatDate(data.fechaRegistro) }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Número de Recibo:</strong>
+              <span>{{ data.numeroRecibo }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Total Asegurados:</strong>
+              <span>{{ data.totalAsegurados }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Importe Total:</strong>
+              <span>Bs. {{ formatNumber(data.importeTotal) }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Empresa:</strong>
+              <span>{{ data.empresa.razonSocial }}</span>
+            </div>
           </div>
-          <div class="detail-item">
-            <strong>Fecha de Registro:</strong>
-            <span>{{ formatDate(data.fechaRegistro) }}</span>
-          </div>
-          <div class="detail-item">
-            <strong>Número de Recibo:</strong>
-            <span>{{ data.numeroRecibo }}</span>
-          </div>
-          <div class="detail-item">
-            <strong>Total Asegurados:</strong>
-            <span>{{ data.totalAsegurados }}</span>
-          </div>
-          <div class="detail-item">
-            <strong>Importe Total:</strong>
-            <span>Bs. {{ formatNumber(data.importeTotal) }}</span>
-          </div>
-          <div class="detail-item">
-            <strong>Empresa:</strong>
-            <span>{{ data.empresa.razonSocial }}</span>
-          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <p class="instructions">
+        Guarde esta información para futuras consultas. Puede descargar el comprobante en PDF.
+      </p>
+    </div>
+
+    <!-- SECCIÓN PRÓXIMOS PASOS -->
+    <div class="proximos-pasos">
+      <h3>Próximos pasos</h3>
+      
+      <div class="paso">
+        <span class="numero">1</span>
+        <div>
+          <strong>Revisión de documentos</strong>
+          <p>Nuestro equipo verificará su información (24-48 horas hábiles)</p>
         </div>
-      </mat-card-content>
-    </mat-card>
-    <p class="instructions">Se ha generado un registro único. Puede descargar el comprobante en PDF o salir del sistema.
-    </p>
-  </div>
-
-  <div class="modal-actions">
-    <button mat-raised-button color="primary" (click)="descargarPDF()">
-      <mat-icon>download</mat-icon>
-      Descargar PDF
-    </button>
-
-    <button mat-stroked-button (click)="salir()">
-      <mat-icon>exit_to_app</mat-icon>
-      Salir
-    </button>
-  </div>
-
-  <div class="proximos-pasos">
-    <h3> Próximos pasos</h3>
-
-    <div class="paso">
-      <span class="numero">1</span>
-      <div>
-        <strong>Revisión de documentos</strong>
-        <p>Nuestro equipo verificará su información (24-48 horas)</p>
       </div>
-    </div>
-
-    <div class="paso">
-      <span class="numero">2</span>
-      <div>
-        <strong>Notificación vía email</strong>
-        <p>Recibirá un enlace para seleccionar horarios si es aprobado</p>
+      
+      <div class="paso">
+        <span class="numero">2</span>
+        <div>
+          <strong>Notificación vía email</strong>
+          <p>Recibirá un enlace para seleccionar horarios si es aprobado</p>
+        </div>
       </div>
-    </div>
-
-    <div class="paso">
-      <span class="numero">3</span>
-      <div>
-        <strong>Selección de horario</strong>
-        <p>Podrá elegir entre fechas y horarios disponibles</p>
+      
+      <div class="paso">
+        <span class="numero">3</span>
+        <div>
+          <strong>Selección de horario</strong>
+          <p>Podrá elegir entre fechas y horarios disponibles para sus asegurados</p>
+        </div>
       </div>
     </div>
   </div>
-  
+
+  <!-- ACCIONES FIJAS EN PARTE INFERIOR -->
+  <div class="modal-actions-wrapper">
+    <div class="modal-actions">
+      <button mat-raised-button color="primary" (click)="descargarPDF()">
+        <mat-icon>download</mat-icon>
+        Descargar PDF
+      </button>
+
+      <button mat-stroked-button (click)="salir()">
+        <mat-icon>exit_to_app</mat-icon>
+        Salir del sistema
+      </button>
+      
+      <button mat-button (click)="nuevoExamen()" class="nuevo-btn">
+        <mat-icon>add_circle</mat-icon>
+        Nuevo Registro
+      </button>
+    </div>
+  </div>
 </div>

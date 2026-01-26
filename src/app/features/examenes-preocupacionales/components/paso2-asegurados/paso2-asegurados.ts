@@ -12,7 +12,7 @@ import { SharedMaterialModule } from '../../../../shared/modules/material.module
   templateUrl: './paso2-asegurados.html',
   styleUrls: ['./paso2-asegurados.css']
 })
-export class Paso2AseguradosComponent {
+export class Paso2Asegurados {
   @Input() asegurados: AseguradoExamen[] = [];
   @Input() archivosAsegurados: { [key: number]: { anverso: File | null, reverso: File | null } } = {};
   @Input() cantidadPermitida: number = 0;
@@ -60,12 +60,15 @@ export class Paso2AseguradosComponent {
   }
 
   getFileName(aseguradoId: number, tipo: 'anverso' | 'reverso'): string {
-    const archivos = this.archivosAsegurados[aseguradoId];
-    if (!archivos) return 'Sin archivo';
-    
-    const file = tipo === 'anverso' ? archivos.anverso : archivos.reverso;
-    return file?.name || 'Sin archivo';
-  }
+  // Manejar el caso donde aseguradoId podría ser undefined
+  if (!aseguradoId) return 'Sin archivo';
+  
+  const archivos = this.archivosAsegurados[aseguradoId];
+  if (!archivos) return 'Sin archivo';
+  
+  const file = tipo === 'anverso' ? archivos.anverso : archivos.reverso;
+  return file?.name || 'Sin archivo';
+}
 
   contarCompletos(): number {
     return this.asegurados.filter(a => 

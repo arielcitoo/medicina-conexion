@@ -1,112 +1,94 @@
- <!-- <header class="header">
-      <div class="container"> -->
-        <!-- Logo -->
-        <!-- <div class="logo" routerLink="/">
-          <span class="logo-icon"></span>
-          <div class="logo-text">
-            <h1>Medicina del Trabajo</h1>
-            <p>Salud Ocupacional</p>
-          </div>
-        </div> -->
-
-        <!-- Navegación -->
-        <!-- <nav class="nav">
-
-          <a routerLink="/" routerLinkActive="active"> Inicio</a>
-          <a routerLink="/prelogin" routerLinkActive="active"> Empresa</a>
-          <a routerLink="/busqueda" routerLinkActive="active"> Buscar Asegurados</a>
-          <a routerLink="/citas" routerLinkActive="active"> Citas Médicas</a>
-          <a routerLink="/examen" routerLinkActive="active"> Examen Preocupacional</a>
-        </nav> -->
-
-
-
-        <!-- Estado conexión -->
-        <!-- <div class="connection-status" [class.connected]="true">
-          <span class="status-icon"></span>
-          <span class="status-text">API Conectada</span>
-        </div>
+<!-- shared/components/header.html (Corregido) -->
+<header class="session-header">
+  @if (mostrarHeader) {
+  <div class="header-container">
+    <!-- Logo CNS -->
+    <div class="logo-section">
+      <mat-icon class="logo-icon">medical_services</mat-icon>
+      <div class="logo-text">
+        <h2>Medicina del Trabajo</h2>
+        <p>Sistemas C.N.S.</p>
       </div>
-    </header>  -->
+    </div>
 
-
-
-     <header class="session-header" *ngIf="mostrarHeader">
-      <div class="header-container">
-        <!-- Logo CNS -->
-        <div class="logo-section">
-          <mat-icon class="logo-icon">medical_services</mat-icon>
-          <div class="logo-text">
-            <h2>Exámenes Preocupacionales</h2>
-            <p>Sistema CNS</p>
-          </div>
+    <!-- Información de Sesión -->
+    @if (idAcceso) {
+    <div class="session-info">
+      <!-- ID de Acceso -->
+      <div class="info-item id-item" (click)="copiarId()" [matTooltip]="'Copiar ID: ' + idAcceso">
+        <mat-icon class="info-icon">vpn_key</mat-icon>
+        <div class="info-content">
+          <span class="label">ID de Acceso</span>
+          <span class="value">{{ idAccesoFormateado }}</span>
         </div>
-
-        <!-- Información de Sesión -->
-        <div class="session-info" *ngIf="idAcceso">
-          <!-- ID de Acceso -->
-          <div class="info-item id-item" (click)="copiarId()" [matTooltip]="'Copiar ID: ' + idAcceso">
-            <mat-icon class="info-icon">vpn_key</mat-icon>
-            <div class="info-content">
-              <span class="label">ID de Acceso</span>
-              <span class="value">{{ idAccesoFormateado }}</span>
-            </div>
-            <mat-icon class="copy-icon" *ngIf="!copiado">content_copy</mat-icon>
-            <mat-icon class="copy-icon" *ngIf="copiado">check</mat-icon>
-          </div>
-
-          <!-- Empresa -->
-          <div class="info-item empresa-item" *ngIf="empresa" [matTooltip]="empresa.razonSocial">
-            <mat-icon class="info-icon">business</mat-icon>
-            <div class="info-content">
-              <span class="label">Empresa</span>
-              <span class="value">
-                {{ truncarTexto(empresa.razonSocial, 20) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Estado de Sesión -->
-          <div class="info-item estado-item" [class.expira-pronto]="expiraPronto">
-            <mat-icon class="info-icon">{{ estadoIcon }}</mat-icon>
-            <div class="info-content">
-              <span class="label">Sesión</span>
-              <span class="value">
-                {{ estadoTexto }}
-                <span class="tiempo-restante" *ngIf="diasRestantes > 0">
-                  ({{ diasRestantes }}d)
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Acciones -->
-        <div class="header-actions">
-          <button mat-icon-button class="action-btn" [matMenuTriggerFor]="menu">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="copiarId()">
-              <mat-icon>content_copy</mat-icon>
-              <span>Copiar ID</span>
-            </button>
-            <button mat-menu-item (click)="verDetalles()">
-              <mat-icon>info</mat-icon>
-              <span>Detalles de sesión</span>
-            </button>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="cerrarSesion()" class="logout-btn">
-              <mat-icon>logout</mat-icon>
-              <span>Cerrar sesión</span>
-            </button>
-          </mat-menu>
-        </div>
+        @if (!copiado) {
+          <mat-icon class="copy-icon">content_copy</mat-icon>
+        }
+        @if (copiado) {
+          <mat-icon class="copy-icon">check</mat-icon>
+        }
       </div>
 
-      <!-- Barra de progreso -->
-      <div class="progress-bar" *ngIf="mostrarProgreso">
-        <div class="progress-fill" [style.width.%]="porcentajeProgreso"></div>
+      <!-- Empresa -->
+      @if (empresa) {
+      <div class="info-item empresa-item" [matTooltip]="empresa.razonSocial">
+        <mat-icon class="info-icon">business</mat-icon>
+        <div class="info-content">
+          <span class="label">Empresa</span>
+          <span class="value">
+            {{ truncarTexto(empresa.razonSocial, 20) }}
+          </span>
+        </div>
       </div>
-    </header>
+      }
+
+      <!-- Estado de Sesión -->
+      <div class="info-item estado-item" [class.expira-pronto]="expiraPronto">
+        <mat-icon class="info-icon">{{ estadoIcon }}</mat-icon>
+        <div class="info-content">
+          <span class="label">Sesión</span>
+          <span class="value">
+            {{ estadoTexto }}
+            @if (diasRestantes > 0) {
+            <span class="tiempo-restante">
+              ({{ diasRestantes }}d)
+            </span>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Acciones -->
+    <div class="header-actions">
+      <button mat-icon-button class="action-btn" [matMenuTriggerFor]="menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="copiarId()">
+          <mat-icon>content_copy</mat-icon>
+          <span>Copiar ID</span>
+        </button>
+        <button mat-menu-item (click)="verDetalles()">
+          <mat-icon>info</mat-icon>
+          <span>Detalles de sesión</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="cerrarSesion()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Barra de progreso -->
+  @if (mostrarProgreso) {
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="porcentajeProgreso"></div>
+  </div>
+  }
+  }
+</header>
