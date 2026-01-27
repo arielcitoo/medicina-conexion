@@ -10,7 +10,6 @@ import { SharedMaterialModule } from '../../../shared/modules/material.module';
 import { Paso1DatosRecibo } from '../components/paso1-datos-recibo/paso1-datos-recibo';
 import { Paso2Asegurados } from '../components/paso2-asegurados/paso2-asegurados';
 import { Paso3Finalizar } from '../components/paso3-finalizar/paso3-finalizar'
-import { Header } from '../../../shared/components/header/header';
 
 import { EmpresaService } from '../../../core/service/empresa.service';
 import { NotificationService } from '../../../core/service/notification.service';
@@ -22,6 +21,7 @@ import { ExamenRequest } from '../../../interface/examen.interface';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ExamenPreocupacionalService } from '../../../core/service/examen-preocupacional.service';
+import { Header } from "../../../shared/components/header/header";
 
 
 
@@ -35,9 +35,8 @@ import { ExamenPreocupacionalService } from '../../../core/service/examen-preocu
     Paso1DatosRecibo,
     Paso2Asegurados,
     Paso3Finalizar,
-    ExamenExitoModal,
-    Header   
-  ],
+    Header
+],
   templateUrl: './examen-preocupacional.html',
   styleUrls: ['./examen-preocupacional.css']
 })

@@ -36,7 +36,7 @@
             <mat-label>Número Patronal</mat-label>
             <input matInput 
                    formControlName="numeroPatronal"
-                   placeholder="01-730-00001"
+                   placeholder="00-700-00001"
                    [maxlength]="12"
                    (keypress)="onKeyPress($event)"
                    (input)="onInput($event)"
@@ -48,7 +48,7 @@
               <mat-error>El número patronal es obligatorio</mat-error>
             }
             @if (tieneError('numeroPatronal', 'pattern')) {
-              <mat-error>Formato: 01-730-00001</mat-error>
+              <mat-error>Formato: "00-700-00001</mat-error>
             }
             @if (tieneError('numeroPatronal', 'minlength')) {
               <mat-error>Mínimo 10 caracteres</mat-error>
@@ -57,7 +57,7 @@
               <mat-error>Máximo 12 caracteres</mat-error>
             }
             
-            <mat-hint>Formato: 01-730-00001</mat-hint>
+            <mat-hint>Formato: "00-700-00001</mat-hint>
           </mat-form-field>
 
           <!-- Estado de validación -->
@@ -123,7 +123,7 @@
             </div>
             <p><strong>{{ mensajeError }}</strong></p>
             <div class="error-advice">
-              <p>Verifique el formato: <strong>01-730-00001</strong></p>
+              <p>Verifique el formato: <strong>"00-700-00001</strong></p>
             </div>
             <div class="error-actions">
               <button mat-button (click)="limpiar()">
@@ -216,7 +216,7 @@
           </div>
           <div class="info-content">
             <ul>
-              <li>Formato requerido: <strong>01-730-00001</strong></li>
+              <li>Formato requerido: <strong>"00-700-00001</strong></li>
               <li>Solo empresas afiliadas y activas pueden registrar exámenes</li>
               <li>Los datos se mantendrán durante toda la sesión</li>
               <li>Sistema CNS - Versión 1.0.0</li>

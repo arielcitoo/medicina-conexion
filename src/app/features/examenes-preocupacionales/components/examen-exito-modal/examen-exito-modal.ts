@@ -237,9 +237,9 @@ export class ExamenExitoModal {
     }
   }
 
-  nuevoExamen(): void {
-    this.dialogRef.close({ action: 'nuevo' });
-  }
+  // nuevoExamen(): void {
+  //   this.dialogRef.close({ action: 'nuevo' });
+  // }
 
   get tituloModal(): string {
     return `Registro Exitoso - ${this.data.idIngreso}`;

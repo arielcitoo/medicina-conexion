@@ -2,12 +2,19 @@
 
 import { Routes } from '@angular/router';
 import { AuthGuard } from './interceptors/auth.guard';
+import { Home } from './features/home/home';
 
 export const routes: Routes = [
 
-  { path: '',
-    redirectTo: '/login', 
-    pathMatch: 'full' 
+   {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  
+  { 
+    path: 'home', 
+    loadComponent: () => import('./features/home/home').then(m => m.Home)
   },
 
   { 
@@ -17,7 +24,7 @@ export const routes: Routes = [
 
   { 
     path: 'prelogin', 
-    loadComponent: () => import('./features/prelogin/prelogin').then(m => m.Prelogin)
+    loadComponent: () => import('./features/examenes-preocupacionales/components/prelogin/prelogin').then(m => m.Prelogin)
   },
 
   { 

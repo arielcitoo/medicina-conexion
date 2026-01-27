@@ -19,7 +19,7 @@ import { EmpresaService } from './core/service/empresa.service';
 })
 export class App implements OnInit {
 
-   private readonly router = inject(Router);
+  private readonly router = inject(Router);
   private readonly sesionService = inject(SesionService);
   private readonly empresaService = inject(EmpresaService);
 

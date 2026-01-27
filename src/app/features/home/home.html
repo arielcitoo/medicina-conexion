@@ -1,35 +1,308 @@
-  <div class="home-container">
-      <div class="hero-section">
-        <div class="container">
-          <h1> Medicina del Trabajo</h1>
-          <p>Caja Nacional de Salud</p>
-          <div class="hero-actions">
-            <a routerLink="/busqueda" class="btn btn-primary"> Buscar Asegurados</a>
-            <a routerLink="/citas" class="btn btn-secondary"> Programar Citas</a>
-          </div>
+<!-- src/app/features/home/home.component.html -->
+<div class="home-container">
+  
+  <!-- ===== CABECERA SUPERIOR INFORMATIVA ===== -->
+  <header class="top-info-header">
+    <div class="container">
+      <div class="info-items">
+        <span class="info-item">
+          <mat-icon class="info-icon">email</mat-icon>
+          contacto@cns.gov.bo
+        </span>
+        <span class="info-item">
+          <mat-icon class="info-icon">phone</mat-icon>
+          (591-2) 222-3333
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MENÚ DE NAVEGACIÓN PRINCIPAL ===== -->
+  <nav class="main-navbar">
+    <div class="container">
+      <div class="nav-content">
+        <!-- Logo e Ícono -->
+        <div class="nav-brand">
+          <mat-icon class="brand-icon">medical_services</mat-icon>
+          <span class="brand-text">CNS Medicina del Trabajo</span>
+        </div>
+
+        <!-- Opciones del Menú -->
+        <div class="nav-menu">
+          <a href="#inicio" class="nav-link active">Inicio</a>
+          <a href="#servicios" class="nav-link">Servicios</a>
+          <a href="#regionales" class="nav-link">Regionales</a>
+          <a href="#requisitos" class="nav-link">Requisitos</a>
+          <a [routerLink]="['/login']" class="nav-link">Reserva de Cita</a>
+        </div>
+
+        <!-- Botón Programar -->
+        <button mat-raised-button color="primary" class="programar-btn" [routerLink]="['/login']">
+          <mat-icon>schedule</mat-icon>
+          Programar
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Medicina del Trabajo</h1>
+        <p class="hero-subtitle">
+          Garantizando la salud y seguridad de los trabajadores bolivianos
+        </p>
+        <p class="hero-description">
+          Especializados en exámenes médicos ocupacionales, evaluaciones de puestos 
+          de trabajo y seguimiento de la salud laboral en cumplimiento con la normativa nacional.
+        </p>
+        <div class="hero-actions">
+          <button mat-raised-button color="primary" class="hero-btn" [routerLink]="['/login']">
+            <mat-icon>schedule</mat-icon>
+            Reservar Cita
+          </button>
+          <button mat-stroked-button class="hero-btn secondary" (click)="scrollToSection('servicios')">
+            <mat-icon>info</mat-icon>
+            Conocer Servicios
+          </button>
         </div>
       </div>
-      
-      <div class="features-section">
-        <div class="container">
-          <h2>Funcionalidades Principales</h2>
-          <div class="features-grid">
-            <div class="feature-card">
-              <mat-icon>account_circle</mat-icon>
-              <h3>Búsqueda de Asegurados</h3>
-              <p>Consulta información completa de asegurados del CNS</p>
+    </div>
+  </section>
+
+  <!-- ===== SECCIÓN DE TARJETAS INFORMATIVAS ===== -->
+  <section class="cards-section" id="servicios">
+    <div class="container">
+      <h2 class="section-title">Nuestros Servicios Especializados</h2>
+      <p class="section-subtitle">
+        Evaluaciones médicas integrales para el bienestar laboral
+      </p>
+
+      <div class="cards-grid">
+        <!-- Tarjeta 1: Examen Preocupacional -->
+        <mat-card class="service-card">
+          <mat-card-header>
+            <div mat-card-avatar class="card-icon">
+              <mat-icon>assignment</mat-icon>
             </div>
-            <div class="feature-card">
-              <div class="feature-icon">📅</div>
-              <h3>Programación de Citas</h3>
-              <p>Agenda citas médicas para tus pacientes</p>
+            <mat-card-title>Examen Preocupacional</mat-card-title>
+            <mat-card-subtitle>Ingreso laboral</mat-card-subtitle>
+          </mat-card-header>
+          <div class="card-image-placeholder">
+            <mat-icon class="placeholder-icon">assignment</mat-icon>
+          </div>
+          <mat-card-content>
+            <p>
+              Evaluación médica completa para nuevos ingresos laborales. 
+              Garantiza la aptitud del trabajador para sus funciones.
+            </p>
+            <ul class="card-features">
+              <li><mat-icon>check</mat-icon> Evaluación integral</li>
+              <li><mat-icon>check</mat-icon> Historia clínica laboral</li>
+              <li><mat-icon>check</mat-icon> Exámenes complementarios</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/login']">Solicitar</button>
+            <button mat-button>Más info</button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Tarjeta 2: Examen Ocupacional -->
+        <mat-card class="service-card">
+          <mat-card-header>
+            <div mat-card-avatar class="card-icon">
+              <mat-icon>monitor_heart</mat-icon>
             </div>
-            <div class="feature-card">
-              <div class="feature-icon">📊</div>
-              <h3>Reportes y Estadísticas</h3>
-              <p>Genera reportes de salud ocupacional</p>
+            <mat-card-title>Examen Ocupacional</mat-card-title>
+            <mat-card-subtitle>Control periódico</mat-card-subtitle>
+          </mat-card-header>
+          <div class="card-image-placeholder">
+            <mat-icon class="placeholder-icon">monitor_heart</mat-icon>
+          </div>
+          <mat-card-content>
+            <p>
+              Seguimiento de la salud de trabajadores expuestos a factores de riesgo laboral.
+              Prevención de enfermedades profesionales.
+            </p>
+            <ul class="card-features">
+              <li><mat-icon>check</mat-icon> Monitoreo continuo</li>
+              <li><mat-icon>check</mat-icon> Detección temprana</li>
+              <li><mat-icon>check</mat-icon> Prevención de riesgos</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/login']">Solicitar</button>
+            <button mat-button>Más info</button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Tarjeta 3: Evaluación de Puesto de Trabajo -->
+        <mat-card class="service-card">
+          <mat-card-header>
+            <div mat-card-avatar class="card-icon">
+              <mat-icon>engineering</mat-icon>
             </div>
+            <mat-card-title>Evaluación de Puesto de Trabajo</mat-card-title>
+            <mat-card-subtitle>Análisis ergonómico</mat-card-subtitle>
+          </mat-card-header>
+          <div class="card-image-placeholder">
+            <mat-icon class="placeholder-icon">engineering</mat-icon>
+          </div>
+          <mat-card-content>
+            <p>
+              Análisis médico-técnico del puesto de trabajo. Recomendaciones para 
+              adaptación y prevención de riesgos ergonómicos.
+            </p>
+            <ul class="card-features">
+              <li><mat-icon>check</mat-icon> Análisis ergonómico</li>
+              <li><mat-icon>check</mat-icon> Recomendaciones técnicas</li>
+              <li><mat-icon>check</mat-icon> Reubicación laboral</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/login']">Solicitar</button>
+            <button mat-button>Más info</button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Tarjeta 4: Trámite Gestora por Invalidez -->
+        <mat-card class="service-card">
+          <mat-card-header>
+            <div mat-card-avatar class="card-icon">
+              <mat-icon>verified</mat-icon>
+            </div>
+            <mat-card-title>Trámite Gestora por Invalidez</mat-card-title>
+            <mat-card-subtitle>Procesos especiales</mat-card-subtitle>
+          </mat-card-header>
+          <div class="card-image-placeholder">
+            <mat-icon class="placeholder-icon">verified</mat-icon>
+          </div>
+          <mat-card-content>
+            <p>
+              Gestión de trámites por invalidez laboral. Evaluación médica 
+              y documentación para procesos de pensión por invalidez.
+            </p>
+            <ul class="card-features">
+              <li><mat-icon>check</mat-icon> Evaluación médica</li>
+              <li><mat-icon>check</mat-icon> Gestión documental</li>
+              <li><mat-icon>check</mat-icon> Acompañamiento</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/login']">Solicitar</button>
+            <button mat-button>Más info</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCIÓN VISUAL DESTACADA ===== -->
+  <section class="featured-section">
+    <div class="container">
+      <div class="featured-content">
+        <h2 class="featured-title">Profesionales Especializados</h2>
+        <p class="featured-description">
+          Contamos con un equipo de médicos especialistas en medicina del trabajo, 
+          comprometidos con la salud preventiva y la excelencia en el servicio.
+        </p>
+        <div class="doctor-images">
+          <div class="doctor-card">
+            <div class="doctor-icon">
+              <mat-icon>medical_services</mat-icon>
+            </div>
+            <h4>Dr. Juan Pérez</h4>
+            <p>Especialista en Medicina Ocupacional</p>
+          </div>
+          <div class="doctor-card">
+            <div class="doctor-icon">
+              <mat-icon>stethoscope</mat-icon>
+            </div>
+            <h4>Dra. María López</h4>
+            <p>Especialista en Ergonomía</p>
+          </div>
+          <div class="doctor-card">
+            <div class="doctor-icon">
+              <mat-icon>health_and_safety</mat-icon>
+            </div>
+            <h4>Dr. Carlos Rodríguez</h4>
+            <p>Especialista en Seguridad Laboral</p>
           </div>
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ===== SECCIÓN EMPRESAS ASOCIADAS ===== -->
+  <section class="companies-section" id="regionales">
+    <div class="container">
+      <h2 class="section-title">Empresas que confían en nosotros</h2>
+      <p class="section-subtitle">
+        Más de 500 empresas realizan sus exámenes preocupacionales con nosotros
+      </p>
+      
+      <div class="companies-grid">
+        <div class="company-logo">
+          <div class="logo-icon">🏭</div>
+          <span>Industrias Nacionales</span>
+        </div>
+        <div class="company-logo">
+          <div class="logo-icon">🏢</div>
+          <span>Corporación Andina</span>
+        </div>
+        <div class="company-logo">
+          <div class="logo-icon">⚙️</div>
+          <span>Tecnología Avanzada S.A.</span>
+        </div>
+        <div class="company-logo">
+          <div class="logo-icon">🏗️</div>
+          <span>Constructora Boliviana</span>
+        </div>
+        <div class="company-logo">
+          <div class="logo-icon">🚜</div>
+          <span>Agroindustria del Valle</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <mat-icon class="footer-logo">medical_services</mat-icon>
+            <div>
+              <h3>CNS Medicina del Trabajo</h3>
+              <p>Especializados en salud ocupacional</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Contacto</h3>
+          <p><mat-icon>location_on</mat-icon> Calle Corneta Mamani N° 1994, La Paz</p>
+          <p><mat-icon>phone</mat-icon> (591-2) 222-2222</p>
+          <p><mat-icon>email</mat-icon> medicinadeltrabajo@cns.gov.bo</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Horarios</h3>
+          <p>Lunes a Viernes: 8:00 - 16:00</p>
+          <p>Sábados: 8:00 - 12:00</p>
+          <button mat-raised-button color="primary" class="footer-btn" [routerLink]="['/login']">
+            <mat-icon>schedule</mat-icon>
+            Reservar Cita
+          </button>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>© 2024 Caja Nacional de Salud - Medicina del Trabajo. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+</div>

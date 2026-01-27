@@ -1,11 +1,11 @@
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { EmpresaService } from '../../core/service/empresa.service';
+import { EmpresaService } from '../../../../core/service/empresa.service';
 import { Component, OnInit, OnDestroy, inject,ChangeDetectorRef} from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { SesionService } from '../../core/service/sesion.service';
-import { SharedMaterialModule } from '../../shared/modules/material.module'; //Angular Material módulos compartidos
+import { SesionService } from '../../../../core/service/sesion.service';
+import { SharedMaterialModule } from '../../../../shared/modules/material.module'; //Angular Material módulos compartidos
 
 
 @Component({
