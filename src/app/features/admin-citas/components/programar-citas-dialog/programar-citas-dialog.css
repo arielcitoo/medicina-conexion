@@ -1,0 +1,521 @@
+/* Estilos del diálogo */
+.mat-dialog-content {
+  max-height: 70vh;
+  min-width: 900px;
+  padding: 20px 24px !important;
+}
+
+/* Información de la solicitud */
+.solicitud-info {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border-left: 4px solid #4caf50;
+}
+
+.solicitud-info h3 {
+  margin: 0 0 10px 0;
+  color: #1b5e20;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.solicitud-info p {
+  margin: 6px 0;
+  color: #388e3c;
+  font-size: 0.95rem;
+}
+
+.solicitud-info strong {
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+/* Progreso de citas */
+.citas-progreso {
+  margin-bottom: 30px;
+}
+
+.pasos {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.pasos::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.paso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.paso.completado .paso-numero {
+  background: #4caf50;
+  color: white;
+}
+
+.paso.completado .paso-texto {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.paso-numero {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #757575;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.paso-texto {
+  color: #757575;
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 100px;
+}
+
+/* Tabs */
+.mat-tab-group {
+  margin-bottom: 30px;
+}
+
+.mat-tab-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 180px !important;
+  opacity: 1 !important;
+}
+
+.tab-status-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: #4caf50 !important;
+}
+
+/* Contenido de los tabs */
+.servicio-tab {
+  padding: 20px;
+}
+
+.tab-header {
+  margin-bottom: 25px;
+}
+
+.tab-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1b5e20;
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.tab-header mat-icon {
+  color: #4caf50;
+}
+
+.tab-description {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Cita seleccionada */
+.cita-seleccionada {
+  margin-bottom: 25px;
+}
+
+.seleccion-card {
+  background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e9 100%);
+  border: 2px solid #4caf50;
+}
+
+.seleccion-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.seleccion-icon {
+  font-size: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+  color: #4caf50;
+}
+
+.seleccion-header h5 {
+  margin: 0 0 10px 0;
+  color: #1b5e20;
+  font-size: 1.1rem;
+}
+
+.horario-detalle {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.fecha {
+  background: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
+.hora {
+  background: #4caf50;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Filtro de fecha */
+.filtro-fecha {
+  margin-bottom: 20px;
+}
+
+.filtro-fecha mat-form-field {
+  width: 250px;
+}
+
+/* Sin horarios */
+.no-horarios {
+  text-align: center;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.no-horarios mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #adb5bd;
+  margin-bottom: 15px;
+}
+
+.no-horarios p {
+  color: #6c757d;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+/* Grid de horarios */
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.horario-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.horario-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-color: #c8e6c9;
+}
+
+.horario-card.selected {
+  border-color: #4caf50;
+  background: #f1f8e9;
+}
+
+.horario-card .mat-card-content {
+  padding: 20px !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Información del horario */
+.horario-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.horario-icon {
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
+  color: #4caf50;
+}
+
+.horario-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.hora {
+  font-size: 1.1rem;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.fecha {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 4px 0;
+}
+
+.duracion {
+  font-size: 0.85rem;
+  color: #888;
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* Información de cupos */
+.cupos-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.cupos {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.cupos.pocos {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.cupos.agotado {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.cupos mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.btn-seleccionar {
+  padding: 4px 16px !important;
+  font-size: 0.85rem !important;
+  min-width: auto !important;
+}
+
+/* Resumen de citas */
+.resumen-citas {
+  margin-top: 30px;
+}
+
+.resumen-citas h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1b5e20;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.resumen-card {
+  border-left: 4px solid #4caf50;
+}
+
+.resumen-list {
+  padding: 0;
+}
+
+.resumen-item {
+  height: 70px !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.resumen-item:last-child {
+  border-bottom: none;
+}
+
+.resumen-item mat-icon[matListItemIcon] {
+  width: 40px !important;
+  height: 40px !important;
+  font-size: 24px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.resumen-item mat-icon.laboratorio {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.resumen-item mat-icon.rayos_x {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.resumen-item mat-icon.evaluacion_medica {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.servicio-nombre {
+  font-weight: 600;
+  color: #333;
+}
+
+.servicio-detalle {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.servicio-fecha, .servicio-hora, .servicio-duracion {
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.resumen-total {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.total-info span {
+  color: #666;
+}
+
+.total-info strong {
+  color: #1b5e20;
+  font-size: 1.2rem;
+}
+
+.completado-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.completado-icon {
+  color: #4caf50;
+}
+
+/* Acciones del diálogo */
+.dialog-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .mat-dialog-content {
+    min-width: auto;
+  }
+  
+  .horarios-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pasos {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .pasos::before {
+    display: none;
+  }
+  
+  .paso {
+    flex-direction: row;
+    gap: 15px;
+    width: 100%;
+  }
+  
+  .paso-numero {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .horario-detalle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .servicio-detalle {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .dialog-actions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .dialog-actions button {
+    width: 100%;
+  }
+}

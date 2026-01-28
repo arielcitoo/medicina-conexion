@@ -1,0 +1,233 @@
+<h2 mat-dialog-title>
+  <mat-icon>folder_open</mat-icon>
+  Documentos del Asegurado
+</h2>
+
+<mat-dialog-content>
+  <div class="asegurado-info">
+    <h3>{{getNombreCompleto()}}</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <strong>C.I.:</strong> {{getCI()}}
+      </div>
+      <div class="info-item">
+        <strong>Matrícula:</strong> {{getMatricula()}}
+      </div>
+      <div class="info-item">
+        <strong>Empresa:</strong> {{getEmpresa()}}
+      </div>
+      <div class="info-item">
+        <strong>N° Patronal:</strong> {{asegurado.nroPatronal || 'No disponible'}}
+      </div>
+      <div class="info-item">
+        <strong>Email:</strong> {{getEmail()}}
+      </div>
+      <div class="info-item">
+        <strong>Teléfono:</strong> {{getTelefono()}}
+      </div>
+      <div class="info-item">
+        <strong>Fecha Nacimiento:</strong> {{getFechaNacimientoFormateada()}}
+      </div>
+      <div class="info-item">
+        <strong>Estado:</strong> {{getEstadoAsegurado()}}
+      </div>
+      <div class="info-item">
+        <strong>Género:</strong> {{asegurado.genero || 'No disponible'}}
+      </div>
+      <div class="info-item">
+        <strong>Tipo Asegurado:</strong> {{asegurado.tipoAsegurado || 'No disponible'}}
+      </div>
+    </div>
+    
+    <div class="estado-documentos">
+      <span class="badge total">Total Documentos: {{getTotalDocumentos()}}</span>
+      <span class="badge pendiente" *ngIf="getDocumentosPendientesCount() > 0">
+        Pendientes: {{getDocumentosPendientesCount()}}
+      </span>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Todos los Documentos">
+      <div class="documentos-grid">
+        <mat-card *ngFor="let documento of documentos" class="documento-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar class="documento-icon" [class]="getEstadoColor(documento.estado)">
+              {{getIconoTipo(documento.tipo)}}
+            </mat-icon>
+            <mat-card-title>{{getTipoDocumento(documento.tipo)}}</mat-card-title>
+            <mat-card-subtitle>
+              Subido: {{documento.fechaCarga | date:'dd/MM/yyyy HH:mm'}}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <p class="nombre-archivo">{{documento.nombreArchivo}}</p>
+            <mat-chip-set>
+              <mat-chip [class]="getEstadoColor(documento.estado)">
+                {{getTextoEstado(documento.estado)}}
+              </mat-chip>
+            </mat-chip-set>
+          </mat-card-content>
+          
+          <mat-card-actions>
+            <button mat-button color="primary" (click)="verDocumento(documento.url)">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+            <button mat-button color="accent" (click)="aprobarDocumento(documento)" 
+                    *ngIf="documento.estado !== 'aprobado'">
+              <mat-icon>check</mat-icon>
+              Aprobar
+            </button>
+            <button mat-button color="warn" (click)="rechazarDocumento(documento)"
+                    *ngIf="documento.estado !== 'rechazado'">
+              <mat-icon>close</mat-icon>
+              Rechazar
+            </button>
+            <button mat-button (click)="marcarComoPendiente(documento)"
+                    *ngIf="documento.estado !== 'pendiente'">
+              <mat-icon>pending</mat-icon>
+              Marcar Pendiente
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+    
+    <mat-tab label="Documentos Pendientes">
+      <div *ngIf="!tieneDocumentosPendientes()" class="no-documents">
+        <mat-icon>check_circle</mat-icon>
+        <p>No hay documentos pendientes</p>
+      </div>
+      <div class="documentos-grid">
+        <mat-card *ngFor="let documento of documentosPendientes" 
+                 class="documento-card pendiente">
+          <mat-card-header>
+            <mat-icon mat-card-avatar class="documento-icon pendiente">
+              {{getIconoTipo(documento.tipo)}}
+            </mat-icon>
+            <mat-card-title>{{getTipoDocumento(documento.tipo)}}</mat-card-title>
+            <mat-card-subtitle>
+              Subido: {{documento.fechaCarga | date:'dd/MM/yyyy HH:mm'}}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <p class="nombre-archivo">{{documento.nombreArchivo}}</p>
+            <mat-chip-set>
+              <mat-chip class="pendiente">
+                {{getTextoEstado(documento.estado)}}
+              </mat-chip>
+            </mat-chip-set>
+          </mat-card-content>
+          
+          <mat-card-actions>
+            <button mat-button color="primary" (click)="verDocumento(documento.url)">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+            <button mat-button color="accent" (click)="aprobarDocumento(documento)">
+              <mat-icon>check</mat-icon>
+              Aprobar
+            </button>
+            <button mat-button color="warn" (click)="rechazarDocumento(documento)">
+              <mat-icon>close</mat-icon>
+              Rechazar
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+    
+    <mat-tab label="Documentos Aprobados">
+      <div *ngIf="documentosAprobados.length === 0" class="no-documents">
+        <mat-icon>folder_open</mat-icon>
+        <p>No hay documentos aprobados</p>
+      </div>
+      <div class="documentos-grid">
+        <mat-card *ngFor="let documento of documentosAprobados" 
+                 class="documento-card aprobado">
+          <mat-card-header>
+            <mat-icon mat-card-avatar class="documento-icon aprobado">
+              {{getIconoTipo(documento.tipo)}}
+            </mat-icon>
+            <mat-card-title>{{getTipoDocumento(documento.tipo)}}</mat-card-title>
+            <mat-card-subtitle>
+              Subido: {{documento.fechaCarga | date:'dd/MM/yyyy HH:mm'}}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <p class="nombre-archivo">{{documento.nombreArchivo}}</p>
+            <mat-chip-set>
+              <mat-chip class="aprobado">
+                {{getTextoEstado(documento.estado)}}
+              </mat-chip>
+            </mat-chip-set>
+          </mat-card-content>
+          
+          <mat-card-actions>
+            <button mat-button color="primary" (click)="verDocumento(documento.url)">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+            <button mat-button (click)="marcarComoPendiente(documento)">
+              <mat-icon>pending</mat-icon>
+              Marcar Pendiente
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+    
+    <mat-tab label="Documentos Rechazados">
+      <div *ngIf="documentosRechazados.length === 0" class="no-documents">
+        <mat-icon>cancel</mat-icon>
+        <p>No hay documentos rechazados</p>
+      </div>
+      <div class="documentos-grid">
+        <mat-card *ngFor="let documento of documentosRechazados" 
+                 class="documento-card rechazado">
+          <mat-card-header>
+            <mat-icon mat-card-avatar class="documento-icon rechazado">
+              {{getIconoTipo(documento.tipo)}}
+            </mat-icon>
+            <mat-card-title>{{getTipoDocumento(documento.tipo)}}</mat-card-title>
+            <mat-card-subtitle>
+              Subido: {{documento.fechaCarga | date:'dd/MM/yyyy HH:mm'}}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <p class="nombre-archivo">{{documento.nombreArchivo}}</p>
+            <mat-chip-set>
+              <mat-chip class="rechazado">
+                {{getTextoEstado(documento.estado)}}
+              </mat-chip>
+            </mat-chip-set>
+          </mat-card-content>
+          
+          <mat-card-actions>
+            <button mat-button color="primary" (click)="verDocumento(documento.url)">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+            <button mat-button (click)="marcarComoPendiente(documento)">
+              <mat-icon>pending</mat-icon>
+              Marcar Pendiente
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="guardarCambios()">
+    <mat-icon>save</mat-icon>
+    Guardar Cambios
+  </button>
+</mat-dialog-actions>

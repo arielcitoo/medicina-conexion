@@ -1,0 +1,368 @@
+<h2 mat-dialog-title>
+  <mat-icon>schedule</mat-icon>
+  Programar Citas para Examen Preocupacional
+</h2>
+
+<mat-dialog-content>
+  <div class="solicitud-info">
+    <h3>{{solicitud.asegurado.nombres}} {{solicitud.asegurado.nombreCompleto}}</h3>
+    <p><strong>C.I.:</strong> {{solicitud.asegurado.documentoIdentidad}} | <strong>Empresa:</strong> {{solicitud.asegurado.razonSocial}}</p>
+    <p><strong>Email:</strong> {{solicitud.asegurado.correoElectronico}} | <strong>Teléfono:</strong> {{solicitud.asegurado.celular}}</p>
+  </div>
+
+  <div class="citas-progreso">
+    <div class="pasos">
+      <div class="paso" [class.completado]="getCitaSeleccionada('laboratorio')">
+        <div class="paso-numero">1</div>
+        <div class="paso-texto">Laboratorio</div>
+      </div>
+      <div class="paso" [class.completado]="getCitaSeleccionada('rayos_x')">
+        <div class="paso-numero">2</div>
+        <div class="paso-texto">Rayos X</div>
+      </div>
+      <div class="paso" [class.completado]="getCitaSeleccionada('evaluacion_medica')">
+        <div class="paso-numero">3</div>
+        <div class="paso-texto">Evaluación Médica</div>
+      </div>
+    </div>
+  </div>
+
+  <mat-tab-group animationDuration="0ms">
+    <!-- Tab 1: Laboratorio -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>science</mat-icon>
+        Laboratorio
+        <mat-icon class="tab-status-icon" *ngIf="getCitaSeleccionada('laboratorio')">check_circle</mat-icon>
+      </ng-template>
+      
+      <div class="servicio-tab">
+        <div class="tab-header">
+          <h4>
+            <mat-icon>science</mat-icon>
+            Seleccione horario para Exámenes de Laboratorio
+          </h4>
+          <p class="tab-description">
+            Análisis de sangre, orina y otros exámenes complementarios.
+            Duración aproximada: 30 minutos.
+          </p>
+        </div>
+        
+        <div *ngIf="getCitaSeleccionada('laboratorio')" class="cita-seleccionada">
+          <mat-card class="seleccion-card">
+            <mat-card-content>
+              <div class="seleccion-header">
+                <mat-icon class="seleccion-icon">check_circle</mat-icon>
+                <div>
+                  <h5>Horario seleccionado para Laboratorio:</h5>
+                  <div class="horario-detalle">
+                    <span class="fecha">{{getCitaSeleccionada('laboratorio')?.fecha | date:'EEEE dd/MM/yyyy'}}</span>
+                    <span class="hora">{{getCitaSeleccionada('laboratorio')?.hora}}</span>
+                    <button mat-button color="warn" (click)="deseleccionarCita('laboratorio')">
+                      <mat-icon>close</mat-icon>
+                      Cambiar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="horarios-disponibles">
+          <div class="filtro-fecha">
+            <mat-form-field appearance="outline">
+              <mat-label>Filtrar por fecha</mat-label>
+              <input matInput [matDatepicker]="pickerLab" (dateChange)="filtrarPorFecha('laboratorio', $event.value)">
+              <mat-datepicker-toggle matSuffix [for]="pickerLab"></mat-datepicker-toggle>
+              <mat-datepicker #pickerLab></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <h5>Horarios disponibles para Laboratorio:</h5>
+          <div *ngIf="getHorariosLaboratorio().length === 0" class="no-horarios">
+            <mat-icon>event_busy</mat-icon>
+            <p>No hay horarios disponibles para la fecha seleccionada</p>
+            <button mat-button (click)="mostrarMasFechas('laboratorio')">
+              <mat-icon>calendar_today</mat-icon>
+              Ver más fechas
+            </button>
+          </div>
+
+          <div class="horarios-grid" *ngIf="getHorariosLaboratorio().length > 0">
+            <mat-card *ngFor="let horario of getHorariosLaboratorio()" 
+                     class="horario-card"
+                     [class.selected]="getCitaSeleccionada('laboratorio')?.hora === horario.horaInicio"
+                     (click)="seleccionarCita('laboratorio', horario)">
+              <mat-card-content>
+                <div class="horario-info">
+                  <mat-icon class="horario-icon">access_time</mat-icon>
+                  <div class="horario-details">
+                    <strong class="hora">{{horario.horaInicio}} - {{horario.horaFin}}</strong>
+                    <span class="fecha">{{horario.fecha | date:'dd/MM/yyyy'}}</span>
+                    <span class="duracion">Duración: 30 min</span>
+                  </div>
+                </div>
+                <div class="cupos-info">
+                  <span class="cupos" [class.pocos]="horario.cuposDisponibles < 3" 
+                        [class.agotado]="horario.cuposDisponibles === 0">
+                    <mat-icon>people</mat-icon>
+                    {{horario.cuposDisponibles}}/{{horario.cuposTotales}}
+                  </span>
+                  <button mat-button color="primary" class="btn-seleccionar"
+                          *ngIf="getCitaSeleccionada('laboratorio')?.hora !== horario.horaInicio">
+                    Seleccionar
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Rayos X -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>scatter_plot</mat-icon>
+        Rayos X
+        <mat-icon class="tab-status-icon" *ngIf="getCitaSeleccionada('rayos_x')">check_circle</mat-icon>
+      </ng-template>
+      
+      <div class="servicio-tab">
+        <div class="tab-header">
+          <h4>
+            <mat-icon>scatter_plot</mat-icon>
+            Seleccione horario para Rayos X
+          </h4>
+          <p class="tab-description">
+            Radiografías torácicas y otros estudios radiológicos.
+            Duración aproximada: 20 minutos.
+          </p>
+        </div>
+        
+        <div *ngIf="getCitaSeleccionada('rayos_x')" class="cita-seleccionada">
+          <mat-card class="seleccion-card">
+            <mat-card-content>
+              <div class="seleccion-header">
+                <mat-icon class="seleccion-icon">check_circle</mat-icon>
+                <div>
+                  <h5>Horario seleccionado para Rayos X:</h5>
+                  <div class="horario-detalle">
+                    <span class="fecha">{{getCitaSeleccionada('rayos_x')?.fecha | date:'EEEE dd/MM/yyyy'}}</span>
+                    <span class="hora">{{getCitaSeleccionada('rayos_x')?.hora}}</span>
+                    <button mat-button color="warn" (click)="deseleccionarCita('rayos_x')">
+                      <mat-icon>close</mat-icon>
+                      Cambiar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="horarios-disponibles">
+          <div class="filtro-fecha">
+            <mat-form-field appearance="outline">
+              <mat-label>Filtrar por fecha</mat-label>
+              <input matInput [matDatepicker]="pickerRayos" (dateChange)="filtrarPorFecha('rayos_x', $event.value)">
+              <mat-datepicker-toggle matSuffix [for]="pickerRayos"></mat-datepicker-toggle>
+              <mat-datepicker #pickerRayos></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <h5>Horarios disponibles para Rayos X:</h5>
+          <div *ngIf="getHorariosRayosX().length === 0" class="no-horarios">
+            <mat-icon>event_busy</mat-icon>
+            <p>No hay horarios disponibles para la fecha seleccionada</p>
+            <button mat-button (click)="mostrarMasFechas('rayos_x')">
+              <mat-icon>calendar_today</mat-icon>
+              Ver más fechas
+            </button>
+          </div>
+
+          <div class="horarios-grid" *ngIf="getHorariosRayosX().length > 0">
+            <mat-card *ngFor="let horario of getHorariosRayosX()" 
+                     class="horario-card"
+                     [class.selected]="getCitaSeleccionada('rayos_x')?.hora === horario.horaInicio"
+                     (click)="seleccionarCita('rayos_x', horario)">
+              <mat-card-content>
+                <div class="horario-info">
+                  <mat-icon class="horario-icon">access_time</mat-icon>
+                  <div class="horario-details">
+                    <strong class="hora">{{horario.horaInicio}} - {{horario.horaFin}}</strong>
+                    <span class="fecha">{{horario.fecha | date:'dd/MM/yyyy'}}</span>
+                    <span class="duracion">Duración: 20 min</span>
+                  </div>
+                </div>
+                <div class="cupos-info">
+                  <span class="cupos" [class.pocos]="horario.cuposDisponibles < 3" 
+                        [class.agotado]="horario.cuposDisponibles === 0">
+                    <mat-icon>people</mat-icon>
+                    {{horario.cuposDisponibles}}/{{horario.cuposTotales}}
+                  </span>
+                  <button mat-button color="primary" class="btn-seleccionar"
+                          *ngIf="getCitaSeleccionada('rayos_x')?.hora !== horario.horaInicio">
+                    Seleccionar
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Evaluación Médica -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>medical_services</mat-icon>
+        Evaluación Médica
+        <mat-icon class="tab-status-icon" *ngIf="getCitaSeleccionada('evaluacion_medica')">check_circle</mat-icon>
+      </ng-template>
+      
+      <div class="servicio-tab">
+        <div class="tab-header">
+          <h4>
+            <mat-icon>medical_services</mat-icon>
+            Seleccione horario para Evaluación Médica
+          </h4>
+          <p class="tab-description">
+            Consulta médica ocupacional, evaluación física y diagnóstico.
+            Duración aproximada: 45 minutos.
+          </p>
+        </div>
+        
+        <div *ngIf="getCitaSeleccionada('evaluacion_medica')" class="cita-seleccionada">
+          <mat-card class="seleccion-card">
+            <mat-card-content>
+              <div class="seleccion-header">
+                <mat-icon class="seleccion-icon">check_circle</mat-icon>
+                <div>
+                  <h5>Horario seleccionado para Evaluación Médica:</h5>
+                  <div class="horario-detalle">
+                    <span class="fecha">{{getCitaSeleccionada('evaluacion_medica')?.fecha | date:'EEEE dd/MM/yyyy'}}</span>
+                    <span class="hora">{{getCitaSeleccionada('evaluacion_medica')?.hora}}</span>
+                    <button mat-button color="warn" (click)="deseleccionarCita('evaluacion_medica')">
+                      <mat-icon>close</mat-icon>
+                      Cambiar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="horarios-disponibles">
+          <div class="filtro-fecha">
+            <mat-form-field appearance="outline">
+              <mat-label>Filtrar por fecha</mat-label>
+              <input matInput [matDatepicker]="pickerEvaluacion" (dateChange)="filtrarPorFecha('evaluacion_medica', $event.value)">
+              <mat-datepicker-toggle matSuffix [for]="pickerEvaluacion"></mat-datepicker-toggle>
+              <mat-datepicker #pickerEvaluacion></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <h5>Horarios disponibles para Evaluación Médica:</h5>
+          <div *ngIf="getHorariosEvaluacion().length === 0" class="no-horarios">
+            <mat-icon>event_busy</mat-icon>
+            <p>No hay horarios disponibles para la fecha seleccionada</p>
+            <button mat-button (click)="mostrarMasFechas('evaluacion_medica')">
+              <mat-icon>calendar_today</mat-icon>
+              Ver más fechas
+            </button>
+          </div>
+
+          <div class="horarios-grid" *ngIf="getHorariosEvaluacion().length > 0">
+            <mat-card *ngFor="let horario of getHorariosEvaluacion()" 
+                     class="horario-card"
+                     [class.selected]="getCitaSeleccionada('evaluacion_medica')?.hora === horario.horaInicio"
+                     (click)="seleccionarCita('evaluacion_medica', horario)">
+              <mat-card-content>
+                <div class="horario-info">
+                  <mat-icon class="horario-icon">access_time</mat-icon>
+                  <div class="horario-details">
+                    <strong class="hora">{{horario.horaInicio}} - {{horario.horaFin}}</strong>
+                    <span class="fecha">{{horario.fecha | date:'dd/MM/yyyy'}}</span>
+                    <span class="duracion">Duración: 45 min</span>
+                  </div>
+                </div>
+                <div class="cupos-info">
+                  <span class="cupos" [class.pocos]="horario.cuposDisponibles < 3" 
+                        [class.agotado]="horario.cuposDisponibles === 0">
+                    <mat-icon>people</mat-icon>
+                    {{horario.cuposDisponibles}}/{{horario.cuposTotales}}
+                  </span>
+                  <button mat-button color="primary" class="btn-seleccionar"
+                          *ngIf="getCitaSeleccionada('evaluacion_medica')?.hora !== horario.horaInicio">
+                    Seleccionar
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div class="resumen-citas" *ngIf="citasSeleccionadas.length > 0">
+    <h4>
+      <mat-icon>list_alt</mat-icon>
+      Resumen de Citas Seleccionadas
+    </h4>
+    <mat-card class="resumen-card">
+      <mat-card-content>
+        <mat-list class="resumen-list">
+          <mat-list-item *ngFor="let cita of citasSeleccionadas" class="resumen-item">
+            <mat-icon matListItemIcon [class]="getEstadoServicio(cita.servicio)">
+              {{getIconoServicio(cita.servicio)}}
+            </mat-icon>
+            <div matListItemTitle class="servicio-nombre">{{getNombreServicio(cita.servicio)}}</div>
+            <div matListItemLine class="servicio-detalle">
+              <span class="servicio-fecha">{{cita.fecha | date:'dd/MM/yyyy'}}</span>
+              <span class="servicio-hora">{{cita.hora}}</span>
+              <span class="servicio-duracion">{{getDuracionServicio(cita.servicio)}} min</span>
+            </div>
+            <button mat-icon-button color="warn" (click)="deseleccionarCita(cita.servicio)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-list-item>
+        </mat-list>
+        
+        <div class="resumen-total">
+          <div class="total-info">
+            <span>Total de servicios:</span>
+            <strong>{{citasSeleccionadas.length}}/3</strong>
+          </div>
+          <div class="completado-info" *ngIf="todasCitasSeleccionadas()">
+            <mat-icon class="completado-icon">check_circle</mat-icon>
+            <span>¡Todos los servicios han sido programados!</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <div class="dialog-actions">
+    <button mat-button (click)="cancelar()">
+      <mat-icon>close</mat-icon>
+      Cancelar
+    </button>
+    <button mat-button (click)="programar()" [disabled]="!todasCitasSeleccionadas()"
+            matTooltip="Debe seleccionar horarios para todos los servicios"
+            matTooltipPosition="above">
+      <mat-icon>send</mat-icon>
+      Enviar Confirmación por Email
+    </button>
+    <button mat-raised-button color="primary" (click)="programar()" 
+            [disabled]="!todasCitasSeleccionadas()">
+      <mat-icon>save</mat-icon>
+      Confirmar Programación
+    </button>
+  </div>
+</mat-dialog-actions>

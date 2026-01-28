@@ -16,6 +16,9 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     this.cargarSesionDesdeStorage();
   }
 
+
+
+  
   /**
    * Crear nueva sesión de acceso
    */
@@ -47,6 +50,19 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     return idAcceso;
   }
 
+
+  // Agregar este método a tu SesionService existente
+tienePermiso(permiso: string): boolean {
+  //const usuario = this.getUsuarioActual(); // Método que debes implementar
+  //const permisos = usuario?.permisos || [];
+  
+  // En desarrollo, retornar true
+  return true;
+  
+  // En producción:
+  // return permisos.includes(permiso) || permisos.includes('admin');
+}
+
   /**
    * Recuperar sesión por ID
    */
@@ -54,7 +70,7 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     const sesionGuardada = localStorage.getItem(this.SESSION_KEY);
     
     if (!sesionGuardada) {
-      console.log('❌ No hay sesión guardada');
+      console.log(' No hay sesión guardada');
       return false;
     }
     
@@ -62,13 +78,13 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     
     // Verificar que el ID coincida
     if (sesion.id !== idAcceso) {
-      console.warn('⚠️ ID de acceso no coincide');
+      console.warn(' ID de acceso no coincide');
       return false;
     }
     
     // Verificar si no está expirada
     if (this.sesionExpirada(sesion)) {
-      console.warn('⚠️ Sesión expirada');
+      console.warn(' Sesión expirada');
       this.limpiarSesion();
       return false;
     }
@@ -80,7 +96,7 @@ private readonly SESSION_KEY = 'examen_sesion_acceso';
     // Emitir cambios
     this.sesionActual.next(sesion);
     
-    console.log('✅ Sesión recuperada:', idAcceso);
+    console.log(' Sesión recuperada:', idAcceso);
     return true;
   }
 

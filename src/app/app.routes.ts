@@ -2,7 +2,6 @@
 
 import { Routes } from '@angular/router';
 import { AuthGuard } from './interceptors/auth.guard';
-import { Home } from './features/home/home';
 
 export const routes: Routes = [
 
@@ -17,6 +16,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home').then(m => m.Home)
   },
 
+  {
+    path: 'admin-citas',
+    loadComponent: () => import('./features/admin-citas/admin-citas/admin-citas').then(m => m.AdminCitasComponent),
+    canActivate: [AuthGuard],
+    data: { requiredPermission: 'admin_citas' }
+  },
+
   { 
     path: 'login', 
     loadComponent: () => import('./features/examenes-preocupacionales/components/login/login').then(m => m.Login)
@@ -29,7 +35,7 @@ export const routes: Routes = [
 
   { 
     path: 'busqueda', 
-    loadComponent: () => import('./features/examenes-preocupacionales/components/busqueda/busqueda').then(m => m.Busqueda)
+    loadComponent: () => import('./features/examenes-preocupacionales/components/busqueda-asegurados/busqueda-asegurados').then(m => m.Busqueda)
   },
 
  { 

@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>
+  <mat-icon>feedback</mat-icon>
+  Registrar Observaciones
+</h2>
+
+<mat-dialog-content>
+  <div class="solicitud-info">
+    <h4>Solicitud #{{solicitud.id}}</h4>
+    <p><strong>Asegurado:</strong> {{solicitud.asegurado.nombres}} {{solicitud.asegurado.nombreCompleto}}</p>   
+    <p><strong>C.I.:</strong> {{solicitud.asegurado.documentoIdentidad}}</p>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Observaciones</mat-label>
+    <textarea matInput [(ngModel)]="observaciones" 
+              placeholder="Ingrese las observaciones sobre la documentación..."
+              rows="8"></textarea>
+    <mat-hint>Describa los problemas encontrados en la documentación</mat-hint>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="guardar()" [disabled]="!observaciones.trim()">
+    <mat-icon>save</mat-icon>
+    Guardar Observaciones
+  </button>
+</mat-dialog-actions>

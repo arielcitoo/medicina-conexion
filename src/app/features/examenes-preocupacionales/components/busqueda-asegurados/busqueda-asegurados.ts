@@ -7,8 +7,8 @@ import { Asegurado } from '../../../../interface/asegurado.interface';
 @Component({
   selector: 'app-busqueda',
   imports: [CommonModule, FormsModule],
-  templateUrl: './busqueda.html',
-  styleUrl: './busqueda.css',
+  templateUrl: './busqueda-asegurados.html',
+  styleUrl: './busqueda-asegurados.css',
 })
 export class Busqueda {
 documento = '';
