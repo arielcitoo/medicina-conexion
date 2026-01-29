@@ -1,62 +1,61 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { SolicitudExamen, HorarioDisponible, Cita } from '../models/admin-citas.interface';
 import { BaseApiService } from '../../../core/service/base-api.service';
-import { AdminCitas } from '../admin-citas/admin-citas';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminCitasService extends BaseApiService {
   
-  constructor(http: HttpClient) {
-    super(http);
+  constructor() {
+    super(); // Esto es CRÍTICO - llama al constructor de BaseApiService
   }
 
   // Obtener todas las solicitudes
   getSolicitudes(): Observable<SolicitudExamen[]> {
-    return this.get<SolicitudExamen[]>('admin-citas/solicitudes');
+    return this.getRequest<SolicitudExamen[]>('/admin-citas/solicitudes');
   }
 
   // Obtener solicitud por ID
   getSolicitudById(id: number): Observable<SolicitudExamen> {
-    return this.get<SolicitudExamen>(`admin-citas/solicitudes/${id}`);
+    return this.getRequest<SolicitudExamen>(`/admin-citas/solicitudes/${id}`);
   }
 
   // Aprobar solicitud
   aprobarSolicitud(id: number): Observable<any> {
-    return this.post(`admin-citas/solicitudes/${id}/aprobar`, {});
+    return this.postRequest(`/admin-citas/solicitudes/${id}/aprobar`, {});
   }
 
   // Observar solicitud
   observarSolicitud(id: number, observaciones: string): Observable<any> {
-    return this.post(`admin-citas/solicitudes/${id}/observar`, { observaciones });
+    return this.postRequest(`/admin-citas/solicitudes/${id}/observar`, { observaciones });
   }
 
   // Rechazar solicitud
   rechazarSolicitud(id: number, motivo: string): Observable<any> {
-    return this.post(`admin-citas/solicitudes/${id}/rechazar`, { motivo });
+    return this.postRequest(`/admin-citas/solicitudes/${id}/rechazar`, { motivo });
   }
 
   // Enviar email de aprobación
   enviarEmailAprobacion(id: number): Observable<any> {
-    return this.post(`admin-citas/solicitudes/${id}/enviar-email`, {});
+    return this.postRequest(`/admin-citas/solicitudes/${id}/enviar-email`, {});
   }
 
   // Obtener horarios disponibles
   getHorariosDisponibles(): Observable<HorarioDisponible[]> {
-    return this.get<HorarioDisponible[]>('admin-citas/horarios');
+    return this.getRequest<HorarioDisponible[]>('/admin-citas/horarios');
   }
 
   // Programar citas
   programarCitas(solicitudId: number, citas: Cita[]): Observable<any> {
-    return this.post(`admin-citas/solicitudes/${solicitudId}/programar`, { citas });
+    return this.postRequest(`/admin-citas/solicitudes/${solicitudId}/programar`, { citas });
   }
 
   // Buscar solicitudes
   buscarSolicitudes(filtro: string): Observable<SolicitudExamen[]> {
-    return this.get<SolicitudExamen[]>(`admin-citas/solicitudes/buscar?q=${filtro}`);
+    return this.getRequest<SolicitudExamen[]>('/admin-citas/solicitudes/buscar', { q: filtro });
   }
 
   // Datos mock para desarrollo
@@ -65,14 +64,25 @@ export class AdminCitasService extends BaseApiService {
       {
         id: 1,
         asegurado: {
-          id: 1,
-          ci: '1234567',
+          aseguradoId: 1,
+          matricula: 'MAT001',
+          estadoAsegurado: 'ACTIVO',
+          documentoIdentidad: '1234567',
+          extencion: 'LP',
+          complemento: '',
+          fechaNacimiento: '1985-05-15',
+          paterno: 'Pérez',
+          materno: 'Gómez',
           nombres: 'Juan',
-          apellidos: 'Pérez',
-          email: 'juan.perez@email.com',
-          telefono: '77712345',
-          empresa: 'Empresa ABC',
-          numeroPatronal: 'PAT123'
+          genero: 'MASCULINO',
+          tipoAsegurado: 'TITULAR',
+          razonSocial: 'Empresa ABC S.A.',
+          nroPatronal: 'PAT123',
+          estadoMora: 'AL DÍA',
+          grupoFamiliarId: 1,
+          correoElectronico: 'juan.perez@email.com',
+          celular: '77712345',
+          nombreCompleto: 'Juan Pérez Gómez'
         },
         documentos: [
           {
@@ -99,14 +109,25 @@ export class AdminCitasService extends BaseApiService {
       {
         id: 2,
         asegurado: {
-          id: 2,
-          ci: '7654321',
+          aseguradoId: 2,
+          matricula: 'MAT002',
+          estadoAsegurado: 'ACTIVO',
+          documentoIdentidad: '7654321',
+          extencion: 'LP',
+          complemento: '',
+          fechaNacimiento: '1990-08-22',
+          paterno: 'Gómez',
+          materno: 'López',
           nombres: 'María',
-          apellidos: 'Gómez',
-          email: 'maria.gomez@email.com',
-          telefono: '77754321',
-          empresa: 'Empresa XYZ',
-          numeroPatronal: 'PAT456'
+          genero: 'FEMENINO',
+          tipoAsegurado: 'TITULAR',
+          razonSocial: 'Empresa XYZ Ltda.',
+          nroPatronal: 'PAT456',
+          estadoMora: 'AL DÍA',
+          grupoFamiliarId: 2,
+          correoElectronico: 'maria.gomez@email.com',
+          celular: '77754321',
+          nombreCompleto: 'María Gómez López'
         },
         documentos: [
           {
@@ -121,59 +142,6 @@ export class AdminCitasService extends BaseApiService {
         estado: 'aprobado',
         fechaRegistro: new Date('2024-01-16'),
         fechaAprobacion: new Date('2024-01-17')
-      },
-      {
-        id: 3,
-        asegurado: {
-          id: 3,
-          ci: '9876543',
-          nombres: 'Carlos',
-          apellidos: 'Rodríguez',
-          email: 'carlos.rodriguez@email.com',
-          telefono: '77798765',
-          empresa: 'Industrias Bolivianas',
-          numeroPatronal: 'PAT789'
-        },
-        documentos: [
-          {
-            id: 4,
-            tipo: 'recibo',
-            nombreArchivo: 'recibo_pago3.pdf',
-            url: '/assets/docs/recibo3.pdf',
-            fechaCarga: new Date('2024-01-18'),
-            estado: 'aprobado'
-          },
-          {
-            id: 5,
-            tipo: 'gestora_anverso',
-            nombreArchivo: 'gestora_anverso2.jpg',
-            url: '/assets/docs/gestora2.jpg',
-            fechaCarga: new Date('2024-01-18'),
-            estado: 'aprobado'
-          },
-          {
-            id: 6,
-            tipo: 'gestora_reverso',
-            nombreArchivo: 'gestora_reverso2.jpg',
-            url: '/assets/docs/gestora_rev2.jpg',
-            fechaCarga: new Date('2024-01-18'),
-            estado: 'aprobado'
-          }
-        ],
-        estado: 'programado',
-        fechaRegistro: new Date('2024-01-18'),
-        fechaAprobacion: new Date('2024-01-19'),
-        fechaProgramacion: new Date('2024-01-20'),
-        citasProgramadas: [
-          {
-            solicitudId: 3,
-            servicio: 'laboratorio',
-            fecha: new Date('2024-01-25'),
-            hora: '08:00',
-            duracion: 30,
-            estado: 'confirmada'
-          }
-        ]
       }
     ];
   }

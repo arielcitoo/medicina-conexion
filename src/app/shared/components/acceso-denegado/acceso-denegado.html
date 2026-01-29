@@ -1,0 +1,147 @@
+<!-- shared/components/acceso-denegado/acceso-denegado.html -->
+<div class="acceso-denegado-container">
+  <mat-card class="denegado-card">
+    <mat-card-header>
+      <mat-card-title class="titulo-principal">
+        <mat-icon class="icono-titulo">block</mat-icon>
+        Acceso Denegado
+      </mat-card-title>
+      <mat-card-subtitle class="subtitulo">
+        No tiene los permisos necesarios para acceder a esta sección
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- Mensaje principal -->
+      <div class="mensaje-principal">
+        <mat-icon class="icono-error">warning</mat-icon>
+        <div class="texto-mensaje">
+          <h3>Acceso Restringido</h3>
+          <p>
+            Estimado <strong>{{ getUsuarioNombre() }}</strong>, 
+            su cuenta no cuenta con los permisos necesarios para acceder al sistema de administración de citas.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Información detallada -->
+      <div class="info-detallada">
+        <!-- Roles del usuario -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>badge</mat-icon>
+              Roles de su cuenta
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (getUsuarioRoles().length > 0) {
+              <div class="lista-items">
+                @for (rol of getUsuarioRoles(); track rol) {
+                  <mat-chip class="rol-chip">{{ rol }}</mat-chip>
+                }
+              </div>
+            } @else {
+              <p class="sin-datos">No tiene roles asignados</p>
+            }
+          </mat-card-content>
+        </mat-card>
+        
+        <!-- Permisos del usuario -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>security</mat-icon>
+              Permisos de su cuenta
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (getUsuarioPermisos().length > 0) {
+              <div class="lista-items">
+                @for (permiso of getUsuarioPermisos(); track permiso) {
+                  <mat-chip class="permiso-chip">{{ permiso }}</mat-chip>
+                }
+              </div>
+            } @else {
+              <p class="sin-datos">No tiene permisos asignados</p>
+            }
+          </mat-card-content>
+        </mat-card>
+        
+        <!-- Requisitos faltantes -->
+        <mat-card class="info-card requerido">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>error_outline</mat-icon>
+              Requisitos Faltantes
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <!-- Roles requeridos -->
+            <div class="requisito-section">
+              <h4>Roles requeridos:</h4>
+              <div class="lista-requisitos">
+                @for (rol of requiredRoles; track rol) {
+                  <div class="requisito-item" [class.faltante]="getRolesFaltantes().includes(rol)">
+                    <mat-icon>
+                      {{ getRolesFaltantes().includes(rol) ? 'close' : 'check' }}
+                    </mat-icon>
+                    <span>{{ rol }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+            
+            <!-- Permisos requeridos -->
+            <div class="requisito-section">
+              <h4>Permisos requeridos:</h4>
+              <div class="lista-requisitos">
+                @for (permiso of requiredPermissions; track permiso) {
+                  <div class="requisito-item" [class.faltante]="getPermisosFaltantes().includes(permiso)">
+                    <mat-icon>
+                      {{ getPermisosFaltantes().includes(permiso) ? 'close' : 'check' }}
+                    </mat-icon>
+                    <span>{{ permiso }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      
+      <!-- Instrucciones -->
+      <div class="instrucciones">
+        <mat-icon>info</mat-icon>
+        <div class="instrucciones-contenido">
+          <h4>¿Necesita acceso a esta sección?</h4>
+          <p>
+            Para solicitar permisos de administración de citas, contacte al área de Sistemas del CNS 
+            o solicite a su supervisor que le asigne los roles correspondientes.
+          </p>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions class="acciones">
+      <div class="acciones-primarias">
+        <button mat-raised-button color="primary" (click)="volverAlInicio()">
+          <mat-icon>home</mat-icon>
+          Volver al Inicio
+        </button>
+        
+        <button mat-button (click)="contactarSoporte()">
+          <mat-icon>support_agent</mat-icon>
+          Contactar Soporte
+        </button>
+      </div>
+      
+      <div class="acciones-secundarias">
+        <button mat-stroked-button color="warn" (click)="cerrarSesion()">
+          <mat-icon>logout</mat-icon>
+          Cerrar Sesión
+        </button>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>

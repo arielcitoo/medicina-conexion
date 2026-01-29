@@ -25,7 +25,7 @@ import { Documento, Asegurado } from '../../models/admin-citas.interface';
   templateUrl: './ver-documentos-dialog.html',
   styleUrls: ['./ver-documentos-dialog.css']
 })
-export class VerDocumentosDialogComponent implements OnInit {
+export class VerDocumentosDialog implements OnInit {
   documentos: Documento[];
   documentosPendientes: Documento[] = [];
   documentosAprobados: Documento[] = [];
@@ -33,7 +33,7 @@ export class VerDocumentosDialogComponent implements OnInit {
   asegurado: Asegurado;
 
   constructor(
-    public dialogRef: MatDialogRef<VerDocumentosDialogComponent>,
+    public dialogRef: MatDialogRef<VerDocumentosDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private datePipe: DatePipe
   ) {

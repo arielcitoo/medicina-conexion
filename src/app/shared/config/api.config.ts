@@ -9,8 +9,10 @@ export const API_CONFIG = {
 
 export const STORAGE_KEYS = {
   jwtToken: 'jwt_token',
-  empresaExamen: 'empresa_examen_preocupacional'
-};
+  empresaExamen: 'empresa_examen_preocupacional',
+  sesionAcceso: 'examen_sesion_acceso',       // Añadido
+  idAcceso: 'examen_id_acceso'               // Añadido
+} as const;
 
 export const ERROR_MESSAGES = {
   connection: 'Error de conexión. Verifique su conexión a internet.',

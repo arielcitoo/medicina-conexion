@@ -18,7 +18,7 @@ export const routes: Routes = [
 
   {
     path: 'admin-citas',
-    loadComponent: () => import('./features/admin-citas/admin-citas/admin-citas').then(m => m.AdminCitasComponent),
+    loadComponent: () => import('./features/admin-citas/admin-citas/admin-citas').then(m => m.AdminCitas),
     canActivate: [AuthGuard],
     data: { requiredPermission: 'admin_citas' }
   },
@@ -31,6 +31,15 @@ export const routes: Routes = [
   { 
     path: 'prelogin', 
     loadComponent: () => import('./features/examenes-preocupacionales/components/prelogin/prelogin').then(m => m.Prelogin)
+  },
+  
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./features/admin-citas/components/login-admin/login-admin').then(m => m.LoginAdmin)
+  },
+  {
+    path: 'acceso-denegado',
+    loadComponent: () => import('./shared/components/acceso-denegado/acceso-denegado').then(m => m.AccesoDenegado)
   },
 
   { 
@@ -45,7 +54,7 @@ export const routes: Routes = [
   },
 { 
     path: '**', 
-    redirectTo: 'prelogin'
+    redirectTo: 'home'
 } 
  ];
 

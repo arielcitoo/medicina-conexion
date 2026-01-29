@@ -24,12 +24,12 @@ import { SolicitudExamen } from '../../models/admin-citas.interface';
   templateUrl: './observar-citas-dialog.html',
   styleUrls: ['./observar-citas-dialog.css']
 })
-export class ObservarSolicitudDialogComponent {
+export class ObservarSolicitudDialog {
   observaciones: string = '';
   solicitud: SolicitudExamen;
 
   constructor(
-    public dialogRef: MatDialogRef<ObservarSolicitudDialogComponent>,
+    public dialogRef: MatDialogRef<ObservarSolicitudDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.solicitud = data.solicitud;

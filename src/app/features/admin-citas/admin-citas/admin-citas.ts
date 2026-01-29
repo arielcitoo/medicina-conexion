@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -23,14 +23,17 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { SharedMaterialModule } from '../../../shared/modules/material.module';
 import { AdminCitasService } from '../services/admin-citas.service';
-import { Asegurado, SolicitudExamen } from '../models/admin-citas.interface';
-//import { VerDocumentosDialog } from '../components/ver-documentos-dialog/ver-documentos-dialog';
-import { ObservarSolicitudDialogComponent } from '../components/observar-citas-dialog/observar-citas-dialog';
-import { ProgramarCitasDialogComponent } from '../components/programar-citas-dialog/programar-citas-dialog';
-import { SesionService } from '../../../core/service/sesion.service';
+import { SolicitudExamen, Asegurado } from '../models/admin-citas.interface';
+import { VerDocumentosDialog } from '../components/ver-documentos-dialog/ver-documentos-dialog';
+import { ObservarSolicitudDialog } from '../components/observar-citas-dialog/observar-citas-dialog';
+import { ProgramarCitasDialog } from '../components/programar-citas-dialog/programar-citas-dialog';
+
+import { AuthCnsService } from '../../../core/service/auth-cns.service'
 
 @Component({
   selector: 'app-admin-citas',
@@ -61,12 +64,15 @@ import { SesionService } from '../../../core/service/sesion.service';
     MatTabsModule,
     MatBadgeModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    MatDividerModule,
+    MatProgressBarModule
   ],
   templateUrl: './admin-citas.html',
   styleUrls: ['./admin-citas.css']
 })
-export class AdminCitasComponent implements OnInit, AfterViewInit {
+export class AdminCitas implements OnInit, AfterViewInit {
+  
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -74,7 +80,7 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly fb = inject(FormBuilder);
-  private readonly sesionService = inject(SesionService);
+  private readonly router = inject(Router);
 
   // Datos
   dataSource = new MatTableDataSource<SolicitudExamen>([]);
@@ -93,7 +99,8 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
 
   // Estados
   isLoading = false;
-  filterValue = '';
+  tieneSesionActiva = false;
+  usuarioActual: any = null;
 
   // Filtros
   estados = [
@@ -104,11 +111,11 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     { value: 'programado', label: 'Programado', icon: 'schedule' },
     { value: 'completado', label: 'Completado', icon: 'done_all' }
   ];
-  estadoFiltro = 'todos';
 
   // Formularios
   filtroForm: FormGroup;
 
+  
   constructor() {
     this.filtroForm = this.fb.group({
       buscar: [''],
@@ -119,8 +126,10 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.verificarAcceso();
+    this.verificarSesion();
+    this.inicializarUsuario();
     this.cargarSolicitudes();
+    
   }
 
   ngAfterViewInit(): void {
@@ -129,14 +138,113 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     this.dataSource.filterPredicate = this.createFilter();
   }
 
-  private verificarAcceso(): void {
-    const tieneAcceso = this.sesionService.tienePermiso('admin_citas');
-    if (!tieneAcceso) {
-      this.mostrarError('No tiene permisos para acceder a esta sección');
-      // Redirigir a home o login
+  // ===== MÉTODOS DE SESIÓN =====
+
+  /**
+   * Verificar sesión manualmente (solución temporal)
+   */
+  private verificarSesion(): void {
+    // Verificar localStorage directamente
+    const tieneEmpresa = !!localStorage.getItem('empresa_examen_preocupacional');
+    const tieneSesion = !!localStorage.getItem('examen_sesion_acceso');
+    const tieneIdAcceso = !!localStorage.getItem('examen_id_acceso');
+    const tieneToken = !!localStorage.getItem('jwt_token');
+    
+    this.tieneSesionActiva = tieneEmpresa && tieneSesion && tieneIdAcceso && tieneToken;
+    
+    if (!this.tieneSesionActiva) {
+      this.mostrarError('No tiene una sesión activa. Redirigiendo al inicio...');
+      
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 2000);
     }
   }
 
+  /**
+   * Inicializar datos del usuario
+   */
+  private inicializarUsuario(): void {
+    // Obtener datos del usuario desde localStorage
+    const empresaStr = localStorage.getItem('empresa_examen_preocupacional');
+    const sesionStr = localStorage.getItem('examen_sesion_acceso');
+    const idAcceso = localStorage.getItem('examen_id_acceso');
+    
+    if (empresaStr && sesionStr && idAcceso) {
+      try {
+        const empresa = JSON.parse(empresaStr);
+        const sesion = JSON.parse(sesionStr);
+        
+        this.usuarioActual = {
+          empresa: empresa,
+          sesion: sesion,
+          idAcceso: idAcceso,
+          nombre: empresa.razonSocial || 'Administrador',
+          email: empresa.correoElectronico || 'admin@cns.gov.bo',
+          roles: ['admin', 'administrador_citas'],
+          permisos: ['ver_citas', 'aprobar_citas', 'programar_citas', 'administrar_citas']
+        };
+        
+        console.log('Usuario inicializado:', this.usuarioActual);
+      } catch (error) {
+        console.error('Error al parsear datos de usuario:', error);
+      }
+    }
+  }
+
+  /**
+   * Verificar permisos de administración
+   */
+  private verificarPermisos(): boolean {
+    // Para desarrollo, asumimos que todos tienen permisos
+    // En producción, implementar lógica real de permisos
+    if (!this.tieneSesionActiva) {
+      return false;
+    }
+    
+    // Verificar roles del usuario
+    const tieneRolAdmin = this.usuarioActual?.roles?.includes('admin') || 
+                         this.usuarioActual?.roles?.includes('administrador_citas');
+    
+    if (!tieneRolAdmin) {
+      this.mostrarError('No tiene permisos para acceder a esta sección');
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 2000);
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Cerrar sesión del administrador
+   */
+  cerrarSesion(): void {
+    if (confirm('¿Está seguro de cerrar la sesión de administración?')) {
+      // Limpiar localStorage
+      localStorage.removeItem('empresa_examen_preocupacional');
+      localStorage.removeItem('examen_sesion_acceso');
+      localStorage.removeItem('examen_id_acceso');
+      localStorage.removeItem('jwt_token');
+      
+      this.tieneSesionActiva = false;
+      this.usuarioActual = null;
+      this.mostrarMensaje('Sesión cerrada exitosamente');
+      
+      // Redirigir al home
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 1500);
+    }
+  }
+
+  // ===== MÉTODOS DE DATOS =====
+
+  /**
+   * Cargar solicitudes desde el servicio
+   */
   cargarSolicitudes(): void {
     this.isLoading = true;
     
@@ -160,6 +268,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }, 1000);
   }
 
+  /**
+   * Crear filtro personalizado para la tabla
+   */
   createFilter(): (data: SolicitudExamen, filter: string) => boolean {
     return (data, filter) => {
       const searchTerms = JSON.parse(filter);
@@ -167,11 +278,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
       // Buscar en texto
       const searchText = searchTerms.text?.toLowerCase() || '';
       const matchesSearch = !searchText || 
-        data.asegurado.nombres.toLowerCase().includes(searchText) ||
-        data.asegurado.nombreCompleto.toLowerCase().includes(searchText) ||
-        data.asegurado.documentoIdentidad.includes(searchText) ||
-        data.asegurado.razonSocial.toLowerCase().includes(searchText) ||
-        data.asegurado.nroPatronal.toLowerCase().includes(searchText);
+        this.getNombreAsegurado(data.asegurado).toLowerCase().includes(searchText) ||
+        this.getCIAsegurado(data.asegurado).toLowerCase().includes(searchText) ||
+        this.getEmpresaAsegurado(data.asegurado).toLowerCase().includes(searchText);
 
       // Filtrar por estado
       const matchesEstado = searchTerms.estado === 'todos' || data.estado === searchTerms.estado;
@@ -185,6 +294,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     };
   }
 
+  /**
+   * Aplicar filtros a la tabla
+   */
   aplicarFiltro(): void {
     const filtro = {
       text: this.filtroForm.get('buscar')?.value || '',
@@ -200,6 +312,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Limpiar todos los filtros
+   */
   limpiarFiltros(): void {
     this.filtroForm.reset({
       buscar: '',
@@ -210,7 +325,11 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     this.aplicarFiltro();
   }
 
-  // Ver documentos
+  // ===== MÉTODOS DE GESTIÓN DE SOLICITUDES =====
+
+  /**
+   * Ver documentos de una solicitud
+   */
   verDocumentos(solicitud: SolicitudExamen): void {
     this.dialog.open(VerDocumentosDialog, {
       width: '900px',
@@ -222,9 +341,11 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Aprobar solicitud
+  /**
+   * Aprobar solicitud
+   */
   aprobarSolicitud(solicitud: SolicitudExamen): void {
-    if (confirm(`¿Está seguro de aprobar la solicitud de ${solicitud.asegurado.nombres} ${solicitud.asegurado.apellidos}?`)) {
+    if (confirm(`¿Está seguro de aprobar la solicitud de ${this.getNombreAsegurado(solicitud.asegurado)}?`)) {
       this.isLoading = true;
       
       // En producción, usar servicio real
@@ -248,6 +369,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Actualizar solicitud como aprobada
+   */
   private actualizarSolicitudAprobada(solicitud: SolicitudExamen): void {
     solicitud.estado = 'aprobado';
     solicitud.fechaAprobacion = new Date();
@@ -258,9 +382,11 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     this.mostrarMensaje('Solicitud aprobada exitosamente');
   }
 
-  // Observar solicitud
+  /**
+   * Observar solicitud
+   */
   observarSolicitud(solicitud: SolicitudExamen): void {
-    const dialogRef = this.dialog.open(ObservarSolicitudDialogComponent, {
+    const dialogRef = this.dialog.open(ObservarSolicitudDialog, {
       width: '500px',
       data: { solicitud }
     });
@@ -295,27 +421,14 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Rechazar solicitud
+  /**
+   * Rechazar solicitud
+   */
   rechazarSolicitud(solicitud: SolicitudExamen): void {
     const motivo = prompt('Ingrese el motivo del rechazo:');
     if (motivo) {
       this.isLoading = true;
       
-      // En producción, usar servicio real
-      // this.adminCitasService.rechazarSolicitud(solicitud.id, motivo).subscribe({
-      //   next: () => {
-      //     solicitud.estado = 'observado';
-      //     solicitud.observaciones = `Rechazado: ${motivo}`;
-      //     this.mostrarMensaje('Solicitud rechazada');
-      //     this.isLoading = false;
-      //   },
-      //   error: (error) => {
-      //     console.error('Error al rechazar solicitud:', error);
-      //     this.mostrarError('Error al rechazar la solicitud');
-      //     this.isLoading = false;
-      //   }
-      // });
-
       // Mock
       setTimeout(() => {
         solicitud.estado = 'observado';
@@ -326,23 +439,19 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Enviar email de aprobación
+  /**
+   * Enviar email de aprobación
+   */
   enviarEmailAprobacion(solicitud: SolicitudExamen): void {
-    // this.adminCitasService.enviarEmailAprobacion(solicitud.id).subscribe({
-    //   next: () => {
-    //     this.mostrarMensaje('Email de aprobación enviado');
-    //   },
-    //   error: (error) => {
-    //     console.error('Error al enviar email:', error);
-    //     this.mostrarError('Error al enviar email');
-    //   }
-    // });
-    console.log('Email de aprobación enviado a:', solicitud.asegurado.email);
+    console.log('Email de aprobación enviado a:', solicitud.asegurado.correoElectronico);
+    this.mostrarMensaje('Email de aprobación enviado');
   }
 
-  // Programar citas
+  /**
+   * Programar citas para una solicitud aprobada
+   */
   programarCitas(solicitud: SolicitudExamen): void {
-    const dialogRef = this.dialog.open(ProgramarCitasDialogComponent, {
+    const dialogRef = this.dialog.open(ProgramarCitasDialog, {
       width: '1000px',
       maxHeight: '90vh',
       data: { solicitud }
@@ -358,16 +467,122 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Ver detalles de citas programadas
+  /**
+   * Ver citas programadas
+   */
   verCitasProgramadas(solicitud: SolicitudExamen): void {
-    const citasInfo = solicitud.citasProgramadas?.map(cita => 
-      `${cita.servicio}: ${new Date(cita.fecha).toLocaleDateString()} ${cita.hora}`
-    ).join('\n') || 'No hay citas programadas';
-    
-    alert(`Citas programadas para ${solicitud.asegurado.nombres}:\n\n${citasInfo}`);
+    if (solicitud.citasProgramadas && solicitud.citasProgramadas.length > 0) {
+      const citasInfo = solicitud.citasProgramadas.map(cita => 
+        `• ${this.getNombreServicio(cita.servicio)}: ${new Date(cita.fecha).toLocaleDateString()} ${cita.hora}`
+      ).join('\n');
+      
+      alert(`Citas programadas para ${this.getNombreAsegurado(solicitud.asegurado)}:\n\n${citasInfo}`);
+    } else {
+      this.mostrarMensaje('No hay citas programadas para esta solicitud');
+    }
   }
 
-  // Selección múltiple
+  // ===== MÉTODOS DE DATOS DEL ASEGURADO =====
+
+  /**
+   * Obtener nombre completo del asegurado
+   */
+  getNombreAsegurado(asegurado: Asegurado): string {
+    if (asegurado.nombreCompleto) {
+      return asegurado.nombreCompleto;
+    }
+    
+    const nombreCompleto = [
+      asegurado.paterno,
+      asegurado.materno,
+      asegurado.nombres
+    ].filter(part => part && part.trim()).join(' ');
+    
+    return nombreCompleto || 'Asegurado';
+  }
+
+  /**
+   * Obtener CI del asegurado
+   */
+  getCIAsegurado(asegurado: Asegurado): string {
+    const ci = asegurado.documentoIdentidad || '';
+    const extension = asegurado.extencion || '';
+    
+    if (extension) {
+      return `${ci} ${extension}`.trim();
+    }
+    return ci;
+  }
+
+  /**
+   * Obtener empresa del asegurado
+   */
+  getEmpresaAsegurado(asegurado: Asegurado): string {
+    return asegurado.razonSocial || '';
+  }
+
+  /**
+   * Obtener nombre del servicio
+   */
+  getNombreServicio(servicio: string): string {
+    switch(servicio) {
+      case 'laboratorio': return 'Laboratorio';
+      case 'rayos_x': return 'Rayos X';
+      case 'evaluacion_medica': return 'Evaluación Médica';
+      default: return servicio;
+    }
+  }
+
+  // ===== MÉTODOS DE UI/HELPERS =====
+
+  /**
+   * Obtener icono según estado
+   */
+  getEstadoIcon(estado: string): string {
+    switch(estado) {
+      case 'pendiente': return 'pending_actions';
+      case 'observado': return 'visibility';
+      case 'aprobado': return 'check_circle';
+      case 'programado': return 'schedule';
+      case 'completado': return 'done_all';
+      default: return 'help';
+    }
+  }
+
+  /**
+   * Obtener clase CSS según estado
+   */
+  getEstadoColor(estado: string): string {
+    switch(estado) {
+      case 'pendiente': return 'estado-pendiente';
+      case 'observado': return 'estado-observado';
+      case 'aprobado': return 'estado-aprobado';
+      case 'programado': return 'estado-programado';
+      case 'completado': return 'estado-completado';
+      default: return '';
+    }
+  }
+
+  /**
+   * Obtener etiqueta del estado
+   */
+  getEstadoLabel(estadoValue: string): string {
+    const estado = this.estados.find(e => e.value === estadoValue);
+    return estado ? estado.label : estadoValue;
+  }
+
+  /**
+   * Obtener cantidad de documentos pendientes
+   */
+  getDocumentosPendientesCount(solicitud: SolicitudExamen): number {
+    return solicitud.documentos.filter(doc => doc.estado === 'pendiente').length;
+  }
+
+  // ===== MÉTODOS DE SELECCIÓN =====
+
+  /**
+   * Alternar selección de una fila
+   */
   toggleSeleccion(solicitud: SolicitudExamen): void {
     if (this.selection.has(solicitud)) {
       this.selection.delete(solicitud);
@@ -376,6 +591,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Seleccionar todas las filas
+   */
   seleccionarTodos(event: any): void {
     if (event.checked) {
       this.dataSource.filteredData.forEach(row => this.selection.add(row));
@@ -384,7 +602,9 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Acciones en lote
+  /**
+   * Aprobar solicitudes seleccionadas
+   */
   aprobarSeleccionados(): void {
     const seleccionados = Array.from(this.selection);
     if (seleccionados.length === 0) {
@@ -403,58 +623,44 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper methods
-  getEstadoIcon(estado: string): string {
-    switch(estado) {
-      case 'pendiente': return 'pending_actions';
-      case 'observado': return 'visibility';
-      case 'aprobado': return 'check_circle';
-      case 'programado': return 'schedule';
-      case 'completado': return 'done_all';
-      default: return 'help';
-    }
+  // ===== MÉTODOS DE EXPORTACIÓN =====
+
+  /**
+   * Exportar a Excel
+   */
+  exportarExcel(): void {
+    this.mostrarMensaje('Exportando datos a Excel...');
+    // Implementar lógica de exportación
   }
 
-  getEstadoColor(estado: string): string {
-    switch(estado) {
-      case 'pendiente': return 'estado-pendiente';
-      case 'observado': return 'estado-observado';
-      case 'aprobado': return 'estado-aprobado';
-      case 'programado': return 'estado-programado';
-      case 'completado': return 'estado-completado';
-      default: return '';
-    }
+  /**
+   * Exportar a PDF
+   */
+  exportarPDF(): void {
+    this.mostrarMensaje('Generando reporte PDF...');
+    // Implementar lógica de exportación PDF
   }
 
-  getDocumentosPendientes(solicitud: SolicitudExamen): number {
-    return solicitud.documentos.filter(doc => doc.estado === 'pendiente').length;
-  }
+  // ===== MÉTODOS GETTER PARA TEMPLATE =====
 
-  mostrarMensaje(mensaje: string): void {
-    this.snackBar.open(mensaje, 'Cerrar', {
-      duration: 3000,
-      panelClass: ['snackbar-success']
-    });
-  }
-
-  mostrarError(mensaje: string): void {
-    this.snackBar.open(mensaje, 'Cerrar', {
-      duration: 3000,
-      panelClass: ['snackbar-error']
-    });
-  }
-
-  // Getters para template
   get totalSolicitudes(): number {
     return this.dataSource.data.length;
   }
 
-  get solicitudesPendientes(): number {
+  getSolicitudesPendientesCount(): number {
     return this.dataSource.data.filter(s => s.estado === 'pendiente').length;
   }
 
-  get solicitudesAprobadas(): number {
+  getSolicitudesAprobadasCount(): number {
     return this.dataSource.data.filter(s => s.estado === 'aprobado').length;
+  }
+
+  getSolicitudesProgramadasCount(): number {
+    return this.dataSource.data.filter(s => s.estado === 'programado').length;
+  }
+
+  getSolicitudesCompletadasCount(): number {
+    return this.dataSource.data.filter(s => s.estado === 'completado').length;
   }
 
   get todasSeleccionadas(): boolean {
@@ -467,58 +673,46 @@ export class AdminCitasComponent implements OnInit, AfterViewInit {
            this.selection.size < this.dataSource.filteredData.length;
   }
 
-  // Exportar datos
-  exportarExcel(): void {
-    this.mostrarMensaje('Exportando datos a Excel...');
-    // Implementar lógica de exportación
+  getFechaActual(): Date {
+    return new Date();
   }
 
-  exportarPDF(): void {
-    this.mostrarMensaje('Generando reporte PDF...');
-    // Implementar lógica de exportación PDF
+  get fechaActual(): Date {
+    return this.getFechaActual();
   }
 
-getSolicitudesPendientesCount(): number {
-  return this.dataSource.data.filter(s => s.estado === 'pendiente').length;
-}
+  // ===== MÉTODOS DE NOTIFICACIÓN =====
 
-getSolicitudesAprobadasCount(): number {
-  return this.dataSource.data.filter(s => s.estado === 'aprobado').length;
-}
-
-getSolicitudesProgramadasCount(): number {
-  return this.dataSource.data.filter(s => s.estado === 'programado').length;
-}
-
-getNombreAsegurado(asegurado: Asegurado): string {
-  if (asegurado.nombreCompleto) {
-    return asegurado.nombreCompleto;
+  /**
+   * Mostrar mensaje de éxito
+   */
+  mostrarMensaje(mensaje: string): void {
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 3000,
+      panelClass: ['snackbar-success']
+    });
   }
-  
-  const nombreCompleto = [
-    asegurado.paterno,
-    asegurado.materno,
-    asegurado.nombres
-  ].filter(part => part && part.trim()).join(' ');
-  
-  return nombreCompleto || 'Asegurado';
-}
 
-getCIAsegurado(asegurado: Asegurado): string {
-  const ci = asegurado.documentoIdentidad || '';
-  const extension = asegurado.extencion || '';
-  
-  if (extension) {
-    return `${ci} ${extension}`.trim();
+  /**
+   * Mostrar mensaje de error
+   */
+  mostrarError(mensaje: string): void {
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 3000,
+      panelClass: ['snackbar-error']
+    });
   }
-  return ci;
-}
 
-getEmpresaAsegurado(asegurado: Asegurado): string {
-  return asegurado.razonSocial || '';
-}
-
-getDocumentosPendientesCount(solicitud: SolicitudExamen): number {
-  return solicitud.documentos.filter(doc => doc.estado === 'pendiente').length;
-}
+  /**
+   * Obtener estadísticas
+   */
+  getEstadisticas(): any {
+    return {
+      total: this.totalSolicitudes,
+      pendientes: this.getSolicitudesPendientesCount(),
+      aprobadas: this.getSolicitudesAprobadasCount(),
+      programadas: this.getSolicitudesProgramadasCount(),
+      completadas: this.getSolicitudesCompletadasCount()
+    };
+  }
 }

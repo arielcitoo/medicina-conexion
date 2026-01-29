@@ -35,7 +35,7 @@ import { AdminCitasService } from '../../services/admin-citas.service';
   templateUrl: './programar-citas-dialog.html',
   styleUrls: ['./programar-citas-dialog.css']
 })
-export class ProgramarCitasDialogComponent implements OnInit {
+export class ProgramarCitasDialog implements OnInit {
   solicitud: SolicitudExamen;
   horarios: HorarioDisponible[] = [];
   citasSeleccionadas: Cita[] = [];
@@ -47,7 +47,7 @@ export class ProgramarCitasDialogComponent implements OnInit {
   ];
 
   constructor(
-    public dialogRef: MatDialogRef<ProgramarCitasDialogComponent>,
+    public dialogRef: MatDialogRef<ProgramarCitasDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private adminCitasService: AdminCitasService
   ) {

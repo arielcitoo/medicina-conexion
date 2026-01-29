@@ -1,1 +1,531 @@
-<p>admin-citas works!</p>
+<div class="admin-citas-container">
+  <!-- Header Principal -->
+  <div class="admin-header">
+    <div class="header-content">
+      <h1 class="header-title">
+        <mat-icon class="header-icon">schedule</mat-icon>
+        Administración de Reservas de Citas
+      </h1>
+      <p class="header-subtitle">
+        Gestión y validación de documentación para Exámenes Preocupacionales
+      </p>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="header-stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon total">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{totalSolicitudes}}</h3>
+            <p>Total Solicitudes</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon pending">
+            <mat-icon>pending_actions</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{getSolicitudesPendientesCount()}}</h3>
+            <p>Pendientes</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon approved">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{getSolicitudesAprobadasCount()}}</h3>
+            <p>Aprobadas</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon scheduled">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{getSolicitudesProgramadasCount()}}</h3>
+            <p>Programadas</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <form [formGroup]="filtroForm" (ngSubmit)="aplicarFiltro()" class="filters-form">
+        <div class="filters-row">
+          <!-- Búsqueda -->
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar por nombre, CI o empresa</mat-label>
+            <input matInput formControlName="buscar" 
+                   placeholder="Ej: Juan Pérez, 1234567, Empresa ABC">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-hint>Presione Enter para buscar</mat-hint>
+          </mat-form-field>
+
+          <!-- Estado -->
+          <mat-form-field appearance="outline" class="status-field">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="estado">
+              <mat-option *ngFor="let estado of estados" [value]="estado.value">
+                <div class="estado-option">
+                  <mat-icon>{{estado.icon}}</mat-icon>
+                  <span>{{estado.label}}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Fecha desde -->
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Fecha desde</mat-label>
+            <input matInput [matDatepicker]="pickerDesde" formControlName="fechaDesde">
+            <mat-datepicker-toggle matSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDesde></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Fecha hasta -->
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Fecha hasta</mat-label>
+            <input matInput [matDatepicker]="pickerHasta" formControlName="fechaHasta">
+            <mat-datepicker-toggle matSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+            <mat-datepicker #pickerHasta></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading">
+            <mat-icon>filter_alt</mat-icon>
+            Aplicar Filtros
+          </button>
+          <button mat-button type="button" (click)="limpiarFiltros()" [disabled]="isLoading">
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+          <button mat-button type="button" (click)="exportarExcel()" [disabled]="isLoading">
+            <mat-icon>download</mat-icon>
+            Exportar Excel
+          </button>
+          <button mat-button type="button" (click)="exportarPDF()" [disabled]="isLoading">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Acciones en Lote -->
+  <div *ngIf="selection.size > 0" class="batch-actions">
+    <mat-card>
+      <mat-card-content>
+        <div class="batch-info">
+          <div class="batch-selection">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{selection.size}} solicitud(es) seleccionada(s)</span>
+          </div>
+          <div class="batch-buttons">
+            <button mat-raised-button color="primary" (click)="aprobarSeleccionados()">
+              <mat-icon>check_circle</mat-icon>
+              Aprobar Seleccionadas
+            </button>
+            <button mat-stroked-button color="warn" (click)="selection.clear()">
+              <mat-icon>clear</mat-icon>
+              Cancelar Selección
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Tabla de Solicitudes -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50" class="loading-spinner"></mat-spinner>
+        <p>Cargando solicitudes...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && dataSource.filteredData.length === 0" class="no-data">
+        <mat-icon>folder_open</mat-icon>
+        <h3>No hay solicitudes para mostrar</h3>
+        <p *ngIf="dataSource.filter">Intenta con otros criterios de búsqueda</p>
+        <p *ngIf="!dataSource.filter">No se han registrado solicitudes aún</p>
+      </div>
+
+      <!-- Tabla de Datos -->
+      <div *ngIf="!isLoading && dataSource.filteredData.length > 0" class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z0">
+          
+          <!-- Columna Checkbox -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                [checked]="todasSeleccionadas"
+                [indeterminate]="seleccionadosParcialmente"
+                (change)="seleccionarTodos($event)">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox
+                [checked]="selection.has(row)"
+                (change)="toggleSeleccion(row)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Columna ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <span class="solicitud-id">#{{solicitud.id}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Asegurado -->
+          <ng-container matColumnDef="asegurado">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Asegurado</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="asegurado-info">
+                <strong>{{getNombreAsegurado(solicitud.asegurado)}}</strong>
+                <div class="contacto-info" *ngIf="solicitud.asegurado.correoElectronico">
+                  <mat-icon class="small-icon">email</mat-icon>
+                  {{solicitud.asegurado.correoElectronico}}
+                </div>
+                <div class="contacto-info" *ngIf="solicitud.asegurado.celular">
+                  <mat-icon class="small-icon">phone</mat-icon>
+                  {{solicitud.asegurado.celular}}
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna CI -->
+          <ng-container matColumnDef="ci">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>C.I.</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="ci-info">
+                {{getCIAsegurado(solicitud.asegurado)}}
+                <span *ngIf="solicitud.asegurado.extencion" class="ci-extension">
+                  {{solicitud.asegurado.extencion}}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Empresa -->
+          <ng-container matColumnDef="empresa">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Empresa</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="empresa-info">
+                {{getEmpresaAsegurado(solicitud.asegurado)}}
+                <small *ngIf="solicitud.asegurado.nroPatronal">Pat: {{solicitud.asegurado.nroPatronal}}</small>
+                <small *ngIf="solicitud.asegurado.matricula">Mat: {{solicitud.asegurado.matricula}}</small>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Estado -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="estado-container">
+                <span class="estado-badge" [ngClass]="getEstadoColor(solicitud.estado)">
+                  <mat-icon class="badge-icon">{{getEstadoIcon(solicitud.estado)}}</mat-icon>
+                  {{solicitud.estado | titlecase}}
+                </span>
+                <div *ngIf="solicitud.fechaAprobacion" class="fecha-aprobacion">
+                  Aprobado: {{solicitud.fechaAprobacion | date:'dd/MM/yyyy'}}
+                </div>
+                <div *ngIf="solicitud.fechaProgramacion" class="fecha-programacion">
+                  Programado: {{solicitud.fechaProgramacion | date:'dd/MM/yyyy'}}
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Fecha Registro -->
+          <ng-container matColumnDef="fechaRegistro">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Registro</th>
+            <td mat-cell *matCellDef="let solicitud">
+              {{solicitud.fechaRegistro | date:'dd/MM/yyyy HH:mm'}}
+            </td>
+          </ng-container>
+
+          <!-- Columna Documentos -->
+          <ng-container matColumnDef="documentos">
+            <th mat-header-cell *matHeaderCellDef>Documentos</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="documentos-info">
+                <div class="documentos-badge" (click)="verDocumentos(solicitud)" matTooltip="Ver documentos">
+                  <mat-icon>folder_open</mat-icon>
+                  <span>{{solicitud.documentos.length}} docs</span>
+                  <span *ngIf="getDocumentosPendientesCount(solicitud) > 0" class="pendientes-count">
+                    ({{getDocumentosPendientesCount(solicitud)}} pendientes)
+                  </span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let solicitud">
+              <div class="acciones-cell">
+                <!-- Menú de acciones -->
+                <button mat-icon-button [matMenuTriggerFor]="menuAcciones" 
+                        matTooltip="Más acciones">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #menuAcciones="matMenu">
+                  <!-- Ver documentos -->
+                  <button mat-menu-item (click)="verDocumentos(solicitud)">
+                    <mat-icon>folder_open</mat-icon>
+                    <span>Ver Documentos</span>
+                  </button>
+
+                  <mat-divider></mat-divider>
+
+                  <!-- Acciones según estado -->
+                  <ng-container *ngIf="solicitud.estado === 'pendiente'">
+                    <button mat-menu-item (click)="aprobarSolicitud(solicitud)" class="action-aprobar">
+                      <mat-icon>check_circle</mat-icon>
+                      <span>Aprobar Solicitud</span>
+                    </button>
+                    <button mat-menu-item (click)="observarSolicitud(solicitud)" class="action-observar">
+                      <mat-icon>visibility</mat-icon>
+                      <span>Observar Solicitud</span>
+                    </button>
+                    <button mat-menu-item (click)="rechazarSolicitud(solicitud)" class="action-rechazar">
+                      <mat-icon>close</mat-icon>
+                      <span>Rechazar Solicitud</span>
+                    </button>
+                  </ng-container>
+
+                  <ng-container *ngIf="solicitud.estado === 'aprobado'">
+                    <button mat-menu-item (click)="programarCitas(solicitud)" class="action-programar">
+                      <mat-icon>schedule</mat-icon>
+                      <span>Programar Citas</span>
+                    </button>
+                    <button mat-menu-item (click)="observarSolicitud(solicitud)" class="action-observar">
+                      <mat-icon>visibility</mat-icon>
+                      <span>Regresar a Observado</span>
+                    </button>
+                  </ng-container>
+
+                  <ng-container *ngIf="solicitud.estado === 'programado'">
+                    <button mat-menu-item (click)="verCitasProgramadas(solicitud)" class="action-ver">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span>Ver Citas Programadas</span>
+                    </button>
+                    <button mat-menu-item (click)="programarCitas(solicitud)" class="action-reprogramar">
+                      <mat-icon>edit_calendar</mat-icon>
+                      <span>Reprogramar Citas</span>
+                    </button>
+                  </ng-container>
+
+                  <ng-container *ngIf="solicitud.estado === 'observado'">
+                    <button mat-menu-item (click)="aprobarSolicitud(solicitud)" class="action-aprobar">
+                      <mat-icon>check_circle</mat-icon>
+                      <span>Aprobar Solicitud</span>
+                    </button>
+                    <button mat-menu-item (click)="observarSolicitud(solicitud)" class="action-editar">
+                      <mat-icon>edit</mat-icon>
+                      <span>Editar Observaciones</span>
+                    </button>
+                  </ng-container>
+
+                  <mat-divider></mat-divider>
+
+                  <!-- Acciones comunes -->
+                  <button mat-menu-item (click)="enviarEmailAprobacion(solicitud)" 
+                          *ngIf="solicitud.estado === 'aprobado' || solicitud.estado === 'programado'">
+                    <mat-icon>email</mat-icon>
+                    <span>Reenviar Email</span>
+                  </button>
+                  
+                  <button mat-menu-item (click)="verCitasProgramadas(solicitud)" 
+                          *ngIf="solicitud.citasProgramadas && solicitud.citasProgramadas.length > 0">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>Ver Citas ({{solicitud.citasProgramadas.length}})</span>
+                  </button>
+                </mat-menu>
+
+                <!-- Botones de acción rápida -->
+                <div class="acciones-rapidas" *ngIf="solicitud.estado === 'pendiente'">
+                  <button mat-mini-fab color="primary" (click)="aprobarSolicitud(solicitud)" 
+                          matTooltip="Aprobar" class="btn-rapido">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button mat-mini-fab color="accent" (click)="observarSolicitud(solicitud)" 
+                          matTooltip="Observar" class="btn-rapido">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </div>
+
+                <div class="acciones-rapidas" *ngIf="solicitud.estado === 'aprobado'">
+                  <button mat-mini-fab color="primary" (click)="programarCitas(solicitud)" 
+                          matTooltip="Programar Citas" class="btn-rapido">
+                    <mat-icon>schedule</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Header Row -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          
+          <!-- Data Row -->
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              [class.selected-row]="selection.has(row)"
+              (click)="toggleSeleccion(row)">
+          </tr>
+        </table>
+
+        <!-- Paginador -->
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" 
+                       showFirstLastButtons 
+                       aria-label="Seleccione página de solicitudes"
+                       class="custom-paginator">
+        </mat-paginator>
+
+        <!-- Información de resultados -->
+        <div class="results-info">
+          <div class="results-count">
+            Mostrando {{dataSource.filteredData.length}} de {{totalSolicitudes}} solicitudes
+          </div>
+          <div class="results-filters" *ngIf="dataSource.filter">
+            <mat-chip-set>
+              <mat-chip *ngIf="filtroForm.get('buscar')?.value" 
+                       [removable]="true" (removed)="filtroForm.get('buscar')?.setValue(''); aplicarFiltro()">
+                Buscar: "{{filtroForm.get('buscar')?.value}}"
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+              <mat-chip *ngIf="filtroForm.get('estado')?.value !== 'todos'"
+                       [removable]="true" (removed)="filtroForm.get('estado')?.setValue('todos'); aplicarFiltro()">
+                Estado: {{getEstadoLabel(filtroForm.get('estado')?.value)}}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+              <mat-chip *ngIf="filtroForm.get('fechaDesde')?.value"
+                       [removable]="true" (removed)="filtroForm.get('fechaDesde')?.setValue(''); aplicarFiltro()">
+                Desde: {{filtroForm.get('fechaDesde')?.value | date:'dd/MM/yyyy'}}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+              <mat-chip *ngIf="filtroForm.get('fechaHasta')?.value"
+                       [removable]="true" (removed)="filtroForm.get('fechaHasta')?.setValue(''); aplicarFiltro()">
+                Hasta: {{filtroForm.get('fechaHasta')?.value | date:'dd/MM/yyyy'}}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Guía Rápida -->
+  <mat-card class="quick-guide-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>help</mat-icon>
+        Guía Rápida de Estados
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="guide-grid">
+        <div class="guide-item">
+          <span class="estado-badge estado-pendiente">
+            <mat-icon class="badge-icon">pending_actions</mat-icon>
+            Pendiente
+          </span>
+          <p>Documentación en revisión. Puede aprobar, observar o rechazar.</p>
+        </div>
+        <div class="guide-item">
+          <span class="estado-badge estado-observado">
+            <mat-icon class="badge-icon">visibility</mat-icon>
+            Observado
+          </span>
+          <p>Documentación requiere correcciones. Puede aprobar después de correcciones.</p>
+        </div>
+        <div class="guide-item">
+          <span class="estado-badge estado-aprobado">
+            <mat-icon class="badge-icon">check_circle</mat-icon>
+            Aprobado
+          </span>
+          <p>Documentación aprobada. Puede programar citas médicas.</p>
+        </div>
+        <div class="guide-item">
+          <span class="estado-badge estado-programado">
+            <mat-icon class="badge-icon">schedule</mat-icon>
+            Programado
+          </span>
+          <p>Citas médicas asignadas. Puede ver o reprogramar citas.</p>
+        </div>
+        <div class="guide-item">
+          <span class="estado-badge estado-completado">
+            <mat-icon class="badge-icon">done_all</mat-icon>
+            Completado
+          </span>
+          <p>Exámenes médicos completados. Proceso finalizado.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Footer con Información -->
+  <div class="footer-info">
+    <mat-card>
+      <mat-card-content>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4>
+              <mat-icon>info</mat-icon>
+              Información del Sistema
+            </h4>
+            <p>Última actualización: {{fechaActual | date:'dd/MM/yyyy HH:mm'}}</p>
+            <p>Total de solicitudes procesadas: {{totalSolicitudes}}</p>
+          </div>
+          <div class="footer-section">
+            <h4>
+              <mat-icon>support_agent</mat-icon>
+              Soporte
+            </h4>
+            <p>Para asistencia técnica contacte al área de sistemas</p>
+            <p>Email: soporte.sistemas@cns.gov.bo</p>
+          </div>
+          <div class="footer-section">
+            <h4>
+              <mat-icon>security</mat-icon>
+              Seguridad
+            </h4>
+            <p>Sesión activa: {{tieneSesionActiva ? 'Sí' : 'No'}}</p>
+            <button mat-button (click)="cerrarSesion()" *ngIf="tieneSesionActiva">
+              <mat-icon>logout</mat-icon>
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
