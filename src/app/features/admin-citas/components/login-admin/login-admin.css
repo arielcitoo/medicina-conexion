@@ -1,0 +1,70 @@
+.login-admin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f8fafc; /* fondo claro institucional */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica Neue, sans-serif;
+}
+
+.login-card {
+  background: #ffffff; /* caja blanca */
+  border: 1px solid #e6e7e9; /* borde suave */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 380px;
+  padding: 30px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-header h1 {
+  margin: 0;
+  color: #000000; /* título negro */
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.login-button {
+  background-color: #2fb344; /* verde institucional CNS */
+  color: #fff;
+  font-weight: 600;
+  height: 45px;
+  border-radius: 6px;
+}
+
+.login-button:hover:not([disabled]) {
+  background-color: #28a745; /* verde más oscuro al hover */
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffebee;
+  color: #d63939; /* rojo institucional CNS */
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.login-footer {
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: #626976; /* gris institucional */
+  text-align: center;
+}

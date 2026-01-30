@@ -1,0 +1,308 @@
+============================================================================== 
+ARCHIVO : src\app\features\admin-citas\components\login-admin\login-admin.ts 
+============================================================================== 
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+
+import { AuthCnsService } from '../../../../core/service/auth-cns.service';
+
+@Component({
+  selector: 'app-login-admin',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule
+  ],
+  templateUrl: './login-admin.html',
+  styleUrls: ['./login-admin.css']
+})
+export class LoginAdmin implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthCnsService);
+  private readonly snackBar = inject(MatSnackBar);
+
+  loginForm: FormGroup;
+  isLoading = false;
+  errorMessage = '';
+
+  constructor() {
+    this.loginForm = this.fb.group({
+      username: ['', [Validators.required]],
+      password: ['', [Validators.required]]
+    });
+  }
+
+  ngOnInit(): void {
+    // Verificar si ya hay una sesión activa
+    this.verificarSesionActiva();
+  }
+
+  private verificarSesionActiva(): void {
+    if (this.authService.isAuthenticated()) {
+      const esAdmin = this.authService.isAdmin();
+      const tienePermiso = this.authService.hasPermission('administrar_citas');
+      
+      if (esAdmin || tienePermiso) {
+        this.router.navigate(['/admin-citas']);
+      }
+    }
+  }
+
+  login(): void {
+    if (this.loginForm.invalid) {
+      return;
+    }
+
+    const { username, password } = this.loginForm.value;
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.login(username, password).subscribe({
+      next: (response: any) => {
+        // El servicio ya maneja la autenticación y almacenamiento
+        this.isLoading = false;
+        
+        // Verificar permisos
+        const esAdmin = this.authService.isAdmin();
+        const tienePermiso = this.authService.hasPermission('administrar_citas');
+        
+        if (esAdmin || tienePermiso) {
+          this.mostrarMensaje('Login exitoso');
+          this.router.navigate(['/admin-citas']);
+        } else {
+          this.errorMessage = 'No tiene permisos para acceder al sistema de administración de citas';
+          this.authService.logout();
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        
+        if (error.status === 401 || error.status === 400) {
+          this.errorMessage = 'Credenciales incorrectas';
+        } else if (error.status === 0) {
+          this.errorMessage = 'Error de conexión. Verifique su conexión a internet';
+        } else {
+          this.errorMessage = 'Error en el servidor. Intente nuevamente';
+        }
+        
+        console.error('Error en login:', error);
+      }
+    });
+  }
+
+  private mostrarMensaje(mensaje: string): void {
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top'
+    });
+  }
+
+  irAHome(): void {
+    this.router.navigate(['/home']);
+  }
+}
+============================================================================== 
+ARCHIVO : src\app\features\admin-citas\components\login-admin\login-admin.html 
+============================================================================== 
+<div class="login-header"> <!-- Logo CNS (opcional) -->
+    <!-- <div class="cns-logo"> <img src="/assets/logo-cns.png" alt="CNS Logo"> </div> -->
+    <div class="login-card"> <!-- Logo y Título -->
+        <div class="login-header"> 
+            <h1>Accede a tu cuenta</h1>
+        </div>
+        <!-- Formulario de Login -->
+        <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
+
+            <!-- Campo Usuario -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Usuario</mat-label>
+                <input matInput formControlName="username" placeholder="Ingrese su usuario" autocomplete="username">
+                <mat-icon matPrefix>person_outline</mat-icon>
+
+                @if (loginForm.get('username')?.hasError('required')) {
+                <mat-error>Usuario requerido</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Campo Contraseña -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contraseña</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Ingrese su contraseña"
+                    autocomplete="current-password">
+                <mat-icon matPrefix>lock_outline</mat-icon>
+
+                @if (loginForm.get('password')?.hasError('required')) {
+                <mat-error>Contraseña requerida</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Mensaje de Error -->
+            @if (errorMessage) {
+            <div class="error-message">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorMessage }}</span>
+            </div>
+            }
+
+            <!-- Botón de Login -->
+            <button mat-raised-button type="submit" class="login-button" [disabled]="loginForm.invalid || isLoading">
+                @if (isLoading) {
+                <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+                <span>VERIFICANDO...</span>
+                } @else {
+                <mat-icon>arrow_forward</mat-icon>
+                <span>INGRESAR</span>
+                }
+            </button>
+        </form>
+
+      
+
+        <!-- Enlaces -->
+        <div class="login-links">
+            <button mat-button (click)="irAHome()">
+                <mat-icon>arrow_back</mat-icon>
+                Volver al inicio
+            </button>
+            <button mat-button routerLink="/login">
+                <mat-icon>person</mat-icon>
+                Acceso asegurados
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <mat-icon>verified_user</mat-icon>
+            <span>Sistema seguro - Caja Nacional de Salud</span>
+        </div>
+    </div>
+</div>
+============================================================================== 
+ARCHIVO : src\app\features\admin-citas\components\login-admin\login-admin.css 
+============================================================================== 
+.login-admin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    padding: 30px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.login-header img {
+    width: 80px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.login-header h1 {
+    margin: 0;
+    color: #0d47a1;
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.subtitle {
+    margin-top: 6px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.login-button {
+    height: 45px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
+    background-color: #1976d2;
+    color: #fff;
+}
+
+.login-button:hover:not([disabled]) {
+    background-color: #1565c0;
+    box-shadow: 0 4px 10px rgba(21, 101, 192, 0.4);
+}
+
+.login-admin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* usar height en vez de min-height */
+    background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+    margin: 0;
+    /* quitar márgenes extra */
+    padding: 0;
+    /* quitar padding que descentraba */
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    /* limitar ancho */
+    padding: 30px;
+    margin: auto;
+    /* asegurar centrado */
+}
+
+
+.login-admin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* mantiene centrado vertical */
+    background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+    padding: 20px;
+    /* devolvemos padding para que no quede pegado */
+    box-sizing: border-box;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 420px;
+    /* tamaño controlado */
+    padding: 35px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* mantiene separación interna */
+}

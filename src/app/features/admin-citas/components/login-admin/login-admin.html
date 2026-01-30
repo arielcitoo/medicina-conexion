@@ -1,1 +1,52 @@
-<p>login-admin works!</p>
+<div class="login-admin-container">
+  <div class="login-card">
+    <div class="login-header">
+     
+      <h1>Accede a tu cuenta</h1>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
+      <!-- Usuario -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Usuario</mat-label>
+        <input matInput formControlName="username" autocomplete="username">
+        <mat-icon matPrefix>person_outline</mat-icon>
+        @if (loginForm.get('username')?.hasError('required')) {
+          <mat-error>Usuario requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Contraseña -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contraseña</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        @if (loginForm.get('password')?.hasError('required')) {
+          <mat-error>Contraseña requerida</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Error -->
+      @if (errorMessage) {
+        <div class="error-message">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <!-- Botón -->
+      <button mat-raised-button type="submit" class="login-button" [disabled]="loginForm.invalid || isLoading">
+        @if (isLoading) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+          <span>Verificando...</span>
+        } @else {
+          <span>Ingresar</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <span>Caja Nacional de Salud</span>
+    </div>
+  </div>
+</div>
